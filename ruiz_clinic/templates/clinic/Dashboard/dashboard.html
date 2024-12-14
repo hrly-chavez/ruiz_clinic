@@ -11,12 +11,10 @@
         </div>
         <div class="widgets-row">
             <!-- Appointments Widget -->
-            <div class="appointments-widget">
+            <div class="appointments-widget widget">
+                <div class="widget-header">APPOINTMENT(s) TODAY</div>
                 <table class="appointments-table">
                     <thead>
-                        <tr>
-                            <th colspan="3" class="table-header">APPOINTMENT(s) TODAY</th>
-                        </tr>
                         <tr>
                             <th>Name</th>
                             <th>Time</th>
@@ -49,11 +47,8 @@
             </div>
 
             <!-- Profile Widget -->
-            <div class="profile-widget">
-                <!-- Header for Profile -->
-                <div class="profile-header">
-                    <h3>PROFILE</h3>
-                </div>
+            <div class="profile-widget widget">
+                <div class="widget-header">PROFILE</div>
                 <div class="profile-content">
                     <div class="profile-image">
                         <img src="{% static 'istockphoto-1061001352-612x612.jpg' %}" alt="Dr. Rodjin Caratao">
@@ -75,21 +70,17 @@
 
     <!-- Row containing Graph and Notice -->
     <div class="widgets-row">
-        <div class="graph-widget">
-            <!-- Header for Graph Widget -->
-            <div class="graph-header">
-                <h3>GRAPH</h3>
-            </div>
+        <!-- Graph Widget -->
+        <div class="graph-widget widget">
+            <div class="widget-header">GRAPH</div>
             <div class="graph-placeholder">
                 <p>Placeholder for Graph or Word Cloud</p>
             </div>
         </div>
-        
-        <div class="notice-widget">
-            <!-- Header for Notice Widget -->
-            <div class="notice-header">
-                <h3>NOTICE</h3>
-            </div>
+
+        <!-- Notice Widget -->
+        <div class="notice-widget widget">
+            <div class="widget-header">NOTICE</div>
             <p>🔔 Low Stock Alert: Eyeglasses</p>
             <p>🔔 Low Stock Alert: Eye Drops</p>
         </div>
