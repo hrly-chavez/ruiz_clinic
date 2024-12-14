@@ -1,0 +1,234 @@
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f9;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+/* Navbar Styles */
+.navbar {
+    width: 240px;
+    background: linear-gradient(145deg, #29B6F6, #1a8ebc);
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    padding: 20px;
+    box-shadow: 3px 0 6px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    z-index: 1;
+    transition: width 0.3s ease;
+}
+
+.navbar a {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    margin: 10px 0;
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 18px;
+    border-radius: 8px;
+    transition: all 0.3s ease-in-out;
+}
+
+.navbar a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateX(10px);
+    box-shadow: 2px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar a img {
+    width: 30px;
+    height: 30px;
+    margin-right: 15px;
+    transition: transform 0.3s;
+}
+
+.navbar a:hover img {
+    transform: scale(1.2);
+}
+
+/* Leave Link Special Styling */
+.navbar a.leave {
+    margin-top: auto;
+    background: #1a8ebc;
+    color: #ffffff;
+}
+
+.navbar a.leave:hover {
+    background: #ff6e6e;
+    transform: translateX(10px);
+}
+
+/* Content Section */
+.content {
+    margin-left: 260px; /* Space for the navbar */
+    padding: 20px;
+    width: calc(100% - 260px); /* Content width adjusts dynamically */
+    position: relative;
+    z-index: 0;
+    background-color: #f4f4f9;
+    transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+.content h1 {
+    font-size: 28px;
+    color: #333;
+}
+
+/* Container Styles */
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 20px;
+    padding: 20px;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+/* Common styling for widgets */
+.widgets-row {
+    display: flex;
+    gap: 20px;
+    justify-content: space-between;
+    flex-wrap: wrap; /* Ensure widgets wrap to the next line if needed */
+    margin-top: 20px;
+}
+
+/* Widgets */
+.profile-widget,
+.notice-widget,
+.graph-widget {
+    flex: 1; /* Allow widgets to grow/shrink based on available space */
+    min-width: 280px; /* Minimum width for smaller screens */
+    max-width: 100%; /* Ensure they don’t exceed parent width */
+    background-color: #EAF3FB;
+    padding: 0;
+    border-radius: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: 10px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+/* Profile and Notice Headers */
+.profile-header,
+.notice-header,
+.graph-header {
+    background: linear-gradient(145deg, #29B6F6, #1a8ebc);
+    padding: 5px;
+    width: 100%;
+    text-align: center;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border-radius: 15px 15px 0 0;
+}
+
+/* Appointments Table */
+.appointments-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #FFFFFF;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.appointments-table th,
+.appointments-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #E0E7EF;
+}
+
+.appointments-table th {
+    background: linear-gradient(145deg, #29B6F6, #1a8ebc);
+    color: white;
+    font-weight: bold;
+    text-align: center;
+}
+
+.appointments-table tr:nth-child(even) {
+    background-color: #F4F8FD;
+}
+
+/* Placeholder for Graph or Word Cloud */
+.graph-placeholder {
+    height: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #cbd5e0;
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 1024px) {
+    .navbar {
+        width: 200px;
+    }
+
+    .content {
+        margin-left: 210px;
+        width: calc(100% - 210px);
+    }
+
+    .dashboard-container {
+        padding: 10px;
+    }
+
+    .widgets-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .profile-widget,
+    .notice-widget,
+    .graph-widget {
+        width: 100%; /* Full width on small screens */
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .navbar {
+        width: 180px;
+    }
+
+    .content {
+        margin-left: 190px;
+        width: calc(100% - 190px);
+    }
+
+    .profile-widget,
+    .notice-widget,
+    .graph-widget {
+        width: 100%; /* Full width */
+    }
+}
+
+@media screen and (min-width: 1441px) {
+    .dashboard-container {
+        width: calc(100% - 240px);
+    }
+
+    .profile-widget,
+    .notice-widget {
+        width: 30%; /* Take up one-third of the row on very large screens */
+    }
+
+    .graph-widget {
+        width: 65%; /* Large graph on wider monitors */
+    }
+}
