@@ -1,7 +1,64 @@
 {% extends 'clinic/nav.html' %}
+{% load static %}
 
-{% block title %}Appointmentge{% endblock %}
+{% block title %}Appointments{% endblock %}
 
 {% block content %}
-    <h1>Welcome to the Appointment Page</h1>
+<link rel="stylesheet" href="{% static 'css/appointment.css' %}">
+
+<div class="appointment-container">
+    <div class="calendar-schedule-row" style="display: flex; gap: 20px;">
+        <!-- Calendar Section -->
+        <div class="calendar-widget widget" style="flex: 2;">
+            <div class="widget-header">CALENDAR</div>
+            <div id="calendar"></div>
+        </div>
+
+        <!-- Schedule Section -->
+        <div class="schedule-widget widget" style="flex: 1; background-color: #fff8e1; padding: 20px;">
+            <div class="widget-header">SCHEDULES</div>
+            <div class="schedule-list">
+                <ul>
+                    <li>
+                        <strong>October 1, 2024:</strong> 8:00 AM - Check-Up <br>
+                        <small>Patient: Juan dela Cruz</small>
+                    </li>
+                    <li>
+                        <strong>October 2, 2024:</strong> 9:15 AM - Adjust Eyeglass <br>
+                        <small>Patient: Alvin Pougibot</small>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FullCalendar CSS and JS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+<!-- FullCalendar Initialization -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'timeGridWeek', // Use timeGridWeek
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            slotMinTime: '08:00:00',
+            slotMaxTime: '17:00:00',
+            events: [
+                { title: 'Check-Up - Juan dela Cruz', start: '2024-10-01T08:00:00' },
+                { title: 'Adjust Eyeglass - Alvin Pougibot', start: '2024-10-02T09:15:00' }
+            ],
+            columnHeaderFormat: { weekday: 'short', day: 'numeric' }, // Format days
+        });
+    
+        calendar.render();
+    });
+</script>
+
 {% endblock %}

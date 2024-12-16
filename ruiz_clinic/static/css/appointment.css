@@ -1,0 +1,178 @@
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f9;
+}
+
+/* Dashboard Container */
+.dashboard-container {
+    padding: 20px;
+    color: #333;
+}
+
+/* Widgets Row */
+.widgets-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap; /* Wrap widgets on smaller screens */
+    margin-bottom: 20px;
+}
+
+/* General Widget Container */
+.widget {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden; /* Ensures clean header alignment */
+}
+
+/* Reusable Widget Header */
+.widget-header {
+    background: linear-gradient(145deg, #29B6F6, #1a8ebc);
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    padding: 12px 0;
+    border-radius: 8px 8px 0 0;
+    width: 100%;
+}
+
+/* Appointments and Graph Widgets */
+.appointments-widget,
+.graph-widget {
+    width: 700px;
+    flex: 2;
+}
+
+.profile-widget,
+.notice-widget {
+    width: 300px;
+    flex: 1;
+}
+
+/* Schedule Section */
+.schedule-widget {
+    display: flex;
+    flex-direction: column;
+    background-color: #fff8e1;
+    padding: 0 20px 20px 20px;
+    border-radius: 8px;
+}
+
+.schedule-widget .widget-header {
+    border-radius: 8px 8px 0 0;
+    margin-bottom: 20px; /* Space between header and schedule list */
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .appointments-widget,
+    .graph-widget,
+    .profile-widget,
+    .notice-widget {
+        width: 100%; /* Full-width widgets on smaller screens */
+    }
+
+    .widgets-row {
+        flex-direction: column; /* Stack widgets vertically */
+    }
+}
+
+/* FullCalendar Styling */
+#calendar {
+    width: 100%;
+    max-height: 600px;
+    margin: 0 auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.fc .fc-toolbar-title {
+    font-size: 20px;
+    color: #333;
+}
+
+.fc .fc-daygrid-day {
+    background-color: #f9f9f9;
+    border: 1px solid #e0e0e0;
+}
+
+.fc .fc-daygrid-day:hover {
+    background-color: #e3f2fd;
+    cursor: pointer;
+}
+
+.fc .fc-event {
+    background-color: #29B6F6;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    padding: 5px;
+}
+
+.fc .fc-daygrid-event-dot {
+    background-color: #ffffff; /* Ensure dot visibility for events */
+}
+
+.fc .fc-button {
+    background-color: #1a8ebc;
+    border: none;
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.fc .fc-button:hover {
+    background-color: #1565c0;
+}
+
+.fc .fc-button-primary:disabled {
+    background-color: #ccc;
+    color: #888;
+}
+
+/* Schedule List */
+.schedule-list {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 15px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.schedule-list h3 {
+    text-align: center;
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #1a8ebc;
+}
+
+.schedule-list ul {
+    list-style: none;
+    padding: 0;
+}
+
+.schedule-list li {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    color: #555;
+    font-size: 14px;
+}
+
+.schedule-list li:last-child {
+    border-bottom: none;
+}
+
+.schedule-list .time {
+    font-weight: bold;
+    color: #333;
+}
