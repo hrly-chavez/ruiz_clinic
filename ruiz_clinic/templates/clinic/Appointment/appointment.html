@@ -15,21 +15,67 @@
         </div>
 
         <!-- Schedule Section -->
-        <div class="schedule-widget widget" style="flex: 1; background-color: #fff8e1; padding: 20px;">
-            <div class="widget-header">SCHEDULES</div>
-            <div class="schedule-list">
+        <div class="schedule-widget widget" style="flex: 1; background-color: #fff8e1; padding: 20px; position: relative;">
+            <div class="widget-header" style="display: flex; justify-content: space-between; align-items: center;">
+                SCHEDULES
+                <button id="add-schedule-btn" class="btn btn-primary" style="padding: 5px 10px;">Add Schedule</button>
+            </div>
+            <div class="schedule-list" style="margin-top: 10px;">
                 <ul>
-                    <li>
-                        <strong>October 1, 2024:</strong> 8:00 AM - Check-Up <br>
-                        <small>Patient: Juan dela Cruz</small>
-                    </li>
-                    <li>
-                        <strong>October 2, 2024:</strong> 9:15 AM - Adjust Eyeglass <br>
-                        <small>Patient: Alvin Pougibot</small>
-                    </li>
+                    {% for appointment in appointments %}
+                        <li>
+                            <strong>{{ appointment.app_date|date:"F d, Y" }}:</strong> {{ appointment.app_time|time:"h:i A" }} - {{ appointment.app_status }} <br>
+                            <small>Patient: 
+                                {% if appointment.patient_id %}
+                                    {{ appointment.patient_id.patient_fname }} {{ appointment.patient_id.patient_lname }}
+                                {% else %}
+                                    Unknown Patient
+                                {% endif %}
+                            </small>
+                        </li>
+                    {% empty %}
+                        <li>No appointments scheduled.</li>
+                    {% endfor %}
                 </ul>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Modal for Adding Schedule -->
+<div id="add-schedule-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center;">
+    <div class="modal-content" style="background: #fff; padding: 20px; width: 400px; border-radius: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h4>Create Appointment</h4>
+            <button id="close-modal" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+        </div>
+        <form id="add-schedule-form" method="POST" action="{% url 'add_appointment' %}">
+            {% csrf_token %}
+            <div style="margin-bottom: 10px;">
+                <label for="app_fname">First Name:</label>
+                <input type="text" id="app_fname" name="app_fname" required style="width: 100%;">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label for="app_lname">Last Name:</label>
+                <input type="text" id="app_lname" name="app_lname" required style="width: 100%;">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label for="app_date">Date:</label>
+                <input type="date" id="app_date" name="app_date" required style="width: 100%;">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label for="app_time">Time:</label>
+                <input type="time" id="app_time" name="app_time" required style="width: 100%;">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label for="app_status">Status:</label>
+                <select id="app_status" name="app_status" required style="width: 100%;">
+                    <option value="Ongoing">Ongoing</option>
+                    <option value="Waiting">Waiting</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Save Appointment</button>
+        </form>
     </div>
 </div>
 
@@ -37,12 +83,12 @@
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
-<!-- FullCalendar Initialization -->
+<!-- FullCalendar and Modal Script -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         var calendarEl = document.getElementById('calendar');
         var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'timeGridWeek', // Use timeGridWeek
+            initialView: 'timeGridWeek',
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
@@ -54,11 +100,22 @@
                 { title: 'Check-Up - Juan dela Cruz', start: '2024-10-01T08:00:00' },
                 { title: 'Adjust Eyeglass - Alvin Pougibot', start: '2024-10-02T09:15:00' }
             ],
-            columnHeaderFormat: { weekday: 'short', day: 'numeric' }, // Format days
+            columnHeaderFormat: { weekday: 'short', day: 'numeric' },
+            dateClick: function(info) {
+                document.getElementById('app_date').value = info.dateStr;
+                document.getElementById('add-schedule-modal').style.display = 'flex';
+            }
         });
-    
         calendar.render();
+
+        // Modal toggle logic
+        var modal = document.getElementById('add-schedule-modal');
+        document.getElementById('add-schedule-btn').addEventListener('click', function () {
+            modal.style.display = 'flex';
+        });
+        document.getElementById('close-modal').addEventListener('click', function () {
+            modal.style.display = 'none';
+        });
     });
 </script>
-
 {% endblock %}
