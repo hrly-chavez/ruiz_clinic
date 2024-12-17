@@ -1,7 +1,43 @@
 {% extends 'clinic/nav.html' %}
 
-{% block title %}Inventory Page{% endblock %}
-
 {% block content %}
-    <h1>Welcome to the Inventory Page</h1>
+<div style="padding: 20px; background-color: #2db9fae8; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px; height: 125px; display: flex; align-items: center; margin: 0; justify-content: space-between;">
+    <h1 style="color: #fff; font-size: 37px; font-family: 'Istok Web', sans-serif; font-weight: normal;">INVENTORY</h1>
+    <a href="{% url 'add_item' %}" style="padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; font-family: 'Istok Web', sans-serif; font-size: 16px; font-weight: bold;">Add Item</a>
+</div>
+
+<div style="padding: 20px; margin: 20px 0 0 0; background-color: #fff; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px;">
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="background-color: #f2f2f2; text-align: left;">
+                <th style="padding: 10px; border: 1px solid #ddd;">Item Code</th>
+                <th style="padding: 10px; border: 1px solid #ddd;">Brand</th>
+                <th style="padding: 10px; border: 1px solid #ddd;">Model</th>
+                <th style="padding: 10px; border: 1px solid #ddd;">Price</th>
+                <th style="padding: 10px; border: 1px solid #ddd;">Quantity</th>
+                <th style="padding: 10px; border: 1px solid #ddd;">Category</th>
+                <th style="padding: 10px; border: 1px solid #ddd;">Frame Type</th>
+                <th style="padding: 10px; border: 1px solid #ddd;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td style="padding: 10px; border: 1px solid #ddd;">{{ item.item_code }}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">{{ item.item_brand }}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">{{ item.item_model }}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">₱{{ item.item_price }}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">{{ item.item_quantity }}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">{{ item.item_category_id.item_category_name }}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">{{ item.item_frame_type_id.item_frame_type_name }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" style="padding: 10px; border: 1px solid #ddd; text-align: center;">No items available</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 {% endblock %}
