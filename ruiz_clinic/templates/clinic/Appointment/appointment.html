@@ -5,121 +5,132 @@
 
 {% block content %}
 <div style="padding: 20px; background-color: #2db9fae8; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px; height: 90px; display: flex; align-items: center; margin: 0; justify-content: space-between;">
-    <h1 style="color: #fff; font-size: 37px; font-family: 'Istok Web', sans-serif; font-weight: normal;">Appointment</h1>
-</div>
-<br>
-<link rel="stylesheet" href="{% static 'css/appointment.css' %}">
-
-<div class="appointment-container">
-    <div class="calendar-schedule-row" style="display: flex; gap: 20px;">
-        <!-- Calendar Section -->
-        <div class="calendar-widget widget" style="flex: 2;">
-            <div class="widget-header">CALENDAR</div>
-            <div id="calendar"></div>
-        </div>
-
-        <!-- Schedule Section -->
-        <div class="schedule-widget widget" style="flex: 1; background-color: #fff8e1; padding: 20px; position: relative;">
-            <div class="widget-header" style="display: flex; justify-content: space-between; align-items: center;">
-                SCHEDULES
-                <button id="add-schedule-btn" class="btn btn-primary" style="padding: 5px 10px;">Add Schedule</button>
-            </div>
-            <div class="schedule-list" style="margin-top: 10px;">
-                <ul>
-                    {% for appointment in appointments %}
-                        <li>
-                            <strong>{{ appointment.app_date|date:"F d, Y" }}:</strong> {{ appointment.app_time|time:"h:i A" }} - {{ appointment.app_status }} <br>
-                            <small>Patient: 
-                                {% if appointment.patient_id %}
-                                    {{ appointment.patient_id.patient_fname }} {{ appointment.patient_id.patient_lname }}
-                                {% else %}
-                                    Unknown Patient
-                                {% endif %}
-                            </small>
-                        </li>
-                    {% empty %}
-                        <li>No appointments scheduled.</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal for Adding Schedule -->
-<div id="add-schedule-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center;">
-    <div class="modal-content" style="background: #fff; padding: 20px; width: 400px; border-radius: 8px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h4>Create Appointment</h4>
-            <button id="close-modal" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
-        </div>
-        <form id="add-schedule-form" method="POST" action="{% url 'add_appointment' %}">
-            {% csrf_token %}
-            <div style="margin-bottom: 10px;">
-                <label for="app_fname">First Name:</label>
-                <input type="text" id="app_fname" name="app_fname" required style="width: 100%;">
-            </div>
-            <div style="margin-bottom: 10px;">
-                <label for="app_lname">Last Name:</label>
-                <input type="text" id="app_lname" name="app_lname" required style="width: 100%;">
-            </div>
-            <div style="margin-bottom: 10px;">
-                <label for="app_date">Date:</label>
-                <input type="date" id="app_date" name="app_date" required style="width: 100%;">
-            </div>
-            <div style="margin-bottom: 10px;">
-                <label for="app_time">Time:</label>
-                <input type="time" id="app_time" name="app_time" required style="width: 100%;">
-            </div>
-            <div style="margin-bottom: 10px;">
-                <label for="app_status">Status:</label>
-                <select id="app_status" name="app_status" required style="width: 100%;">
-                    <option value="Ongoing">Ongoing</option>
-                    <option value="Waiting">Waiting</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary" style="width: 100%;">Save Appointment</button>
-        </form>
-    </div>
+    <h1 style="color: #fff; font-size: 37px; font-family: 'Istok Web', sans-serif; font-weight: normal;">Appointments</h1>
 </div>
 
 <!-- FullCalendar CSS and JS -->
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
-<!-- FullCalendar and Modal Script -->
+<!-- Calendar Container -->
+<div id="calendar" style="margin: 20px; height: calc(100vh - 130px);"></div>
+
+<div id="dayOffModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 20px; border-radius: 8px; width: 300px; text-align: center; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);">
+        <h2 style="margin-bottom: 15px; font-family: 'Istok Web', sans-serif;">Day-off</h2>
+        <p style="margin-bottom: 15px;">Sorry, appointments cannot be scheduled on Sundays.</p>
+        <button id="closeDayOffModal" style="padding: 10px 20px; background-color: #29B6F6; color: white; border: none; border-radius: 5px; cursor: pointer;">Close</button>
+    </div>
+</div>
+    
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         var calendarEl = document.getElementById('calendar');
+    
+        // Get the dates with appointments passed from Django
+        var appointmentDates = {{ appointment_dates|safe }};
+        var dayOffModal = document.getElementById('dayOffModal');
+        var closeDayOffModal = document.getElementById('closeDayOffModal');
+    
         var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'timeGridWeek',
+            initialView: 'dayGridMonth',
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                right: ''
             },
-            slotMinTime: '08:00:00',
-            slotMaxTime: '17:00:00',
-            events: [
-                { title: 'Check-Up - Juan dela Cruz', start: '2024-10-01T08:00:00' },
-                { title: 'Adjust Eyeglass - Alvin Pougibot', start: '2024-10-02T09:15:00' }
-            ],
-            columnHeaderFormat: { weekday: 'short', day: 'numeric' },
-            dateClick: function(info) {
-                document.getElementById('app_date').value = info.dateStr;
-                document.getElementById('add-schedule-modal').style.display = 'flex';
+            height: 'auto',
+            contentHeight: 'auto',
+            expandRows: true,
+    
+            // Style each cell
+            dayCellDidMount: function (info) {
+                var date = new Date(info.date);
+    
+                // Highlight Sundays
+                if (date.getDay() === 0) { // `0` corresponds to Sunday
+                    info.el.style.backgroundColor = 'grey'; // Background color for Sundays
+                    info.el.style.color = 'white'; // White text for better contrast
+                }
+    
+                // Highlight cells with appointment dates
+                if (appointmentDates.includes(info.date.toISOString().split('T')[0])) {
+                    info.el.style.backgroundColor = '#29B6F6'; // Light blue for appointment dates
+                    info.el.style.color = '#fff'; // White text for better visibility
+                    info.el.style.position = 'relative'; // Make position relative for inner content
+    
+                    // Add "See Appointments" text inside the box
+                    var seeAppointmentsText = document.createElement('span');
+                    seeAppointmentsText.textContent = 'See Appointments';
+                    seeAppointmentsText.style.position = 'absolute';
+                    seeAppointmentsText.style.top = '50%';
+                    seeAppointmentsText.style.left = '50%';
+                    seeAppointmentsText.style.transform = 'translate(-50%, -50%)';
+                    seeAppointmentsText.style.fontSize = '12px';
+                    seeAppointmentsText.style.fontWeight = 'bold';
+                    seeAppointmentsText.style.color = '#fff';
+                    info.el.appendChild(seeAppointmentsText);
+                }
+            },
+    
+            dateClick: function (info) {
+                var clickedDate = new Date(info.date);
+    
+                // Check if the clicked date is a Sunday
+                if (clickedDate.getDay() === 0) { // Sunday
+                    dayOffModal.style.display = 'flex'; // Show the modal
+                } else {
+                    // Redirect to view_appointment.html for other dates
+                    window.location.href = `/view_appointment/?date=${info.dateStr}`;
+                }
             }
         });
+    
         calendar.render();
-
-        // Modal toggle logic
-        var modal = document.getElementById('add-schedule-modal');
-        document.getElementById('add-schedule-btn').addEventListener('click', function () {
-            modal.style.display = 'flex';
+    
+        // Close the modal when the "Close" button is clicked
+        closeDayOffModal.addEventListener('click', function () {
+            dayOffModal.style.display = 'none';
         });
-        document.getElementById('close-modal').addEventListener('click', function () {
-            modal.style.display = 'none';
+    
+        // Close the modal if the user clicks outside the modal content
+        window.addEventListener('click', function (event) {
+            if (event.target === dayOffModal) {
+                dayOffModal.style.display = 'none';
+            }
         });
     });
+    
+    
 </script>
+    <style>
+        .sunday-highlight {
+            background-color: #fefefe; /* Red background for Sundays */
+            color: white; /* White text */
+            font-weight: bold; /* Optional: Make the text bold */
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal div {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 300px;
+            text-align: center;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+    </style>
 {% endblock %}

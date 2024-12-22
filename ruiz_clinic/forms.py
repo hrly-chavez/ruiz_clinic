@@ -34,3 +34,45 @@ class ItemForm(forms.ModelForm):
 #_____________________________________PATIENT__________________________________________________
 class PatientForm(forms.ModelForm):
     pass
+
+#_________________________________APPOINTMENT___________________________________________________
+
+class AppointmentForm(forms.ModelForm):
+    class Meta:
+        model = Appointment
+        fields = ['app_fname', 'app_lname', 'app_date', 'app_time', 'app_status',]
+        widgets = {
+            'app_date': forms.DateInput(attrs={'type': 'date'}),
+            'app_time': forms.TimeInput(attrs={'type': 'time'}),
+            'app_status': forms.Select(choices=Appointment.app_status_choices),
+        }
+        labels = {
+            'app_fname': 'First Name',
+            'app_lname': 'Last Name',
+            'app_date': 'Date',
+            'app_time': 'Time',
+            'app_status': 'Status',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # If an initial date is passed, populate the `app_date` field
+        if 'initial' in kwargs and 'app_date' in kwargs['initial']:
+            self.fields['app_date'].initial = kwargs['initial']['app_date']
+# class AppointmentForm(forms.ModelForm):
+#     class Meta:
+#         model = Appointment
+#         fields = ['app_fname', 'app_lname', 'app_date', 'app_time', 'app_status', 'patient_id']
+#         widgets = {
+#             'app_date': forms.DateInput(attrs={'type': 'date'}),
+#             'app_time': forms.TimeInput(attrs={'type': 'time'}),
+#             'app_status': forms.Select(choices=Appointment.app_status_choices),
+#         }
+#         labels = {
+#             'app_fname': 'First Name',
+#             'app_lname': 'Last Name',
+#             'app_date': 'Date',
+#             'app_time': 'Time',
+#             'app_status': 'Status',
+#             'patient_id': 'Patient',
+#         }
