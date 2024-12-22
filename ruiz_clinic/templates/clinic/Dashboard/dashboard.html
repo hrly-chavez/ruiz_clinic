@@ -6,8 +6,8 @@
 <div class="dashboard-container">
     <!-- Row containing Date and Time above Appointments -->
     <div>
-        <div class="date-time">
-            October 25, 2024 <br> 12:00 PM
+        <div class="date-time" id="date-time">
+            <!-- The content will be replaced by JavaScript -->
         </div>
         <div class="widgets-row">
             <!-- Appointments Widget -->
@@ -18,30 +18,17 @@
                         <tr>
                             <th>Name</th>
                             <th>Time</th>
-                            <th>Description</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
+                        {% for appointment in appointments %}
                         <tr>
-                            <td>Juan dela Cruz</td>
-                            <td>8:00 AM</td>
-                            <td>Check-Up</td>
+                            <td>{{ appointment.app_fname }} {{ appointment.app_lname }}</td>
+                            <td>{{ appointment.app_time }}</td>
+                            <td>{{ appointment.app_status }}</td>
                         </tr>
-                        <tr>
-                            <td>Alvin Pougibot</td>
-                            <td>9:15 AM</td>
-                            <td>Adjust Eyeglass</td>
-                        </tr>
-                        <tr>
-                            <td>Mary Caratao</td>
-                            <td>11:00 AM</td>
-                            <td>Adjust Eyeglass</td>
-                        </tr>
-                        <tr>
-                            <td>Rolino Ongco</td>
-                            <td>3:00 PM</td>
-                            <td>Check-Up</td>
-                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -86,6 +73,23 @@
         </div>
     </div>
 </div>
+
+<script>
+    function updateDateTime() {
+        const now = new Date();
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+        const day = days[now.getDay()];
+        const date = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        document.getElementById('date-time').innerHTML = `${day}, ${date} <br> ${time}`;
+    }
+
+    // Update every second
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+</script>
 
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 {% endblock %}
