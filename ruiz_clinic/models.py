@@ -141,6 +141,7 @@ class Appointment(models.Model):
     app_status_choices = [
         ('Ongoing', 'Ongoing'),
         ('Waiting', 'Waiting'),
+        ('Done', 'Done'),
     ]
     app_id = models.AutoField(primary_key=True)
     app_fname = models.CharField(max_length=50, null=True, blank=True)  # Temporarily allow nulls
@@ -149,3 +150,4 @@ class Appointment(models.Model):
     app_time = models.TimeField()
     app_status = models.CharField(max_length=50, choices=app_status_choices)
     patient_id = models.ForeignKey(Patient, null=True, blank=True, on_delete=models.CASCADE)
+    
