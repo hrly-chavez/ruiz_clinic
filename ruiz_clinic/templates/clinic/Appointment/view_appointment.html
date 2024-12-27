@@ -1,0 +1,211 @@
+{% extends 'clinic/nav.html' %}
+{% load static %}
+{% block title %}View Appointments{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/appointment.css' %}">
+<div class="appointment-header">
+    <h1>
+        Appointment(s) at {{ formatted_date }}
+    </h1>
+</div><br>
+
+<!-- Button to Trigger Create Appointment Modal -->
+<button id="createAppointmentBtn" class="btn" 
+    {% if is_past_date or is_sunday or is_past_time %}disabled{% endif %}>
+    Create Appointment
+</button>
+
+<!-- Appointments Table -->
+<div class="appointment-widget-container">
+    {% if appointments %}
+        <table class="appointments-table">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Appointment Time</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appointment in appointments %}
+                    <tr>
+                        <td>{{ appointment.app_fname }}</td>
+                        <td>{{ appointment.app_lname }}</td>
+                        <td>{{ appointment.app_time }}</td>
+                        <td>{{ appointment.app_status }}</td>
+                        <td>
+                            <!-- View button to show appointment details -->
+                            <button class="view" 
+                                    data-id="{{ appointment.app_id }}"
+                                    data-fname="{{ appointment.app_fname }}"
+                                    data-lname="{{ appointment.app_lname }}"
+                                    data-time="{{ appointment.app_time }}"
+                                    data-status="{{ appointment.app_status }}">
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}    
+            </tbody>
+        </table>
+    {% else %}
+        <div class="no-appointments">
+            <p>No appointments for this date.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modal for Viewing Appointment Details -->
+<div id="viewAppointmentModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close-btn" id="closeViewModalBtn">&times;</span>
+        <h2 id="modalViewTitle">Appointment Details</h2>
+
+        <!-- Display Appointment Details -->
+        <div id="appointmentDetails">
+            <p><strong>First Name:</strong> <span id="detailFname"></span></p>
+            <p><strong>Last Name:</strong> <span id="detailLname"></span></p>
+            <p><strong>Contact Number:</strong> <span id="detailContact"></span></p>
+            <p><strong>Appointment Time:</strong> <span id="detailTime"></span></p>
+            <p><strong>Status:</strong> <span id="detailStatus"></span></p>
+        </div>
+
+        <!-- Buttons Inside the Modal -->
+        <div class="modal-actions">
+            <button id="editAppointmentBtn" class="btn"
+                {% if is_past_date or is_sunday or is_past_time or appointment.is_past %}disabled{% endif %}>
+                Edit Appointment
+            </button>
+            <button id="cancelAppointmentBtn" class="btn">Cancel Appointment</button>
+            <button id="closeModalButton" class="btn">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Creating or Editing an Appointment -->
+<div id="appointmentModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close-btn" id="closeCreateEditModalBtn">&times;</span>
+        <h2 id="modalTitle">Create/Update Appointment</h2>
+
+        <form method="POST" id="appointmentForm" action="">
+            {% csrf_token %}
+            {{ form.as_p }}
+
+            <!-- Hidden input to store the appointment ID (used for update) -->
+            <input type="hidden" id="appointment_id" name="appointment_id">
+
+            <!-- Dynamic Button -->
+            <input type="submit" id="modalSubmitButton" value="Create">
+
+            <!-- Cancel Button -->
+            <button type="button" id="cancelCreateEditModalButton" class="btn">Cancel</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Elements for Modals
+    const viewModal = document.getElementById("viewAppointmentModal");
+    const appointmentModal = document.getElementById("appointmentModal");
+    const createAppointmentBtn = document.getElementById("createAppointmentBtn");
+
+    // Elements for View Modal (Appointment Details)
+    const closeViewModalBtn = document.getElementById("closeViewModalBtn");
+    const appointmentDetails = {
+        fname: document.getElementById("detailFname"),
+        lname: document.getElementById("detailLname"),
+        contact: document.getElementById("detailContact"),
+        time: document.getElementById("detailTime"),
+        status: document.getElementById("detailStatus")
+    };
+
+    const closeModalButton = document.getElementById("closeModalButton")
+
+    // Elements for Create/Edit Appointment Modal
+    const closeCreateEditModalBtn = document.getElementById("closeCreateEditModalBtn");
+    const cancelCreateEditModalButton = document.getElementById("cancelCreateEditModalButton");
+
+    // Close Modals Functionality
+    function closeModal(modal) {
+        modal.style.display = "none";
+    }
+
+    // Open View Modal with Appointment Details
+    const viewButtons = document.querySelectorAll(".view");
+    viewButtons.forEach(button => {
+        button.onclick = function() {
+            appointmentDetails.fname.innerText = button.getAttribute("data-fname");
+            appointmentDetails.lname.innerText = button.getAttribute("data-lname");
+            appointmentDetails.time.innerText = button.getAttribute("data-time");
+            appointmentDetails.status.innerText = button.getAttribute("data-status");
+
+            // Set appointment ID for further actions
+            document.getElementById("appointment_id").value = button.getAttribute("data-id");
+
+            // Show the modal
+            viewModal.style.display = "block";
+        };
+    });
+
+    // Close Modals on Close Button Click
+    closeViewModalBtn.onclick = () => closeModal(viewModal);
+    closeCreateEditModalBtn.onclick = () => closeModal(appointmentModal);
+    cancelCreateEditModalButton.onclick = () => closeModal(appointmentModal);
+    closeModalButton.onclick = () => closeModal(viewModal);
+
+    // Open Create Appointment Modal
+    createAppointmentBtn.onclick = function () {
+        // Set the modal for "Create Appointment"
+        document.getElementById("modalTitle").innerText = "Create Appointment";
+        document.getElementById("modalSubmitButton").value = "Create";
+        document.getElementById("appointmentForm").action = "{% url 'create_appointment' %}";
+
+        // Show the appointment modal
+        appointmentModal.style.display = "block";
+    };
+
+    // Edit Appointment Logic
+    document.getElementById("editAppointmentBtn").onclick = function() {
+        document.getElementById("id_app_fname").value = appointmentDetails.fname.innerText;
+        document.getElementById("id_app_lname").value = appointmentDetails.lname.innerText;
+        document.getElementById("id_app_time").value = appointmentDetails.time.innerText;
+        document.getElementById("id_app_status").value = appointmentDetails.status.innerText;
+
+        document.getElementById("appointment_id").value = document.getElementById("appointment_id").value;
+        document.getElementById("modalTitle").innerText = "Edit Appointment";
+        document.getElementById("modalSubmitButton").value = "Edit";
+        document.getElementById("appointmentForm").action = "{% url 'edit_appointment' %}";
+
+        appointmentModal.style.display = "block";
+        viewModal.style.display = "none";
+    };
+
+    // Add functionality for "Cancel Appointment" button in the View Modal
+    const cancelAppointmentBtn = document.getElementById("cancelAppointmentBtn");
+    cancelAppointmentBtn.onclick = function() {
+        if (confirm("Are you sure you want to cancel this appointment?")) {
+            const appointmentId = document.getElementById("appointment_id").value;
+
+            fetch("{% url 'delete_appointment' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
+                },
+                body: JSON.stringify({ appointment_id: appointmentId })
+            }).then(response => {
+                if (response.ok) {
+                    alert("Appointment canceled successfully.");
+                    location.reload();
+                } else {
+                    response.json().then(data => alert(data.error || "Failed to cancel the appointment."));
+                }
+            });
+        }
+    };
+</script>
+{% endblock %}

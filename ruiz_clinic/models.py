@@ -108,7 +108,9 @@ class Appointment(models.Model):
     app_id = models.AutoField(primary_key=True)
     app_fname = models.CharField(max_length=50, null=True, blank=True)  # Temporarily allow nulls
     app_lname = models.CharField(max_length=50, null=True, blank=True)  # Temporarily allow nulls
+    app_contact = models.CharField(max_length=11, null=True, blank=True)  # Temporarily allow nulls
     app_date = models.DateField()
     app_time = models.TimeField()
     app_status = models.CharField(max_length=50, choices=app_status_choices)
     patient_id = models.ForeignKey(Patient, null=True, blank=True, on_delete=models.CASCADE)
+    

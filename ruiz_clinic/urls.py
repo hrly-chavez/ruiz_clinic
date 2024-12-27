@@ -7,11 +7,16 @@ urlpatterns = [
 #______________________________DASHBOARD_______________________________ 
       
     path("", views.dashboard, name="dashboard"),
-
+    path('update-appointment-status/', views.update_appointment_status, name='update_appointment_status'),
 #______________________________APPOINTMENT_______________________________    
 
     path("appointment/", views.appointment, name="appointment"),
-    path("add_appointment/", views.add_appointment, name="add_appointment"),
+    path("view_appointment/", views.view_appointment, name="view_appointment"),
+    path('create/', views.create_appointment, name='create_appointment'),
+    path('appointment/edit/', views.edit_appointment, name='edit_appointment'),
+    path('delete_appointment/', views.delete_appointment, name='delete_appointment'),
+    # path('edit_appointment/<int:appointment_id>/', views.edit_appointment, name='edit_appointment'),
+    # path('get-appointments/', views.get_appointments, name='get-appointments'),
 #______________________________PATIENT_______________________________    
 
     path("patient/", views.patient, name="patient"),
