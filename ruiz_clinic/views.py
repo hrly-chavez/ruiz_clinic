@@ -9,18 +9,79 @@ from django.utils import timezone
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
+from django.contrib import messages
+import json
 # Create your views here.
 #_____________________________________DASHBOARD__________________________________________________________
 
+# def dashboard(request):
+#     # Get the selected date from the request or default to today
+#     selected_date = request.GET.get('selected_date', timezone.localdate())  # Default to today if no date is passed
+
+#     # Filter appointments for the selected date and future appointments from the current time
+#     appointments = Appointment.objects.filter(app_date=selected_date).order_by('app_time')
+
+#     return render(request, 'clinic/Dashboard/dashboard.html', {
+#         'appointments': appointments,
+#         'selected_date': selected_date,  # Pass the selected date to the template
+#     })
+
 def dashboard(request):
-    # Get today's date and current time
-    today = timezone.localdate()  # Get the current local date
-    current_time = timezone.localtime(timezone.now()).time()  # Get the current local time
+    # Get the selected date from the request or default to today
+    selected_date = request.GET.get('selected_date', timezone.localdate())  # Default to today if no date is passed
 
-    # Filter appointments for today with times greater than or equal to the current time
-    appointments = Appointment.objects.filter(app_date=today, app_time__gte=current_time).order_by('app_time')
+    # Filter appointments for the selected date and future appointments from the current time
+    appointments = Appointment.objects.filter(app_date=selected_date).order_by('app_time')
 
-    return render(request, 'clinic/Dashboard/dashboard.html', {'appointments': appointments})
+    # Query for items with quantity less than 5
+    low_stock_items = Item.objects.filter(item_quantity__lt=5)
+
+    return render(request, 'clinic/Dashboard/dashboard.html', {
+        'appointments': appointments,
+        'selected_date': selected_date,  # Pass the selected date to the template
+        'low_stock_items': low_stock_items,  # Pass the low stock items to the template
+    })
+
+@csrf_exempt
+def update_appointment_status(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            appointment_id = data.get('appointment_id')  # ID passed from frontend
+            next_status = data.get('next_status')  # Next status to update
+
+            # Retrieve the appointment using the correct field name
+            appointment = Appointment.objects.get(app_id=appointment_id)
+            appointment.app_status = next_status
+            appointment.save()
+
+            return JsonResponse({'success': True, 'new_status': next_status})
+        except Appointment.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Appointment not found'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    else:
+        return JsonResponse({'success': False, 'error': 'Invalid request method'})
+    
+# @csrf_exempt
+# def delete_appointment_dashboard(request):
+#     if request.method == 'POST':
+#         try:
+#             data = json.loads(request.body)
+#             appointment_id = data.get('appointment_id')
+
+#             # Delete the appointment
+#             appointment = Appointment.objects.get(app_id=appointment_id)
+#             appointment.delete()
+
+#             return JsonResponse({'success': True})
+#         except Appointment.DoesNotExist:
+#             return JsonResponse({'success': False, 'error': 'Appointment not found'})
+#         except Exception as e:
+#             return JsonResponse({'success': False, 'error': str(e)})
+#     else:
+#         return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
 
 #_____________________________________APPOINTMENT__________________________________________________________
 
@@ -115,45 +176,97 @@ def create_appointment(request):
 
     return render(request, 'clinic/Appointment/create_appointment.html', {'form': form})
 
+# def create_appointment(request):
+#     if request.method == 'POST':
+#         form = AppointmentForm(request.POST)
+#         if form.is_valid():
+#             # Check if the time is within allowed range
+#             appointment_time = form.cleaned_data['app_time']
+#             if time(17, 30) <= appointment_time <= time(23, 59) or time(0, 0) <= appointment_time <= time(6, 0):
+#                 form.add_error("Appointments cannot be scheduled between 5:30 PM and 6:00 AM.")
+#             else:
+#                 form.save()
+#                 # Return JSON response for AJAX success
+#                 appointments = Appointment.objects.filter(app_date=form.cleaned_data['app_date'])
+#                 appointment_data = list(appointments.values('app_fname', 'app_lname', 'app_time', 'app_status'))
+#                 return JsonResponse({'success': True, 'appointments': appointment_data})
+#         # If form has errors, include errors in response
+#         return JsonResponse({'success': False, 'errors': form.errors})
+#     else:
+#         form = AppointmentForm()
+
+#     return render(request, 'clinic/Appointment/view_appointment.html', {'form': form})
+
 def edit_appointment(request):
     if request.method == 'POST':
         appointment_id = request.POST.get('appointment_id')
-        appointment = Appointment.objects.get(pk=appointment_id)
+
+        # Ensure appointment_id is provided and valid
+        if not appointment_id:
+            messages.error(request, "Appointment ID is missing.")
+            return redirect('view_appointment')
+
+        # Fetch the appointment or return 404 if not found
+        appointment = get_object_or_404(Appointment, pk=appointment_id)
         form = AppointmentForm(request.POST, instance=appointment)
+
+        # If the form is valid, save the changes and provide success feedback
         if form.is_valid():
             form.save()
-
-            # After saving the appointment, we need to ensure that the appointments are still sorted by time
-            # Redirect to the same date's view after update
+            messages.success(request, "Appointment updated successfully.")
+            # Redirect to the `view_appointment` page, passing the updated date to the query string
             return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
-    else:
-        return redirect('view_appointment')  # Fallback in case of GET request
-    
+        else:
+            messages.error(request, "Invalid form submission.")
+            return redirect('view_appointment')
+
+    return redirect('view_appointment')  # Fallback for non-POST requests
+
 @csrf_exempt
 def delete_appointment(request):
     if request.method == 'POST':
         try:
-            # Get the appointment_id from the POST data
-            appointment_id = request.POST.get('appointment_id')
+            # Parse JSON data
+            data = json.loads(request.body)
+            appointment_id = data.get('appointment_id')
 
             if not appointment_id:
                 return JsonResponse({'success': False, 'error': 'Appointment ID is missing'})
 
-            # Retrieve the appointment, using get_object_or_404 for better error handling
+            # Retrieve and delete the appointment
             appointment = get_object_or_404(Appointment, pk=appointment_id)
-
-            # Delete the appointment
             appointment.delete()
 
-            return JsonResponse({'success': True})
-        
+            # Include a success message for the front-end
+            return JsonResponse({'success': True, 'message': 'Appointment deleted successfully'})
         except Appointment.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Appointment not found'})
-        
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
-    
     return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+#pinaka latest nga delete
+# @csrf_exempt
+# def delete_appointment(request):
+#     if request.method == 'POST':
+#         try:
+#             # Parse JSON data
+#             data = json.loads(request.body)
+#             appointment_id = data.get('appointment_id')
+
+#             if not appointment_id:
+#                 return JsonResponse({'success': False, 'error': 'Appointment ID is missing'})
+
+#             # Retrieve and delete the appointment
+#             appointment = get_object_or_404(Appointment, pk=appointment_id)
+#             appointment.delete()
+
+#             return JsonResponse({'success': True})
+#         except Appointment.DoesNotExist:
+#             return JsonResponse({'success': False, 'error': 'Appointment not found'})
+#         except Exception as e:
+#             return JsonResponse({'success': False, 'error': str(e)})
+#     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
 # def appointment(request):
 #     if request.method == 'POST':

@@ -7,7 +7,7 @@ urlpatterns = [
 #______________________________DASHBOARD_______________________________ 
       
     path("", views.dashboard, name="dashboard"),
-
+    path('update-appointment-status/', views.update_appointment_status, name='update_appointment_status'),
 #______________________________APPOINTMENT_______________________________    
 
     path("appointment/", views.appointment, name="appointment"),

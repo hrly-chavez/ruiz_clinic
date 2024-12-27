@@ -1,5 +1,7 @@
 from django import forms
 from .models import *
+from django.core.exceptions import ValidationError
+from datetime import time
 
 
 #_________________________________IVENTORY___________________________________________________
@@ -40,7 +42,7 @@ class PatientForm(forms.ModelForm):
 class AppointmentForm(forms.ModelForm):
     class Meta:
         model = Appointment
-        fields = ['app_fname', 'app_lname', 'app_date', 'app_time', 'app_status',]
+        fields = ['app_fname', 'app_lname', 'app_contact', 'app_date', 'app_time', 'app_status',]
         widgets = {
             'app_date': forms.DateInput(attrs={'type': 'date'}),
             'app_time': forms.TimeInput(attrs={'type': 'time'}),
@@ -49,6 +51,7 @@ class AppointmentForm(forms.ModelForm):
         labels = {
             'app_fname': 'First Name',
             'app_lname': 'Last Name',
+            'app_contact': 'Contact Number',
             'app_date': 'Date',
             'app_time': 'Time',
             'app_status': 'Status',
@@ -59,10 +62,13 @@ class AppointmentForm(forms.ModelForm):
         # If an initial date is passed, populate the `app_date` field
         if 'initial' in kwargs and 'app_date' in kwargs['initial']:
             self.fields['app_date'].initial = kwargs['initial']['app_date']
+
+
+
 # class AppointmentForm(forms.ModelForm):
 #     class Meta:
 #         model = Appointment
-#         fields = ['app_fname', 'app_lname', 'app_date', 'app_time', 'app_status', 'patient_id']
+#         fields = ['app_fname', 'app_lname', 'app_contact', 'app_date', 'app_time', 'app_status']
 #         widgets = {
 #             'app_date': forms.DateInput(attrs={'type': 'date'}),
 #             'app_time': forms.TimeInput(attrs={'type': 'time'}),
@@ -71,8 +77,27 @@ class AppointmentForm(forms.ModelForm):
 #         labels = {
 #             'app_fname': 'First Name',
 #             'app_lname': 'Last Name',
+#             'app_contact': 'Contact Number',
 #             'app_date': 'Date',
 #             'app_time': 'Time',
 #             'app_status': 'Status',
-#             'patient_id': 'Patient',
 #         }
+
+#     def clean(self):
+#         cleaned_data = super().clean()
+#         app_time = cleaned_data.get('app_time')
+
+#         # Define restricted time range
+#         start_restricted_time = time(17, 30)  # 5:30 PM
+#         end_restricted_time = time(6, 0)      # 6:00 AM
+
+#         # Check if the time is within the restricted range
+#         if app_time:
+#             if app_time >= start_restricted_time or app_time < end_restricted_time:
+#                 raise ValidationError(
+#                     "Appointments cannot be scheduled between 5:30 PM and 6:00 AM."
+#                 )
+
+#         return cleaned_data
+
+

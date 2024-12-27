@@ -1,166 +1,229 @@
-    /* General Reset */
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f4f4f9;
-    }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f9;
+}
 
-    /* Dashboard Container */
-    .dashboard-container {
-        padding: 20px;
-        color: #333;
-    }
+/* Dashboard Container */
+.dashboard-container {
+    padding: 20px;
+    color: #333;
+}
 
-    /* Date and Time */
-    .date-time {
-        font-size: 24px;
-        font-weight: bold;
-        margin-bottom: 20px;
-        color: #333;
-    }
+/* Date and Time */
+.date-time {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #333;
+}
 
-    /* Widgets Row */
-    .widgets-row {
-        display: flex;
-        justify-content: space-between;
-        gap: 20px;
-        flex-wrap: wrap; /* Ensure widgets wrap in small screens */
-        margin-bottom: 20px;
-    }
+/* Widgets Row */
+.widgets-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap; /* Ensure widgets wrap in small screens */
+    margin-bottom: 20px;
+}
 
-    /* General Widget Container */
-    .widget {
-        background-color: #ffffff;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        overflow: hidden; /* Ensures header aligns perfectly with rounded corners */
-    }
+/* General Widget Container */
+.widget {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden; /* Ensures header aligns perfectly with rounded corners */
+}
 
-    /* Reusable Widget Header */
-    .widget-header {
-        background: linear-gradient(145deg, #29B6F6, #1a8ebc);
-        color: #ffffff;
-        font-size: 18px;
-        font-weight: bold;
-        text-align: center;
-        padding: 12px 0;
-        border-radius: 8px 8px 0 0; /* Rounded Top Corners */
-    }
+/* Reusable Widget Header */
+.widget-header {
+    background: linear-gradient(145deg, #29B6F6, #1a8ebc);
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    padding: 12px 0;
+    border-radius: 8px 8px 0 0; /* Rounded Top Corners */
+}
 
-    /* Appointments Widget */
-    .appointments-widget {
-        width: 700px;
-        flex: 2; /* Larger share of space */
-    }
+/* Appointments Widget */
+.appointments-widget {
+    width: 700px;
+    flex: 2; /* Larger share of space */
+}
 
-    .appointments-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
+.appointments-table {
+    width: 100%;
+    border-collapse: collapse;
+}
 
-    .appointments-table th,
-    .appointments-table td {
-        text-align: left;
-        padding: 12px;
-        border-bottom: 1px solid #ddd;
-    }
+.appointments-table th,
+.appointments-table td {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
 
-    .appointments-table th {
-        background-color: #f1f1f1;
-    }
+.appointments-table th {
+    background-color: #f1f1f1;
+}
 
-    .appointments-table tr:nth-child(even) {
-        background-color: #f9f9f9;
-    }
+.appointments-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
 
-    /* Profile Widget */
-    .profile-widget {
-        width: 300px;
-        flex: 1; /* Smaller share of space */
-        text-align: center;
-    }
+/* Profile Widget */
+.profile-widget {
+    width: 300px;
+    flex: 1; /* Smaller share of space */
+    text-align: center;
+}
 
-    .profile-content {
-        padding: 20px;
-    }
+.profile-content {
+    padding: 20px;
+}
 
-    .profile-image img {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        margin: 10px 0;
-    }
+.profile-image img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin: 10px 0;
+}
 
-    .profile-details h3 {
-        font-size: 20px;
-        color: #333;
-    }
+.profile-details h3 {
+    font-size: 20px;
+    color: #333;
+}
 
-    .profile-details p {
-        color: #555;
-        margin: 5px 0;
-    }
+.profile-details p {
+    color: #555;
+    margin: 5px 0;
+}
 
-    .additional-info p {
-        margin: 5px 0;
-        font-size: 14px;
-    }
+.additional-info p {
+    margin: 5px 0;
+    font-size: 14px;
+}
 
-    /* Graph Widget */
+/* Graph Widget */
+.graph-widget {
+    width: 700px;
+    flex: 2; /* Larger share of space */
+    text-align: center;
+}
+
+.graph-placeholder {
+    margin-top: 20px;
+    color: #777;
+    text-align: center;
+}
+
+/* Notice Widget */
+.notice-widget {
+    width: 300px;
+    flex: 1; /* Ensures smaller share of space compared to larger widgets */
+    background-color: #fff8e1;
+    border-radius: 8px; /* Add rounded corners for consistency */
+    overflow: hidden; /* Ensure header stays within the widget */
+    display: flex;
+    flex-direction: column; /* Stack header and content vertically */
+}
+
+/* Ensure the header covers the full width of the widget */
+.notice-widget .widget-header {
+    margin: 0; /* Remove extra spacing */
+    width: 100%; /* Span full width */
+    border-radius: 0; /* Reset rounded corners for the header */
+}
+
+.notice-widget p {
+    font-size: 16px;
+    color: #333;
+    margin: 10px 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .appointments-widget,
     .graph-widget {
-        width: 700px;
-        flex: 2; /* Larger share of space */
-        text-align: center;
+        width: 100%; /* Full-width on smaller screens */
     }
 
-    .graph-placeholder {
-        margin-top: 20px;
-        color: #777;
-        text-align: center;
-    }
-
-    /* Notice Widget */
+    .profile-widget,
     .notice-widget {
-        width: 300px;
-        flex: 1; /* Ensures smaller share of space compared to larger widgets */
-        background-color: #fff8e1;
-        border-radius: 8px; /* Add rounded corners for consistency */
-        overflow: hidden; /* Ensure header stays within the widget */
-        display: flex;
-        flex-direction: column; /* Stack header and content vertically */
+        width: 100%; /* Full-width on smaller screens */
     }
 
-    /* Ensure the header covers the full width of the widget */
-    .notice-widget .widget-header {
-        margin: 0; /* Remove extra spacing */
-        width: 100%; /* Span full width */
-        border-radius: 0; /* Reset rounded corners for the header */
+    .widgets-row {
+        flex-direction: column; /* Stack widgets vertically */
     }
+}
 
-    .notice-widget p {
-        font-size: 16px;
-        color: #333;
-        margin: 10px 0;
-    }
+/* Action Button Styles */
+.status-button {
+    background-color: #1a8ebc; /* Primary color */
+    color: #ffffff; /* White text */
+    border: none; /* Remove default border */
+    border-radius: 5px; /* Rounded corners */
+    padding: 10px 15px; /* Spacing inside the button */
+    font-size: 14px; /* Adjust font size */
+    font-weight: bold; /* Bold text */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s, transform 0.2s; /* Smooth transitions */
+}
 
-    /* Responsive Design */
-    @media (max-width: 1200px) {
-        .appointments-widget,
-        .graph-widget {
-            width: 100%; /* Full-width on smaller screens */
-        }
+/* Hover and Focus Effects */
+.status-button:hover {
+    background-color: #29b6f6; /* Lighter blue on hover */
+    transform: scale(1.05); /* Slight zoom effect */
+}
 
-        .profile-widget,
-        .notice-widget {
-            width: 100%; /* Full-width on smaller screens */
-        }
+.status-button:focus {
+    outline: none; /* Remove focus outline */
+    box-shadow: 0 0 5px rgba(41, 182, 246, 0.8); /* Add glow effect */
+}
 
-        .widgets-row {
-            flex-direction: column; /* Stack widgets vertically */
-        }
-    }
+/* Disabled Button Style */
+.status-button:disabled {
+    background-color: #d3d3d3; /* Gray background for disabled buttons */
+    color: #a9a9a9; /* Light gray text */
+    cursor: not-allowed; /* Disable pointer on hover */
+    transform: none; /* No zoom effect */
+}
+
+.cancel-button {
+    background-color: rgb(255, 63, 63); /* Primary color */
+    color: #ffffff; /* White text */
+    border: none; /* Remove default border */
+    border-radius: 5px; /* Rounded corners */
+    padding: 10px 15px; /* Spacing inside the button */
+    font-size: 14px; /* Adjust font size */
+    font-weight: bold; /* Bold text */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s, transform 0.2s; /* Smooth transitions */
+}
+
+/* Hover and Focus Effects */
+.cancel-button:hover {
+    background-color: rgb(252, 114, 114); /* Lighter blue on hover */
+    transform: scale(1.05); /* Slight zoom effect */
+}
+
+.cancel-button:focus {
+    outline: none; /* Remove focus outline */
+    box-shadow: 0 0 5px rgb(243, 124, 124); /* Add glow effect */
+}
+
+/* Disabled Button Style */
+.cancel-button:disabled {
+    background-color: #d3d3d3; /* Gray background for disabled buttons */
+    color: #a9a9a9; /* Light gray text */
+    cursor: not-allowed; /* Disable pointer on hover */
+    transform: none; /* No zoom effect */
+}
