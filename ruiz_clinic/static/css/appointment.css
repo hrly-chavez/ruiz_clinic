@@ -133,7 +133,7 @@
 
 /* Style for the Create Appointment button */
 #createAppointmentBtn {
-    background-color: #28a745; /* Green background */
+    background-color: #4186d4; /* Green background */
     color: white; /* White text */
     border: none;
     padding: 10px 20px;
@@ -150,7 +150,7 @@
 
 /* Hover effect for Create Appointment button */
 #createAppointmentBtn:hover {
-    background-color: #218838; /* Darker green on hover */
+    background-color: rgba(81, 160, 250, 0.877); /* Darker green on hover */
 }
 
 /* Style for Action buttons */
@@ -233,4 +233,70 @@
 /* Optionally, you can add a focus style for accessibility */
 .delete:focus {
     outline: 2px solid #f39c12; /* Yellow outline when focused */
+}
+
+.view {
+    background-color: #4186d4; /* Green background */
+    color: white; /* White text */
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#editAppointmentBtn {
+    background-color: #4186d4; /* Green background */
+    color: white; /* White text */
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#cancelAppointmentBtn {
+    background-color: rgb(255, 63, 63); /* Green background */
+    color: white; /* White text */
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#closeModalButton {
+    background-color: grey; /* Green background */
+    color: white; /* White text */
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#modalSubmitButton {
+    background-color: #4186d4; /* Green background */
+    color: white; /* White text */
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#cancelCreateEditModalButton {
+    background-color: grey; /* Green background */
+    color: white; /* White text */
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
