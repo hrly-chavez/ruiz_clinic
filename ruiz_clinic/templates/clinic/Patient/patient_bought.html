@@ -1,0 +1,149 @@
+{% extends 'clinic/nav.html' %}
+
+{% block title %}Sales Page{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div style="padding: 25px; background-color: #2db9fae8; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px; height: 125px; display: flex; align-items: center;">
+    <h1 style="color: #fff; font-size: 37px; font-family: 'Istok Web', sans-serif; font-weight: normal;">ITEM(s) BOUGHT</h1>
+</div>
+
+<!-- Include Select2 CSS & JS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
+<!-- Main Form Section -->
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm rounded">
+                <div class="card-header" style="background-color: #2db9fa; color: white; font-size: 30px; text-align: center;">
+                    Purchased Item and Payment Form
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <h4 class="mb-3">Purchased Item Details</h4>
+                        <div class="form-group">
+                            <!-- Item selection -->
+                            <label for="id_item_code">Item:</label>
+                            {{ purchased_item_form.item_code }}
+                        </div>
+                        <div class="form-group">
+                            <!-- Display item price -->
+                            <label for="id_item_price">Price:</label>
+                            <input type="text" id="id_item_price" class="form-control" readonly placeholder="Price will appear here">
+                        </div>
+                        <hr>
+                        <h4 class="mb-3">Payment Details</h4>
+                        <div class="form-group">
+                            <label for="id_payment_payed">Amount Paid:</label>
+                            {{ payment_form.payment_payed }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_payment_to_be_payed">Total Amount to Pay:</label>
+                            <input type="text" id="id_payment_to_be_payed" class="form-control" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="id_payment_method">Payment Method:</label>
+                            {{ payment_form.payment_method }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_payment_terms">Payment Terms:</label>
+                            {{ payment_form.payment_terms }}
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary btn-lg w-48">
+                                Add Item
+                            </button>
+                            <a href="{% url 'patient' %}" class="btn btn-secondary btn-lg w-48">
+                                <i class="fa fa-arrow-left"></i> Back to Patient List
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-group {
+        font-size: 18px;
+        margin-bottom: 1.5rem;
+    }
+    .form-control {
+        font-size: 18px;
+        padding: 10px;
+        height: 45px;
+    }
+    .form-control:focus {
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        border-color: #2db9fa;
+    }
+    .card-body {
+        padding: 30px;
+    }
+    .card-header {
+        font-size: 32px;
+        font-weight: 600;
+    }
+</style>
+
+<!-- JavaScript for Dynamic Price Update and Payment Calculation -->
+<script>
+    $(document).ready(function() {
+        // Initialize Select2 for item_code
+        $('#id_item_code').select2({
+            placeholder: 'Select Item',
+            ajax: {
+                url: '{% url "item_search" %}',  // URL for the search view
+                dataType: 'json',
+                delay: 250,  // Add a delay to reduce server calls
+                processResults: function(data) {
+                    return {
+                        results: data.items
+                    };
+                }
+            }
+        });
+
+        // Fetch and display item price when an item is selected
+        $('#id_item_code').on('change', function() {
+            const itemId = $(this).val();
+            if (itemId) {
+                $.ajax({
+                    url: '{% url "item_price" %}',  // URL for the price API
+                    data: { item_id: itemId },
+                    success: function(data) {
+                        if (data.price) {
+                            $('#id_item_price').val(data.price);  // Update the price field
+                            $('#id_payment_to_be_payed').val(data.price);  // Set the total amount to pay to the item price
+                        }
+                    },
+                    error: function() {
+                        $('#id_item_price').val('Error fetching price');  // Display an error message
+                    }
+                });
+            } else {
+                $('#id_item_price').val('');  // Clear the price field if no item is selected
+                $('#id_payment_to_be_payed').val('');  // Clear the total amount field
+            }
+        });
+
+        // Update the total amount to pay after the user finishes input (on blur)
+        $('#id_payment_payed').on('blur', function() {
+            const amountPaid = parseFloat($(this).val()) || 0;  // Get the amount paid, default to 0 if not a number
+            const totalAmount = parseFloat($('#id_payment_to_be_payed').val()) || 0;  // Get the total amount to pay
+
+            // Subtract the amount paid from the total amount
+            const remainingAmount = totalAmount - amountPaid;
+
+            // Update the Total Amount to Pay field
+            $('#id_payment_to_be_payed').val(remainingAmount.toFixed(2));
+        });
+    });
+</script>
+
+{% endblock %}

@@ -12,7 +12,7 @@ class Item_Category(models.Model):
     
 class Item_Frame_Type(models.Model):
     frame_choices = [
-        ('Platic', 'Plastic'),
+        ('Plastic', 'Plastic'),
         ('Acetate','Acetate'),
         ('Metal','Metal'),
         ('Wood','Wood'),
@@ -31,121 +31,86 @@ class Item(models.Model):
     item_model = models.CharField(max_length=20,null=True,blank=True)
     item_price = models.FloatField()
     item_date_in = models.DateField(default=now)
+    item_date_out = models.DateField(null=True,blank=True)
     item_quantity = models.IntegerField()
     item_color = models.CharField(max_length=100,null=True,blank=True)
     item_measurement = models.CharField(max_length=200,null=True,blank=True)
-    item_category_id = models.ForeignKey(Item_Category,on_delete=models.CASCADE, db_constraint=True)
+    item_category_id = models.ForeignKey(Item_Category, null=True, blank=True, on_delete=models.SET_NULL)
     item_frame_type_id = models.ForeignKey(Item_Frame_Type,on_delete=models.CASCADE, db_constraint=True, null=True , blank=True)
 
     def __str__(self):
-        return f'{self.item_category_id}, {self.item_brand} , {self.item_frame_type_id}'
-    
-class Diagnosed(models.Model):
-    diag_id = models.AutoField(primary_key=True)
-    diag_descript = models.TextField()
-    diag_date = models.DateField()
-
-    def __str__(self):
-        return f'{self.diag_descript}, {self.diag_date}'
-
-class Purchased_Item_Status(models.Model):
-    pur_stat_choices = [
-        ('Ongoing', 'Ongoing'),
-        ('Done', 'Done'),
-    ]
-    purchase_item_status_id = models.AutoField(primary_key=True)
-    purchase_item_status_name = models.CharField(max_length=20, choices= pur_stat_choices)
-
-    def __str__(self):
-        return f"{self.purchase_item_status_name}"
+        return f'{self.item_category_id} | {self.item_brand} | {self.item_model} | {self.item_frame_type_id}'
 
 class Purchased_Item(models.Model):   
-    pur_id = models.AutoField(primary_key=True)
-    pur_quantity = models.IntegerField()
-    pur_date_purchased = models.DateField(default=now)
-    pur_total_price =  models.FloatField()
-    item_code =  models.ForeignKey(Item,null=True, blank=True, on_delete=models.SET_NULL)
-    purchase_item_status_id = models.ForeignKey(Purchased_Item_Status, null=True, blank=True, on_delete=models.SET_NULL)
-
-    def __str__(self):
-        return f"{self.item_code}, {self.pur_quantity}, {self.pur_total_price}, {self.pur_date_purchased}"
-
-class Payment_Terms(models.Model):
-    pay_stat_choices = [
-        ('Installment', 'Installment'),
-        ('Fully Paid', 'Fully Paid'),
+    pur_stat_choices = [
+        ('Waiting', 'Waiting'), 
+        ('For follow up', 'For follow up'), 
+        ('Done', 'Done'),
     ]
-    pay_stat_id = models.AutoField(primary_key=True)
-    pay_stat_name =models.CharField(max_length=20, choices=pay_stat_choices)
-
+    pur_id = models.AutoField(primary_key=True)
+    pur_date_purchased = models.DateField(default=now)
+    pur_stat = models.CharField(max_length=20, choices= pur_stat_choices)
+    item_code =  models.ForeignKey(Item,null=True, blank=True, on_delete=models.SET_NULL)
+    patient_id = models.ForeignKey('Patient', null=True, blank=True, on_delete=models.SET_NULL)
+    payment_id = models.ForeignKey('Payment', null=True, blank=True, on_delete=models.SET_NULL)
     def __str__(self):
-        return f"{self.pay_stat_name}"
+        return f"{self.item_code},  {self.pur_date_purchased}"
 
-class Mode_of_Payment(models.Model):
-    mop_choices = [
+
+
+class Payment(models.Model): 
+    payment_method_choices = [
         ('Cash','Cash'),
         ('Debit Card', 'Debit Card'),
         ('Credit Card','Credit Card'),
         ('E Wallet','E Wallet'),
+        ('Other','Other'),
     ]
-    mop_id = models.AutoField(primary_key=True)
-    mop_name = models.CharField(max_length=50, choices=mop_choices)
 
-    def __str__(self):
-        return f"{self.mop_name}"
-    
-class Payment_Duration(models.Model):
-    payment_duration_choices = [
-        ('3 Months', '3 Months'),
-        ('6 Months', '6 Months'),
-        ('9 Months', '9 Months'),
-        ('12 Months', '12 Months'),
+    pay_terms_choices = [
+        ('Installment', 'Installment'),
+        ('Fully Paid', 'Fully Paid'),
     ]
-    payment_duration_id = models.AutoField(primary_key=True)
-    payment_duration_name = models.CharField(max_length=50,choices=payment_duration_choices)
-    payment_duration_start = models.DateField(default=now)
-    payment_duration_end =  models.DateField()
     
-    def __str__(self):
-        return f"{self.payment_duration_name},{self.payment_duration_choices},{self.payment_duration_start}, {self.payment_duration_end} "
-
-class Payment(models.Model):
     payment_id = models.AutoField(primary_key=True)
-    payment_payed = models.FloatField()
+    payment_payed = models.FloatField(null=True,blank=True)
     payment_to_be_payed = models.FloatField(null=True,blank=True)
-    pay_stat_id = models.ForeignKey(Payment_Terms, null=True, blank=True, on_delete=models.SET_NULL)
-    mop_id = models.ForeignKey(Mode_of_Payment, null=True, blank=True, on_delete=models.SET_NULL)
-    payment_duration_id = models.ForeignKey(Payment_Duration, null=True, blank=True, on_delete=models.SET_NULL)
+    payment_method = models.CharField(max_length=50,choices=payment_method_choices,default='Cash')
+    payment_terms = models.CharField(max_length=20, choices=pay_terms_choices,default='Fully Paid')
+    
 
     def __str__(self):
-        return f"{self.mop_id}, {self.pay_stat_id}, {self.payment_payed}, {self.payment_to_be_payed}, {self.payment_duration_id}"
+        return f" {self.payment_payed}, {self.payment_to_be_payed}"
 
 class Patient(models.Model):
-
     patient_id = models.AutoField(primary_key=True)
     patient_fname = models.CharField(max_length=50)
     patient_lname = models.CharField(max_length=100)
     patient_initial = models.CharField(max_length=1, null=True, blank=True)
+    patient_date_checked_up = models.DateField(default=now)
     patient_address = models.CharField(max_length=400)
     patient_occupation = models.CharField(max_length=500, null=True , blank=True)
     patient_birthdate = models.DateField()
     patient_contact = models.CharField(max_length=13)
-    diag_id = models.ForeignKey(Diagnosed, null=True,blank=True,on_delete=models.CASCADE)
+    patient_diag = models.TextField(null=True,blank=True)
     pur_id = models.ForeignKey(Purchased_Item,null=True,blank=True,on_delete=models.SET_NULL)
     payment_id = models.ForeignKey(Payment,null=True,blank=True,on_delete=models.SET_NULL)
 
     def __str__(self):
-        return f"{self.pur_id}, {self.payment_id}, {self.patient_fname}, {self.patient_lname}, {self.diag_id}"
+        return f"{self.patient_fname}, {self.patient_fname}, - Diagnosed with {self.patient_diag[:30]} ,{self.pur_id}, {self.payment_id}"
     
 class Appointment(models.Model):
     app_status_choices = [
         ('Ongoing', 'Ongoing'),
         ('Waiting', 'Waiting'),
+        ('Done', 'Done'),
     ]
     app_id = models.AutoField(primary_key=True)
     app_fname = models.CharField(max_length=50, null=True, blank=True)  # Temporarily allow nulls
     app_lname = models.CharField(max_length=50, null=True, blank=True)  # Temporarily allow nulls
+    app_contact = models.CharField(max_length=11, null=True, blank=True)  # Temporarily allow nulls
     app_date = models.DateField()
     app_time = models.TimeField()
     app_status = models.CharField(max_length=50, choices=app_status_choices)
     patient_id = models.ForeignKey(Patient, null=True, blank=True, on_delete=models.CASCADE)
+    

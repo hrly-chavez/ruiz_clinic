@@ -1,0 +1,110 @@
+{% extends 'clinic/nav.html' %}
+
+{% block content %}
+<!-- Header Section -->
+<div style="padding: 25px; background-color: #2db9fae8; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px; height: 125px; display: flex; align-items: center;">
+    <h1 style="color: #fff; font-size: 37px; font-family: 'Istok Web', sans-serif; font-weight: normal;">Item Details</h1>
+</div>
+
+<!-- Item Details Section Inside a Form Container -->
+<div class="container mt-4">
+    <div class="form-container p-4" style="background-color: #fff; border-radius: 8px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);">
+        <h2 class="mb-4">{{ item.item_brand }} {{ item.item_model }}</h2>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <!-- Item Details -->
+                <div class="mb-3">
+                    <label class="form-label"><strong>Item Code:</strong></label>
+                    {{ item.item_code }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Price:</strong></label>
+                    ₱{{ item.item_price }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Quantity:</strong></label>
+                    {{ item.item_quantity }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Category:</strong></label>
+                    
+                        {% if item.item_category_id %}
+                            {{ item.item_category_id.item_category_name }}
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
+                    
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Frame Type:</strong></label>
+                    
+                        {% if item.item_frame_type_id %}
+                            {{ item.item_frame_type_id.item_frame_type_name }}
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
+                    
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <!-- Additional Details -->
+                <div class="mb-3">
+                    <label class="form-label"><strong>Measurement:</strong></label>
+                    
+                        {% if item.item_measurement %}
+                            {{ item.item_measurement }}
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
+                    
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Color:</strong></label>
+                    
+                        {% if item.item_color %}
+                            {{ item.item_color }}
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
+                    
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Date In:</strong></label>
+                    
+                        {% if item.item_date_in %}
+                            {{ item.item_date_in }}
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
+                    
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Date Out:</strong></label>
+                    
+                        {% if item.item_date_out %}
+                            {{ item.item_date_out }}
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
+                    
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mt-4">
+            <a href="{% url 'inventory' %}" class="btn btn-primary">Back to Inventory</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

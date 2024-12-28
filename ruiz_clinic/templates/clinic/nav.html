@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Ruiz Clinic{% endblock %}</title>
+
+    <!-- Your custom styles -->
     <style>
         /* Basic Reset */
         * {
@@ -13,16 +15,17 @@
             box-sizing: border-box;
         }
 
-        body {
+        /* Use a container class to scope custom styles */
+        .custom-layout {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f4f9;
-            margin: 0;
-            padding: 0;
             display: flex;
+            height: 100vh;  /* Ensure the body fills the viewport height */
+            overflow: auto; 
         }
 
         /* Navbar Styles */
-        .navbar {
+        .custom-navbar {
             width: 240px;
             background: linear-gradient(145deg, #29B6F6, #1a8ebc);
             height: 100vh;
@@ -37,7 +40,7 @@
             z-index: 1;
         }
 
-        .navbar a {
+        .custom-navbar a {
             display: flex;
             align-items: center;
             padding: 10px 15px;
@@ -49,37 +52,44 @@
             transition: all 0.3s ease-in-out;
         }
 
-        .navbar a:hover {
+        .custom-navbar a:hover {
             background-color: rgba(255, 255, 255, 0.2);
             transform: translateX(10px);
             box-shadow: 2px 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        .navbar a img {
+        /* Active Link Styling */
+        .custom-navbar a.active {
+            background-color: rgba(255, 255, 255, 0.4); /* Slightly darker hover effect for active */
+            transform: translateX(10px); /* Keep the hover effect on active link */
+            box-shadow: 2px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .custom-navbar a img {
             width: 30px;
             height: 30px;
             margin-right: 15px;
             transition: transform 0.3s;
         }
 
-        .navbar a:hover img {
+        .custom-navbar a:hover img {
             transform: scale(1.2);
         }
 
         /* Leave Link Special Styling */
-        .navbar a.leave {
+        .custom-navbar a.leave {
             margin-top: auto;
             background: #1a8ebc;
             color: #ffffff;
         }
 
-        .navbar a.leave:hover {
+        .custom-navbar a.leave:hover {
             background: #ff6e6e;
             transform: translateX(10px);
         }
 
         /* Content Section */
-        .content {
+        .custom-content {
             margin-left: 260px; /* Space for the navbar */
             padding: 20px;
             width: calc(100% - 260px); /* Content width adjusts dynamically */
@@ -88,47 +98,57 @@
             background-color: #f4f4f9;
         }
 
-        .content h1 {
+        .custom-content h1 {
             font-size: 28px;
             color: #333;
         }
 
-      
     </style>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
 </head>
 <body>
 
-    <div class="navbar">
-        <a href="{% url 'dashboard' %}">
-            <img src="{% static 'dashboard-monitor (1).png' %}" alt="Dashboard Icon">
-            <span>Dashboard</span>
-        </a>
-        <a href="{% url 'appointment' %}">
-            <img src="{% static 'calendar-lines-pen.png' %}" alt="Calendar Icon">
-            <span>Appointment</span>
-        </a>
-        <a href="{% url 'inventory' %}">
-            <img src="{% static 'sunglasses.png' %}" alt="Inventory Icon">
-            <span>Inventory</span>
-        </a>
-        <a href="{% url 'patient' %}">
-            <img src="{% static 'user-injured.png' %}" alt="Patient Icon">
-            <span>Patient</span>
-        </a>
-        <a href="{% url 'sales' %}">
-            <img src="{% static 'wallet.png' %}" alt="Sales Icon">
-            <span>Sales</span>
-        </a>
-        <a href="#" class="leave">
-            <img src="{% static 'leave.png' %}" alt="Leave Icon">
-            <span>Leave</span>
-        </a>
-    </div>
+    <div class="custom-layout">
+        <!-- Navbar -->
+        <div class="custom-navbar">
+            <a href="{% url 'dashboard' %}" class="{% if request.path == '/' %}active{% elif request.path == '/dashboard/' %}active{% endif %}">
+                <img src="{% static 'dashboard-monitor (1).png' %}" alt="Dashboard Icon">
+                <span>Dashboard</span>
+            </a>
+            <a href="{% url 'appointment' %}" class="{% if request.path == '/appointment/' %}active{% endif %}">
+                <img src="{% static 'calendar-lines-pen.png' %}" alt="Calendar Icon">
+                <span>Appointment</span>
+            </a>
+            <a href="{% url 'inventory' %}" class="{% if request.path == '/inventory/' %}active{% endif %}">
+                <img src="{% static 'sunglasses.png' %}" alt="Inventory Icon">
+                <span>Inventory</span>
+            </a>
+            <a href="{% url 'patient' %}" class="{% if request.path == '/patient/' %}active{% endif %}">
+                <img src="{% static 'user-injured.png' %}" alt="Patient Icon">
+                <span>Patient</span>
+            </a>
+            <a href="{% url 'sales' %}" class="{% if request.path == '/sales/' %}active{% endif %}">
+                <img src="{% static 'wallet.png' %}" alt="Sales Icon">
+                <span>Sales</span>
+            </a>
+            <a href="#" class="leave">
+                <img src="{% static 'leave.png' %}" alt="Leave Icon">
+                <span>Leave</span>
+            </a>
+        </div>
 
-    <div class="content">
-        {% block content %}
-        {% endblock %}
+        <!-- Content -->
+        <div class="custom-content">
+            {% block content %}
+            {% endblock %}
+        </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz4fnFO9gybB4p9t6C7b12hctZJ6fP8Zy5Y4BzYHkrGfjz6hbpFL2V1dbeV" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js" integrity="sha384-pzjw8f+ua7Kw1TIq0v8FqFjcJ6PfQe6mzmqzFvZ6uFLm2ICFhcQ8YjWl3Tswcbe4" crossorigin="anonymous"></script>
 
 </body>
 </html>
