@@ -50,7 +50,6 @@ def update_appointment_status(request):
     else:
         return JsonResponse({'success': False, 'error': 'Invalid request method'})
     
-
 #_____________________________________APPOINTMENT__________________________________________________________
 
 def appointment(request):
@@ -237,7 +236,6 @@ def view_item(request, item_id):
 
     return render(request, 'clinic/Inventory/view_item.html', context)
 
-
 #_________________________________________PATIENT________________________________________________________
 
 def patient(request):
@@ -349,7 +347,7 @@ def item_price(request):
     except Item.DoesNotExist:
         return JsonResponse({'error': 'Item not found'}, status=404)
     
-def sample_fucntion():
+def second_sample():
     pass
 #_____________________________________SALES__________________________________________________________
 def sales(request):
