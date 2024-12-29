@@ -323,7 +323,6 @@ def add_purchased_item(request, patient_id):
         'patient': patient,
     })
 
-
 def item_search(request):
     query = request.GET.get('q', '').strip()  # Retrieve and strip the search query
     items = Item.objects.filter(
@@ -349,6 +348,9 @@ def item_price(request):
         return JsonResponse({'price': item.item_price})
     except Item.DoesNotExist:
         return JsonResponse({'error': 'Item not found'}, status=404)
+    
+def sample_fucntion():
+    pass
 #_____________________________________SALES__________________________________________________________
 def sales(request):
     return render(request, 'clinic/Sales/sales.html')
