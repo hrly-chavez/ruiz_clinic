@@ -31,24 +31,20 @@
 
                 <div class="mb-3">
                     <label class="form-label"><strong>Category:</strong></label>
-                    
-                        {% if item.item_category_id %}
-                            {{ item.item_category_id.item_category_name }}
-                        {% else %}
-                            <span class="text-muted">N/A</span>
-                        {% endif %}
-                    
+                    {% if item.item_category_id %}
+                        {{ item.item_category_id.item_category_name }}
+                    {% else %}
+                        <span class="text-muted">N/A</span>
+                    {% endif %}
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label"><strong>Frame Type:</strong></label>
-                    
-                        {% if item.item_frame_type_id %}
-                            {{ item.item_frame_type_id.item_frame_type_name }}
-                        {% else %}
-                            <span class="text-muted">N/A</span>
-                        {% endif %}
-                    
+                    {% if item.item_frame_type_id %}
+                        {{ item.item_frame_type_id.item_frame_type_name }}
+                    {% else %}
+                        <span class="text-muted">N/A</span>
+                    {% endif %}
                 </div>
             </div>
 
@@ -56,49 +52,57 @@
                 <!-- Additional Details -->
                 <div class="mb-3">
                     <label class="form-label"><strong>Measurement:</strong></label>
-                    
-                        {% if item.item_measurement %}
-                            {{ item.item_measurement }}
-                        {% else %}
-                            <span class="text-muted">N/A</span>
-                        {% endif %}
-                    
+                    {% if item.item_measurement %}
+                        {{ item.item_measurement }}
+                    {% else %}
+                        <span class="text-muted">N/A</span>
+                    {% endif %}
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label"><strong>Color:</strong></label>
-                    
-                        {% if item.item_color %}
-                            {{ item.item_color }}
-                        {% else %}
-                            <span class="text-muted">N/A</span>
-                        {% endif %}
-                    
+                    {% if item.item_color %}
+                        {{ item.item_color }}
+                    {% else %}
+                        <span class="text-muted">N/A</span>
+                    {% endif %}
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label"><strong>Date In:</strong></label>
-                    
-                        {% if item.item_date_in %}
-                            {{ item.item_date_in }}
-                        {% else %}
-                            <span class="text-muted">N/A</span>
-                        {% endif %}
-                    
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label"><strong>Date Out:</strong></label>
-                    
-                        {% if item.item_date_out %}
-                            {{ item.item_date_out }}
-                        {% else %}
-                            <span class="text-muted">N/A</span>
-                        {% endif %}
-                    
+                    {% if item.item_date_in %}
+                        {{ item.item_date_in }}
+                    {% else %}
+                        <span class="text-muted">N/A</span>
+                    {% endif %}
                 </div>
             </div>
         </div>
+
+        <!-- Purchased Items Section -->
+        <h3 class="mt-5">Purchased Items</h3>
+        {% if patient_details %}
+            <table class="table table-bordered mt-3">
+                <thead>
+                    <tr>
+                        <th>Patient Name</th>
+                        <th>Date Purchased</th>
+                        <!-- <th>Date Out</th> If you want to display Date Out -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detail in patient_details %}
+                        <tr>
+                            <td>{{ detail.patient_name }}</td>
+                            <td>{{ detail.pur_date_purchased }}</td>
+                            <!-- <td>{{ detail.date_out }}</td> -->
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No purchased items for this item yet.</p>
+        {% endif %}
 
         <!-- Action Buttons -->
         <div class="mt-4">

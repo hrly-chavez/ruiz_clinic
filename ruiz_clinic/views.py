@@ -1,47 +1,17 @@
 
-from django.contrib import messages
+from django.utils import timezone   
 from django.shortcuts import render,redirect, get_object_or_404
 from .forms import *
-
-
+from datetime import datetime
 from django.http import HttpResponse, JsonResponse,Http404
-
-
-
-
-from django.http import HttpResponse, JsonResponse,Http404
-
-
-
-from django.http import JsonResponse
-from datetime import datetime, timedelta
-from django.utils.timezone import localtime
-from django.utils import timezone
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import get_object_or_404
 from django.contrib import messages
+from django.db.models import Q
 import json
-# Create your views here.
 
 
 #_____________________________________DASHBOARD__________________________________________________________
-
-
-#_____________________________________DASHBOARD__________________________________________________________
-
-# def dashboard(request):
-#     # Get the selected date from the request or default to today
-#     selected_date = request.GET.get('selected_date', timezone.localdate())  # Default to today if no date is passed
-
-#     # Filter appointments for the selected date and future appointments from the current time
-#     appointments = Appointment.objects.filter(app_date=selected_date).order_by('app_time')
-
-#     return render(request, 'clinic/Dashboard/dashboard.html', {
-#         'appointments': appointments,
-#         'selected_date': selected_date,  # Pass the selected date to the template
-#     })
-
 
 def dashboard(request):
     # Get the selected date from the request or default to today
@@ -81,29 +51,7 @@ def update_appointment_status(request):
         return JsonResponse({'success': False, 'error': 'Invalid request method'})
     
 
-# @csrf_exempt
-# def delete_appointment_dashboard(request):
-#     if request.method == 'POST':
-#         try:
-#             data = json.loads(request.body)
-#             appointment_id = data.get('appointment_id')
-
-#             # Delete the appointment
-#             appointment = Appointment.objects.get(app_id=appointment_id)
-#             appointment.delete()
-
-#             return JsonResponse({'success': True})
-#         except Appointment.DoesNotExist:
-#             return JsonResponse({'success': False, 'error': 'Appointment not found'})
-#         except Exception as e:
-#             return JsonResponse({'success': False, 'error': str(e)})
-#     else:
-#         return JsonResponse({'success': False, 'error': 'Invalid request method'})
-
-
-
 #_____________________________________APPOINTMENT__________________________________________________________
-
 
 def appointment(request):
     # Fetch all appointment dates from the database
@@ -180,7 +128,6 @@ def view_appointment(request):
 
     return render(request, 'clinic/Appointment/view_appointment.html', context)
 
-
 def create_appointment(request):
     if request.method == 'POST':
         form = AppointmentForm(request.POST)
@@ -192,29 +139,6 @@ def create_appointment(request):
         form = AppointmentForm()
 
     return render(request, 'clinic/Appointment/create_appointment.html', {'form': form})
-
-
-# def create_appointment(request):
-#     if request.method == 'POST':
-#         form = AppointmentForm(request.POST)
-#         if form.is_valid():
-#             # Check if the time is within allowed range
-#             appointment_time = form.cleaned_data['app_time']
-#             if time(17, 30) <= appointment_time <= time(23, 59) or time(0, 0) <= appointment_time <= time(6, 0):
-#                 form.add_error("Appointments cannot be scheduled between 5:30 PM and 6:00 AM.")
-#             else:
-#                 form.save()
-#                 # Return JSON response for AJAX success
-#                 appointments = Appointment.objects.filter(app_date=form.cleaned_data['app_date'])
-#                 appointment_data = list(appointments.values('app_fname', 'app_lname', 'app_time', 'app_status'))
-#                 return JsonResponse({'success': True, 'appointments': appointment_data})
-#         # If form has errors, include errors in response
-#         return JsonResponse({'success': False, 'errors': form.errors})
-#     else:
-#         form = AppointmentForm()
-
-#     return render(request, 'clinic/Appointment/view_appointment.html', {'form': form})
-
 
 def edit_appointment(request):
     if request.method == 'POST':
@@ -264,55 +188,6 @@ def delete_appointment(request):
             return JsonResponse({'success': False, 'error': str(e)})
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
-#pinaka latest nga delete
-# @csrf_exempt
-# def delete_appointment(request):
-#     if request.method == 'POST':
-#         try:
-#             # Parse JSON data
-#             data = json.loads(request.body)
-#             appointment_id = data.get('appointment_id')
-
-#             if not appointment_id:
-#                 return JsonResponse({'success': False, 'error': 'Appointment ID is missing'})
-
-#             # Retrieve and delete the appointment
-#             appointment = get_object_or_404(Appointment, pk=appointment_id)
-#             appointment.delete()
-
-#             return JsonResponse({'success': True})
-#         except Appointment.DoesNotExist:
-#             return JsonResponse({'success': False, 'error': 'Appointment not found'})
-#         except Exception as e:
-#             return JsonResponse({'success': False, 'error': str(e)})
-#     return JsonResponse({'success': False, 'error': 'Invalid request'})
-
-# def appointment(request):
-#     if request.method == 'POST':
-#         # Handle form submission from the modal
-#         form = AppointmentForm(request.POST)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('appointment')  # Redirect to the same page after saving
-#     else:
-#         # Display the page with appointments
-#         form = AppointmentForm()
-
-#     # Fetch all appointments sorted by date and time
-#     appointments = Appointment.objects.all().order_by('app_date', 'app_time')
-#     return render(request, 'clinic/Appointment/appointment.html', {'form': form, 'appointments': appointments})
-
-# def get_appointments(request):
-#     # Fetch appointments sorted by date and time
-#     appointments = Appointment.objects.all().order_by('app_date', 'app_time')
-#     events = []
-#     for appointment in appointments:
-#         events.append({
-#             'title': f"{appointment.app_fname} {appointment.app_lname}",
-#             'start': f"{appointment.app_date}T{appointment.app_time}",
-#             'status': appointment.app_status,  # Custom field to handle color logic
-#         })
-#     return JsonResponse(events, safe=False)
 #_____________________________________INVENTORY__________________________________________________________
 
 def inventory(request):
@@ -329,7 +204,6 @@ def add_item(request):
         form = ItemForm()
     return render(request, 'clinic/Inventory/add_item.html', {'form': form})
 
-
 def delete_item(request, item_id):
     item = get_object_or_404(Item, pk=item_id)  # Fetch the item by id
     if request.method == 'POST': 
@@ -338,9 +212,31 @@ def delete_item(request, item_id):
     return redirect('inventory') 
 
 def view_item(request, item_id):
-   
-    item = get_object_or_404(Item, item_code=item_id)  # Using item_code as the primary key
-    return render(request, 'clinic/Inventory/view_item.html', {'item': item})
+    # Fetch the item by its ID
+    item = get_object_or_404(Item, pk=item_id)
+
+    # Get all purchases of this item (if any)
+    purchased_items = Purchased_Item.objects.filter(item_code=item)
+
+    # Prepare patient details
+    patient_details = []
+    for purchased_item in purchased_items:
+        patient_name = f"{purchased_item.patient_id.patient_fname} {purchased_item.patient_id.patient_lname}"
+        date_out = item.item_date_out  # Assuming item date_out should be shown for all purchased items
+        patient_details.append({
+            'patient_name': patient_name,
+            'date_out': date_out,
+            'pur_date_purchased': purchased_item.pur_date_purchased,
+        })
+
+    # Pass these details to the template
+    context = {
+        'item': item,
+        'patient_details': patient_details,  # List of patient details
+    }
+
+    return render(request, 'clinic/Inventory/view_item.html', context)
+
 
 #_________________________________________PATIENT________________________________________________________
 
@@ -398,14 +294,23 @@ def add_purchased_item(request, patient_id):
 
     if request.method == 'POST':
         if purchased_item_form.is_valid() and payment_form.is_valid():
-            # Save payment first
-            payment = payment_form.save()
-
-            # Save purchased item with the created payment and patient
             purchased_item = purchased_item_form.save(commit=False)
+            item = purchased_item.item_code  # Get the item selected for purchase
+            
+            # Retrieve the item price and set the payment amount
+            item_price = item.item_price
+            payment = payment_form.save(commit=False)
+            payment.payment_to_be_payed = item_price  # Assign the item price as total amount to pay
+
+            # Save payment and purchased item
+            payment.save()
             purchased_item.payment_id = payment
             purchased_item.patient_id = patient
             purchased_item.save()
+
+            # Update the 'date out' field for the purchased item
+            item.date_out = now()  # Assuming you have a field date_out
+            item.save()
 
             messages.success(request, "Item and payment added successfully!")
             return redirect('patient_detail', patient_id=patient_id)
@@ -418,10 +323,23 @@ def add_purchased_item(request, patient_id):
         'patient': patient,
     })
 
+
 def item_search(request):
-    query = request.GET.get('q', '')
-    items = Item.objects.filter(item_brand__icontains=query)[:10]  # Limit the number of items returned
-    results = [{'id': item.item_code, 'text': f'{item.item_brand} - {item.item_model}'} for item in items]
+    query = request.GET.get('q', '').strip()  # Retrieve and strip the search query
+    items = Item.objects.filter(
+        Q(item_category_id__item_category_name__icontains=query) |  # Search in the Item Category name
+        Q(item_brand__icontains=query) |  # Search in the Item brand
+        Q(item_model__icontains=query) |  # Search in the Item model
+        Q(item_frame_type_id__item_frame_type_name__icontains=query)  # Search in the Item Frame Type name
+    )[:10]  # Limit the number of items returned
+
+    results = [
+        {
+            'id': item.item_code,
+            'text': f'{item.item_category_id} | {item.item_brand} | {item.item_model} | {item.item_frame_type_id}'
+        }
+        for item in items
+    ]
     return JsonResponse({'items': results})
 
 def item_price(request):
