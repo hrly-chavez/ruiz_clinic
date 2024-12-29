@@ -3,6 +3,12 @@ from django.contrib import messages
 from django.shortcuts import render,redirect, get_object_or_404
 from .forms import *
 
+
+from django.http import HttpResponse, JsonResponse,Http404
+
+
+
+
 from django.http import HttpResponse, JsonResponse,Http404
 
 
@@ -18,7 +24,23 @@ from django.contrib import messages
 import json
 # Create your views here.
 
+
 #_____________________________________DASHBOARD__________________________________________________________
+
+
+#_____________________________________DASHBOARD__________________________________________________________
+
+# def dashboard(request):
+#     # Get the selected date from the request or default to today
+#     selected_date = request.GET.get('selected_date', timezone.localdate())  # Default to today if no date is passed
+
+#     # Filter appointments for the selected date and future appointments from the current time
+#     appointments = Appointment.objects.filter(app_date=selected_date).order_by('app_time')
+
+#     return render(request, 'clinic/Dashboard/dashboard.html', {
+#         'appointments': appointments,
+#         'selected_date': selected_date,  # Pass the selected date to the template
+#     })
 
 
 def dashboard(request):
@@ -58,6 +80,25 @@ def update_appointment_status(request):
     else:
         return JsonResponse({'success': False, 'error': 'Invalid request method'})
     
+
+# @csrf_exempt
+# def delete_appointment_dashboard(request):
+#     if request.method == 'POST':
+#         try:
+#             data = json.loads(request.body)
+#             appointment_id = data.get('appointment_id')
+
+#             # Delete the appointment
+#             appointment = Appointment.objects.get(app_id=appointment_id)
+#             appointment.delete()
+
+#             return JsonResponse({'success': True})
+#         except Appointment.DoesNotExist:
+#             return JsonResponse({'success': False, 'error': 'Appointment not found'})
+#         except Exception as e:
+#             return JsonResponse({'success': False, 'error': str(e)})
+#     else:
+#         return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 
 
@@ -152,6 +193,27 @@ def create_appointment(request):
 
     return render(request, 'clinic/Appointment/create_appointment.html', {'form': form})
 
+
+# def create_appointment(request):
+#     if request.method == 'POST':
+#         form = AppointmentForm(request.POST)
+#         if form.is_valid():
+#             # Check if the time is within allowed range
+#             appointment_time = form.cleaned_data['app_time']
+#             if time(17, 30) <= appointment_time <= time(23, 59) or time(0, 0) <= appointment_time <= time(6, 0):
+#                 form.add_error("Appointments cannot be scheduled between 5:30 PM and 6:00 AM.")
+#             else:
+#                 form.save()
+#                 # Return JSON response for AJAX success
+#                 appointments = Appointment.objects.filter(app_date=form.cleaned_data['app_date'])
+#                 appointment_data = list(appointments.values('app_fname', 'app_lname', 'app_time', 'app_status'))
+#                 return JsonResponse({'success': True, 'appointments': appointment_data})
+#         # If form has errors, include errors in response
+#         return JsonResponse({'success': False, 'errors': form.errors})
+#     else:
+#         form = AppointmentForm()
+
+#     return render(request, 'clinic/Appointment/view_appointment.html', {'form': form})
 
 
 def edit_appointment(request):
