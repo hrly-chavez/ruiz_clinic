@@ -9,23 +9,25 @@ from datetime import time
 class ItemForm(forms.ModelForm):
     class Meta:
         model = Item
-        fields = ['item_brand','item_model','item_price','item_date_in',
+        fields = ['item_name','item_brand','item_model','item_price','item_date_in',
                   'item_quantity','item_color','item_measurement',
                   'item_category_id','item_frame_type_id',
         ]
 
         widgets = {
+            'item_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter item name (Optional)'}),
             'item_brand': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter item brand'}),
             'item_model': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter item model'}),
             'item_price': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter price'}),
             'item_date_in': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'item_quantity': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter quantity'}),
-            'item_color': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter color'}),
+            'item_color': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter color (Optional)'}),
             'item_measurement': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter measurement (Optional)'}),
             'item_category_id': forms.Select(attrs={'class': 'form-control'}),
             'item_frame_type_id': forms.Select(attrs={'class': 'form-control'}),
         }
         labels = {
+            'item_name': 'Name',
             'item_brand': 'Brand',
             'item_model': 'Model',
             'item_price': 'Price',

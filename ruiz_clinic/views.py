@@ -203,6 +203,17 @@ def add_item(request):
         form = ItemForm()
     return render(request, 'clinic/Inventory/add_item.html', {'form': form})
 
+def edit_item(request, item_id):
+    item = get_object_or_404(Item, pk=item_id)  # Fetch the item by id
+    if request.method == 'POST':
+        form = ItemForm(request.POST, instance=item)
+        if form.is_valid():
+            form.save()
+            return redirect('inventory')  
+    else:
+        form = ItemForm(instance=item)
+    return render(request, 'clinic/Inventory/edit_item.html', {'form': form})
+
 def delete_item(request, item_id):
     item = get_object_or_404(Item, pk=item_id)  # Fetch the item by id
     if request.method == 'POST': 
@@ -239,7 +250,7 @@ def view_item(request, item_id):
 #_________________________________________PATIENT________________________________________________________
 
 def patient(request):
-    patients = Patient.objects.all()
+    patients = Patient.objects.all().order_by('patient_lname', 'patient_fname')
     return render(request, 'clinic/Patient/patient.html', {'patients': patients})
 
 def patient_detail(request, patient_id):
