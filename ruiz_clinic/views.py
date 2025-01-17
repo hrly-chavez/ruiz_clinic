@@ -1,5 +1,4 @@
 
-from django.utils import timezone   
 from django.shortcuts import render,redirect, get_object_or_404
 from .forms import *
 from datetime import datetime, timedelta
@@ -18,8 +17,9 @@ import random
 import requests
 from django.conf import settings
 from django.http import HttpResponseRedirect
-from django.utils.timezone import localtime, now
-import pytz
+from django.utils.timezone import localtime, now, make_aware, is_aware, localdate
+from pytz import timezone
+PH_TZ = timezone("Asia/Manila")
 
 
 # Infobip Configuration
@@ -153,19 +153,18 @@ def login(request):
     return render(request, "clinic/Login/login.html")
 
 #_____________________________________DASHBOARD__________________________________________________________
-
 def dashboard(request):
     # Get the selected date from the request or default to today
     selected_date_str = request.GET.get('selected_date')
     
     if selected_date_str:
         try:
-            # Convert selected date to timezone-aware datetime
-            selected_date = timezone.datetime.strptime(selected_date_str, '%Y-%m-%d').date()
+            # ✅ Correctly parse the date string
+            selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
         except ValueError:
-            selected_date = timezone.localdate()
+            selected_date = localdate()  # ✅ Ensure timezone-aware date
     else:
-        selected_date = timezone.localdate()
+        selected_date = localdate()  # ✅ Ensure timezone-aware date
 
     # Filter appointments for the selected date (adjust timezone if needed)
     appointments = Appointment.objects.filter(app_date=selected_date).order_by('app_time')
@@ -178,6 +177,8 @@ def dashboard(request):
         'selected_date': selected_date,  # Ensure it's timezone-aware
         'low_stock_items': low_stock_items,  # Pass low stock items
     })
+
+
 
 @csrf_exempt
 def cancel_appointment(request):
@@ -282,7 +283,7 @@ def appointment(request):
     return render(request, 'clinic/Appointment/appointment.html', context)
 
 def view_appointment(request):
-    # Auto-update overdue appointments before rendering the page
+    # ✅ Ensure `auto_cancel_appointments` is correctly called
     auto_cancel_appointments()
 
     date_str = request.GET.get('date')
@@ -297,16 +298,17 @@ def view_appointment(request):
 
     if date_str:
         try:
-            # Convert date string to timezone-aware date
+            # ✅ Convert date string to a date object (no timezone issues)
             selected_date = datetime.strptime(date_str, "%Y-%m-%d").date()
             formatted_date = selected_date.strftime("%B %d, %Y")
 
-            now = timezone.localtime(timezone.now())  # Get local time
-            current_time = now.time()
+            # ✅ Use `localtime(now())` instead of `now.localtime()`
+            now_pht = localtime(now())  # Use Philippine time
+            current_time = now_pht.time()
 
-            if selected_date < now.date():
+            if selected_date < now_pht.date():
                 is_past_date = True
-            elif selected_date == now.date():
+            elif selected_date == now_pht.date():
                 start_time = datetime.strptime("08:00", "%H:%M").time()
                 end_time = datetime.strptime("17:00", "%H:%M").time()
 
@@ -316,16 +318,16 @@ def view_appointment(request):
             if selected_date.weekday() == 6:
                 is_sunday = True
 
-            # Fetch appointments, ensuring correct timezone handling
+            # ✅ Fetch appointments, ensuring correct timezone handling
             appointments = Appointment.objects.filter(app_date=selected_date)
 
             if search_query:
                 appointments = appointments.filter(app_fname__icontains=search_query)
 
-            # Convert each appointment's time to local timezone
+            # ✅ Convert each appointment's time to Philippine timezone
             for appointment in appointments:
-                appointment.app_time = timezone.localtime(
-                    timezone.make_aware(datetime.combine(selected_date, appointment.app_time))
+                appointment.app_time = localtime(
+                    make_aware(datetime.combine(selected_date, appointment.app_time))
                 ).time()
 
         except ValueError:
@@ -345,155 +347,6 @@ def view_appointment(request):
     }
 
     return render(request, 'clinic/Appointment/view_appointment.html', context)
-
-def create_appointment(request):
-    if request.method == 'POST':
-        form = AppointmentForm(request.POST)
-        if form.is_valid():
-            appointment = form.save(commit=False)
-            appointment.app_date = request.POST.get('app_date')  # Get date from hidden input
-            appointment.app_status = 'Waiting'  # Default status
-
-            # Convert date and time to datetime object
-            appointment_date = datetime.strptime(appointment.app_date, '%Y-%m-%d').date()
-            appointment_time = form.cleaned_data['app_time']
-            appointment_start = datetime.combine(appointment_date, appointment_time)
-            appointment_end = appointment_start + timedelta(minutes=15)  # Block 15 minutes after
-            appointment_start_buffer = appointment_start - timedelta(minutes=14)  # Prevent booking too close
-
-            now = datetime.now()
-            if appointment_start < now:
-                messages.error(request, "Cannot create an appointment for a past time.")
-                return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
-
-            # Strictly enforce 15-minute slot restriction, excluding "Cancelled" appointments
-            overlapping_appointments = Appointment.objects.filter(
-                app_date=appointment_date,
-                app_status__in=['Waiting', 'Ongoing', 'Done']  # Exclude "Cancelled" appointments
-            ).filter(
-                app_time__gte=appointment_start_buffer.time(),
-                app_time__lt=appointment_end.time()
-            )
-
-            if overlapping_appointments.exists():
-                messages.error(request, "This appointment time is already taken. Please choose another time.")
-                return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
-
-            # Save the appointment
-            appointment.save()
-            return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
-    else:
-        form = AppointmentForm()
-
-    return render(request, 'clinic/Appointment/create_appointment.html', {'form': form})
-
-
-def edit_appointment(request):
-    if request.method == 'POST':
-        appointment_id = request.POST.get('appointment_id')
-        if not appointment_id:
-            messages.error(request, "Invalid appointment ID.")
-            return redirect('view_appointment')  # Redirect to avoid returning None
-
-        appointment = get_object_or_404(Appointment, app_id=appointment_id)
-        form = AppointmentForm(request.POST, instance=appointment)
-        
-        if form.is_valid():
-            appointment = form.save(commit=False)
-            appointment.app_date = request.POST.get('app_date')
-
-            # Convert date and time to datetime object
-            appointment_date = datetime.strptime(appointment.app_date, '%Y-%m-%d').date()
-            appointment_time = form.cleaned_data['app_time']
-            appointment_start = datetime.combine(appointment_date, appointment_time)
-            appointment_end = appointment_start + timedelta(minutes=15)
-            appointment_start_buffer = appointment_start - timedelta(minutes=14)
-
-            now = datetime.now()
-            if appointment_start < now:
-                messages.error(request, "Cannot edit an appointment for a past time.")
-                return HttpResponseRedirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
-
-            # Strict 15-minute overlap check, excluding "Cancelled" appointments
-            overlapping_appointments = Appointment.objects.filter(
-                app_date=appointment_date,
-                app_status__in=['Waiting', 'Ongoing', 'Done']  # Exclude "Cancelled" appointments
-            ).filter(
-                app_time__gte=appointment_start_buffer.time(),
-                app_time__lt=appointment_end.time()
-            ).exclude(app_id=appointment_id)
-
-            if overlapping_appointments.exists():
-                messages.error(request, "This appointment time is already taken. Please choose another time.")
-                return HttpResponseRedirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
-
-            # Save changes
-            appointment.save()
-            messages.success(request, "Appointment updated successfully.")
-            return HttpResponseRedirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
-        else:
-            messages.error(request, "Invalid form data. Please check your inputs.")
-            return HttpResponseRedirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
-
-    # Ensure function always returns a response
-    messages.error(request, "Invalid request method.")
-    return redirect('view_appointment')
-
-@csrf_exempt
-def delete_appointment(request):
-    if request.method == 'POST':
-        try:
-            # Parse JSON data
-            data = json.loads(request.body)
-            appointment_id = data.get('appointment_id')
-
-            if not appointment_id:
-                return JsonResponse({'success': False, 'error': 'Appointment ID is missing'})
-
-            # Retrieve and delete the appointment
-            appointment = get_object_or_404(Appointment, pk=appointment_id)
-            appointment.delete()
-
-            # Include a success message for the front-end
-            return JsonResponse({'success': True, 'message': 'Appointment deleted successfully'})
-        except Appointment.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Appointment not found'})
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
-    return JsonResponse({'success': False, 'error': 'Invalid request'})
-
-def auto_cancel_appointments():
-    current_datetime = localtime(now())  # ✅ Use local time (Philippines Time)
-    current_time = current_datetime.time()
-    current_date = current_datetime.date()
-
-    five_minutes_ago = (current_datetime - timedelta(minutes=5)).time()  # ✅ 5 minutes ago
-
-    print(f"Local Time Now: {current_time}")  # Debugging
-    print(f"Threshold Time (5 min ago): {five_minutes_ago}")  # Debugging
-
-    # Get appointments that should be canceled
-    overdue_appointments = Appointment.objects.filter(
-        app_date=current_date,
-        app_time__lte=five_minutes_ago,
-        app_status__in=['Waiting', 'Ongoing']
-    )
-
-    if overdue_appointments.exists():
-        print(f"Found {overdue_appointments.count()} overdue appointments.")
-        for appointment in overdue_appointments:
-            print(f"Auto-cancelling ID: {appointment.app_id}, Scheduled Time: {appointment.app_time}")
-    
-    overdue_appointments.update(app_status='Cancelled')
-
-
-# Add this function in any relevant view so it runs when the page is accessed
-def check_and_update_appointments(request):
-    """
-    This view will check and update overdue appointments every time the page is loaded.
-    """
-    auto_cancel_appointments()
-    return JsonResponse({'success': True, 'message': 'Overdue appointments have been updated.'})
 
 # def create_appointment(request):
 #     if request.method == 'POST':
@@ -515,9 +368,10 @@ def check_and_update_appointments(request):
 #                 messages.error(request, "Cannot create an appointment for a past time.")
 #                 return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
 
-#             # Strictly enforce 15-minute slot restriction
+#             # Strictly enforce 15-minute slot restriction, excluding "Cancelled" appointments
 #             overlapping_appointments = Appointment.objects.filter(
-#                 app_date=appointment_date
+#                 app_date=appointment_date,
+#                 app_status__in=['Waiting', 'Ongoing', 'Done']  # Exclude "Cancelled" appointments
 #             ).filter(
 #                 app_time__gte=appointment_start_buffer.time(),
 #                 app_time__lt=appointment_end.time()
@@ -534,6 +388,7 @@ def check_and_update_appointments(request):
 #         form = AppointmentForm()
 
 #     return render(request, 'clinic/Appointment/create_appointment.html', {'form': form})
+
 
 # def edit_appointment(request):
 #     if request.method == 'POST':
@@ -561,9 +416,10 @@ def check_and_update_appointments(request):
 #                 messages.error(request, "Cannot edit an appointment for a past time.")
 #                 return HttpResponseRedirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
 
-#             # Strict 15-minute overlap check (excluding itself)
+#             # Strict 15-minute overlap check, excluding "Cancelled" appointments
 #             overlapping_appointments = Appointment.objects.filter(
-#                 app_date=appointment_date
+#                 app_date=appointment_date,
+#                 app_status__in=['Waiting', 'Ongoing', 'Done']  # Exclude "Cancelled" appointments
 #             ).filter(
 #                 app_time__gte=appointment_start_buffer.time(),
 #                 app_time__lt=appointment_end.time()
@@ -584,6 +440,166 @@ def check_and_update_appointments(request):
 #     # Ensure function always returns a response
 #     messages.error(request, "Invalid request method.")
 #     return redirect('view_appointment')
+
+def create_appointment(request):
+    if request.method == 'POST':
+        form = AppointmentForm(request.POST)
+        if form.is_valid():
+            appointment = form.save(commit=False)
+            appointment.app_date = request.POST.get('app_date')  # Get date from hidden input
+            appointment.app_status = 'Waiting'  # Default status
+
+            # Convert date and time to datetime object
+            appointment_date = datetime.strptime(appointment.app_date, '%Y-%m-%d').date()
+            appointment_time = form.cleaned_data['app_time']
+            appointment_start = datetime.combine(appointment_date, appointment_time)
+            appointment_end = appointment_start + timedelta(minutes=15)  # Block 15 minutes after
+            appointment_start_buffer = appointment_start - timedelta(minutes=14)  # Prevent booking too close
+
+            now = datetime.now()
+            if appointment_start < now:
+                messages.error(request, "Cannot create an appointment for a past time.")
+                return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
+
+            # Restrict appointment time between 6:00 AM and 5:45 PM
+            earliest_time = datetime.combine(appointment_date, datetime.strptime('06:00', '%H:%M').time())
+            latest_time = datetime.combine(appointment_date, datetime.strptime('17:45', '%H:%M').time())
+
+            if not (earliest_time <= appointment_start <= latest_time):
+                messages.error(request, "Appointments can only be scheduled between 6:00 AM and 5:45 PM.")
+                return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
+
+            # Strictly enforce 15-minute slot restriction, excluding "Cancelled" appointments
+            overlapping_appointments = Appointment.objects.filter(
+                app_date=appointment_date,
+                app_status__in=['Waiting', 'Ongoing', 'Done']  # Exclude "Cancelled" appointments
+            ).filter(
+                app_time__gte=appointment_start_buffer.time(),
+                app_time__lt=appointment_end.time()
+            )
+
+            if overlapping_appointments.exists():
+                messages.error(request, "This appointment time is already taken. Please choose another time.")
+                return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
+
+            # Save the appointment
+            appointment.save()
+            messages.success(request, "Appointment created successfully.")
+            return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
+    else:
+        form = AppointmentForm()
+
+    return render(request, 'clinic/Appointment/create_appointment.html', {'form': form})
+
+
+def edit_appointment(request):
+    if request.method == 'POST':
+        appointment_id = request.POST.get('appointment_id')
+        if not appointment_id:
+            messages.error(request, "Invalid appointment ID.")
+            return redirect('view_appointment')
+
+        appointment = get_object_or_404(Appointment, app_id=appointment_id)
+        form = AppointmentForm(request.POST, instance=appointment)
+        
+        if form.is_valid():
+            appointment = form.save(commit=False)
+            appointment.app_date = request.POST.get('app_date')
+
+            # Convert date and time to datetime object
+            appointment_date = datetime.strptime(appointment.app_date, '%Y-%m-%d').date()
+            appointment_time = form.cleaned_data['app_time']
+            appointment_start = datetime.combine(appointment_date, appointment_time)
+            appointment_end = appointment_start + timedelta(minutes=15)
+            appointment_start_buffer = appointment_start - timedelta(minutes=14)
+
+            now = datetime.now()
+            if appointment_start < now:
+                messages.error(request, "Cannot edit an appointment for a past time.")
+                return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
+
+            # Restrict appointment time between 6:00 AM and 5:45 PM
+            earliest_time = datetime.combine(appointment_date, datetime.strptime('06:00', '%H:%M').time())
+            latest_time = datetime.combine(appointment_date, datetime.strptime('17:45', '%H:%M').time())
+
+            if not (earliest_time <= appointment_start <= latest_time):
+                messages.error(request, "Appointments can only be scheduled between 6:00 AM and 5:45 PM.")
+                return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
+
+            # Strict 15-minute overlap check, excluding "Cancelled" appointments
+            overlapping_appointments = Appointment.objects.filter(
+                app_date=appointment_date,
+                app_status__in=['Waiting', 'Ongoing', 'Done']  # Exclude "Cancelled" appointments
+            ).filter(
+                app_time__gte=appointment_start_buffer.time(),
+                app_time__lt=appointment_end.time()
+            ).exclude(app_id=appointment_id)
+
+            if overlapping_appointments.exists():
+                messages.error(request, "This appointment time is already taken. Please choose another time.")
+                return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
+
+            # Save changes
+            appointment.save()
+            messages.success(request, "Appointment updated successfully.")
+            return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
+        else:
+            messages.error(request, "Invalid form data. Please check your inputs.")
+            return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
+
+    messages.error(request, "Invalid request method.")
+    return redirect('view_appointment')
+
+@csrf_exempt
+def delete_appointment(request):
+    if request.method == 'POST':
+        try:
+            # Parse JSON data
+            data = json.loads(request.body)
+            appointment_id = data.get('appointment_id')
+
+            if not appointment_id:
+                return JsonResponse({'success': False, 'error': 'Appointment ID is missing'})
+
+            # Retrieve and delete the appointment
+            appointment = get_object_or_404(Appointment, pk=appointment_id)
+            appointment.delete()
+
+            # Include a success message for the front-end
+            return JsonResponse({'success': True, 'message': 'Appointment deleted successfully'})
+        except Appointment.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Appointment not found'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+def auto_cancel_appointments():
+    """Automatically cancel appointments that are past their scheduled time by 5 minutes."""
+    # Get the current time in the Philippine timezone
+    current_time_pht = localtime(now())
+
+    # Filter appointments with status 'Waiting' that are overdue by 5 minutes
+    overdue_appointments = Appointment.objects.filter(
+        app_status='Waiting',
+        app_date__lte=current_time_pht.date(),  # Ensure the date is today or earlier
+    ).exclude(
+        app_date=current_time_pht.date(),
+        app_time__gte=(current_time_pht - timedelta(minutes=5)).time(),  # Exclude appointments within the last 5 minutes
+    )
+
+    # Update their status to 'Cancelled'
+    count = overdue_appointments.update(app_status='Cancelled')
+    return count  # Optionally return the number of updated appointments
+
+# Add this function in any relevant view so it runs when the page is accessed
+def check_and_update_appointments(request):
+    """
+    This view will check and update overdue appointments every time the page is loaded.
+    """
+    auto_cancel_appointments()
+    return JsonResponse({'success': True, 'message': 'Overdue appointments have been updated.'})
+
+
 #_____________________________________INVENTORY__________________________________________________________
 
 def inventory(request):

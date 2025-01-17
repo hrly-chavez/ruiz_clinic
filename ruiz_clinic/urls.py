@@ -27,6 +27,7 @@ urlpatterns = [
     path('create/', views.create_appointment, name='create_appointment'),
     path('appointment/edit/', views.edit_appointment, name='edit_appointment'),
     path('delete_appointment/', views.delete_appointment, name='delete_appointment'),
+    path('check_and_update_appointments/', views.check_and_update_appointments, name='check_and_update_appointments'),  # ✅ Add this line
     # path('edit_appointment/<int:appointment_id>/', views.edit_appointment, name='edit_appointment'),
     # path('get-appointments/', views.get_appointments, name='get-appointments'),
 #______________________________PATIENT_______________________________    
