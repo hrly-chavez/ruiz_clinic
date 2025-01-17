@@ -1,0 +1,46 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-image">
+            <img src="{% static 'eye.jpg' %}" alt="Eye Image">
+        </div>
+        <div class="login-form">
+            <h1>Welcome!</h1>
+            <!-- Display messages -->
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li class="message">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            <form action="{% url 'login' %}" method="post">
+                {% csrf_token %}
+                <div class="input-group">
+                    <label for="username"><i class="fa fa-user"></i></label>
+                    <input type="text" id="username" name="username" placeholder="Username" required>
+                </div>
+                <div class="input-group">
+                    <label for="password"><i class="fa fa-lock"></i></label>
+                    <input type="password" id="password" name="password" placeholder="Password" required>
+                </div>
+                <div class="actions">
+                    <a href="{% url 'forgotpass' %}">Forgot Password?</a>
+                </div>
+                <button type="submit" class="btn-login">Login</button>
+            </form>            
+            <div class="signup-link">
+                <p>Don't have an account? <a href="{% url 'signup' %}">Sign up</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -4,6 +4,7 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/appointment.css' %}">
+
 <div class="appointment-header">
     <h1>
         Appointment(s) at {{ formatted_date }}
@@ -12,9 +13,17 @@
 
 <!-- Button to Trigger Create Appointment Modal -->
 <button id="createAppointmentBtn" class="btn" 
-    {% if is_past_date or is_sunday or is_past_time %}disabled{% endif %}>
+    {% if is_past_date or is_sunday %}disabled{% endif %}>
     Create Appointment
 </button>
+
+{% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <p class="message {{ message.tags }}">{{ message }}</p>
+        {% endfor %}
+    </div>
+{% endif %}
 
 <!-- Appointments Table -->
 <div class="appointment-widget-container">
@@ -42,8 +51,10 @@
                                     data-id="{{ appointment.app_id }}"
                                     data-fname="{{ appointment.app_fname }}"
                                     data-lname="{{ appointment.app_lname }}"
+                                    data-contact="{{ appointment.app_contact }}"
                                     data-time="{{ appointment.app_time }}"
-                                    data-status="{{ appointment.app_status }}">
+                                    data-status="{{ appointment.app_status }}"
+                                    {% if is_sunday %}disabled style="background-color: #dcdcdc; color: #7f8c8d;"{% endif %}>
                                 View
                             </button>
                         </td>
@@ -76,10 +87,10 @@
         <!-- Buttons Inside the Modal -->
         <div class="modal-actions">
             <button id="editAppointmentBtn" class="btn"
-                {% if is_past_date or is_sunday or is_past_time or appointment.is_past %}disabled{% endif %}>
+                {% if is_past_date or is_sunday or appointment.is_past %}disabled{% endif %}>
                 Edit Appointment
             </button>
-            <button id="cancelAppointmentBtn" class="btn">Cancel Appointment</button>
+            <button id="cancelAppointmentBtn" class="btn">Delete Appointment</button>
             <button id="closeModalButton" class="btn">Close</button>
         </div>
     </div>
@@ -91,19 +102,25 @@
         <span class="close-btn" id="closeCreateEditModalBtn">&times;</span>
         <h2 id="modalTitle">Create/Update Appointment</h2>
 
+
+
         <form method="POST" id="appointmentForm" action="">
             {% csrf_token %}
             {{ form.as_p }}
-
-            <!-- Hidden input to store the appointment ID (used for update) -->
+        
+            <!-- Hidden input for the date -->
+            <input type="hidden" id="id_app_date" name="app_date" value="{{ selected_date|date:'Y-m-d' }}">
+        
+            <!-- Hidden input to store the appointment ID (used for updates) -->
             <input type="hidden" id="appointment_id" name="appointment_id">
-
-            <!-- Dynamic Button -->
+        
+            <!-- Submit Button -->
             <input type="submit" id="modalSubmitButton" value="Create">
-
+        
             <!-- Cancel Button -->
             <button type="button" id="cancelCreateEditModalButton" class="btn">Cancel</button>
         </form>
+        
     </div>
 </div>
 
@@ -135,21 +152,38 @@
     }
 
     // Open View Modal with Appointment Details
-    const viewButtons = document.querySelectorAll(".view");
-    viewButtons.forEach(button => {
-        button.onclick = function() {
-            appointmentDetails.fname.innerText = button.getAttribute("data-fname");
-            appointmentDetails.lname.innerText = button.getAttribute("data-lname");
-            appointmentDetails.time.innerText = button.getAttribute("data-time");
-            appointmentDetails.status.innerText = button.getAttribute("data-status");
+const viewButtons = document.querySelectorAll(".view");
+viewButtons.forEach(button => {
+    button.onclick = function() {
+        appointmentDetails.fname.innerText = button.getAttribute("data-fname");
+        appointmentDetails.lname.innerText = button.getAttribute("data-lname");
+        appointmentDetails.contact.innerText = button.getAttribute("data-contact");
+        appointmentDetails.time.innerText = button.getAttribute("data-time");
+        appointmentDetails.status.innerText = button.getAttribute("data-status");
 
-            // Set appointment ID for further actions
-            document.getElementById("appointment_id").value = button.getAttribute("data-id");
+        // Set appointment ID for further actions
+        document.getElementById("appointment_id").value = button.getAttribute("data-id");
 
-            // Show the modal
-            viewModal.style.display = "block";
-        };
-    });
+        // Get status and Edit button element
+        const editButton = document.getElementById("editAppointmentBtn");
+        const status = button.getAttribute("data-status");
+
+        // Enable or disable the Edit button based on status
+        if (status === "Cancelled") {
+            editButton.disabled = true;  // Disable Edit button
+            editButton.style.backgroundColor = "#d3d3d3";  // Gray out the button
+            editButton.style.cursor = "not-allowed";  // Change cursor to indicate disabled state
+        } else {
+            editButton.disabled = false;  // Enable Edit button
+            editButton.style.backgroundColor = "";  // Reset background color
+            editButton.style.cursor = "pointer";  // Restore cursor
+        }
+
+        // Show the modal
+        viewModal.style.display = "block";
+    };
+});
+
 
     // Close Modals on Close Button Click
     closeViewModalBtn.onclick = () => closeModal(viewModal);
@@ -172,22 +206,24 @@
     document.getElementById("editAppointmentBtn").onclick = function() {
         document.getElementById("id_app_fname").value = appointmentDetails.fname.innerText;
         document.getElementById("id_app_lname").value = appointmentDetails.lname.innerText;
+        document.getElementById("id_app_contact").value = appointmentDetails.contact.innerText; // Update if contact is shown
         document.getElementById("id_app_time").value = appointmentDetails.time.innerText;
-        document.getElementById("id_app_status").value = appointmentDetails.status.innerText;
-
+        document.getElementById("id_app_date").value = "{{ selected_date|date:'Y-m-d' }}"; // Pass selected date
+    
         document.getElementById("appointment_id").value = document.getElementById("appointment_id").value;
         document.getElementById("modalTitle").innerText = "Edit Appointment";
         document.getElementById("modalSubmitButton").value = "Edit";
         document.getElementById("appointmentForm").action = "{% url 'edit_appointment' %}";
-
+    
         appointmentModal.style.display = "block";
         viewModal.style.display = "none";
     };
+    
 
     // Add functionality for "Cancel Appointment" button in the View Modal
     const cancelAppointmentBtn = document.getElementById("cancelAppointmentBtn");
     cancelAppointmentBtn.onclick = function() {
-        if (confirm("Are you sure you want to cancel this appointment?")) {
+        if (confirm("Are you sure you want to delete this appointment?")) {
             const appointmentId = document.getElementById("appointment_id").value;
 
             fetch("{% url 'delete_appointment' %}", {
@@ -207,5 +243,19 @@
             });
         }
     };
+
+    // Automatically check and update overdue appointments every 1 minute
+    setInterval(() => {
+        fetch("/check_and_update_appointments/")
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log("Overdue appointments updated.");
+                    location.reload(); // Refresh page to reflect changes
+                }
+            })
+            .catch(error => console.error("Error updating appointments:", error));
+    }, 60000);  // Runs every 60 seconds (1 minute)
+
 </script>
 {% endblock %}

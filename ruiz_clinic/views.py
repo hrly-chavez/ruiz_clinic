@@ -2,32 +2,207 @@
 from django.utils import timezone   
 from django.shortcuts import render,redirect, get_object_or_404
 from .forms import *
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.http import HttpResponse, JsonResponse,Http404
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.db.models import Q
+import matplotlib
+matplotlib.use('Agg')
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+import io
 import json
+import random
+import requests
+from django.conf import settings
+from django.http import HttpResponseRedirect
+from django.utils.timezone import localtime, now
+import pytz
 
+
+# Infobip Configuration
+INFOBIP_BASE_URL = "https://xkm5e3.api.infobip.com"  # Replace with your Infobip base URL
+INFOBIP_API_KEY = "ef6357427130c5f5399221a21b70144c-faf48786-0b9b-48f3-bc9f-7a675623c093"  # Replace with your Infobip API key
+SENDER_ID = "RuizClinic"  # Replace with your sender ID (optional)
+
+def send_otp(request):
+    if request.method == 'GET':
+        phone = request.GET.get('phone', '')
+        if Account.objects.filter(account_contact=phone).exists():
+            # Generate a 6-digit OTP
+            otp = random.randint(100000, 999999)
+            
+            # Infobip SMS API payload
+            url = f"{INFOBIP_BASE_URL}/sms/2/text/advanced"
+            headers = {
+                "Authorization": f"App {INFOBIP_API_KEY}",
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "messages": [
+                    {
+                        "from": SENDER_ID,
+                        "destinations": [{"to": f"+63{phone[1:]}"}],  # Ensure correct E.164 format
+                        "text": f"Your OTP is: {otp}"
+                    }
+                ]
+            }
+            
+            # Send SMS via Infobip
+            try:
+                response = requests.post(url, json=payload, headers=headers)
+                response_data = response.json()
+                if response.status_code == 200:
+                    # For debugging, log OTP; in production, store it securely
+                    print(f"OTP for {phone}: {otp}")
+                    # Optionally store OTP in the session or database for verification
+                    request.session['otp'] = otp
+                    request.session['otp_phone'] = phone
+                    return JsonResponse({'success': True, 'otp': otp})
+                else:
+                    return JsonResponse({'success': False, 'error': response_data.get('message', 'Failed to send OTP')})
+            except requests.RequestException as e:
+                return JsonResponse({'success': False, 'error': str(e)})
+        else:
+            return JsonResponse({'success': False, 'error': 'Phone number not found'})
+        
+def verify_otp(request):
+    if request.method == 'POST':
+        phone = request.POST.get('phone')
+        otp = request.POST.get('otp')
+        
+        # Retrieve the OTP and phone number stored in the session
+        stored_otp = request.session.get('otp')
+        stored_phone = request.session.get('otp_phone')
+        
+        # Validate OTP and phone number
+        if stored_otp and stored_phone and stored_phone == phone and str(stored_otp) == otp:
+            return JsonResponse({'valid': True})
+        else:
+            return JsonResponse({'valid': False, 'error': 'Invalid OTP or phone number'})
+
+
+def changepass(request):
+    return render(request, 'clinic/Signup/changepass.html')
+
+#_____________________________________Signup_____________________________________________________________
+
+def signup(request):
+    if request.method == 'POST':
+        # Get form data
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        phone = request.POST.get('phone')  # This will store the phone number in account_contact
+
+        if Account.objects.filter(account_username=username).exists():
+            messages.error(request, 'Username already exists. Please choose another.')
+        else:
+            # Create a new account and save the phone number as account_contact
+            Account.objects.create(
+                account_username=username, 
+                account_password=password, 
+                account_contact=phone  # Include the phone number here
+            )
+
+            # Redirect to login page or a success page
+            return redirect('login')  # Replace 'login' with the appropriate name for your login page
+
+    # Render the signup form
+    return render(request, 'clinic/Signup/signup.html')
+
+def forgotpass(request):
+    if request.method == 'POST':
+        phone = request.POST.get('phone')
+        
+        # Check if the phone number exists in the Account model
+        try:
+            account = Account.objects.get(account_contact=phone)
+            messages.success(request, "Phone number matches our records. You will receive a password reset link.")
+            message_type = 'success'  # Success message type
+        except Account.DoesNotExist:
+            messages.error(request, "Phone number does not match our records. Please try again.")
+            message_type = 'error'  # Error message type
+        
+        return render(request, 'clinic/Signup/forgotpass.html', {'message_type': message_type})
+    
+    return render(request, 'clinic/Signup/forgotpass.html')
+
+def check_phone_number(request):
+    if request.method == 'GET':
+        phone = request.GET.get('phone', '')
+        exists = Account.objects.filter(account_contact=phone).exists()
+        return JsonResponse({'exists': exists})
+#______________________________________LOGIN___________________________________________________________
+@csrf_exempt
+def login(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+
+        # Check if user exists in the Account table
+        try:
+            user = Account.objects.get(account_username=username, account_password=password)
+            # Redirect to the dashboard
+            return redirect('dashboard')  # 'dashboard' is the name of the URL for your dashboard view
+        except Account.DoesNotExist:
+            # If user not found, show an error message
+            messages.error(request, 'Invalid username or password. Please try again.')
+
+    return render(request, "clinic/Login/login.html")
 
 #_____________________________________DASHBOARD__________________________________________________________
 
 def dashboard(request):
     # Get the selected date from the request or default to today
-    selected_date = request.GET.get('selected_date', timezone.localdate())  # Default to today if no date is passed
+    selected_date_str = request.GET.get('selected_date')
+    
+    if selected_date_str:
+        try:
+            # Convert selected date to timezone-aware datetime
+            selected_date = timezone.datetime.strptime(selected_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            selected_date = timezone.localdate()
+    else:
+        selected_date = timezone.localdate()
 
-    # Filter appointments for the selected date and future appointments from the current time
+    # Filter appointments for the selected date (adjust timezone if needed)
     appointments = Appointment.objects.filter(app_date=selected_date).order_by('app_time')
 
-    # Query for items with quantity less than 5
-    low_stock_items = Item.objects.filter(item_quantity__lt=5)
+    # Query for items with low stock
+    low_stock_items = Item.objects.filter(item_quantity__lt=3)
 
     return render(request, 'clinic/Dashboard/dashboard.html', {
         'appointments': appointments,
-        'selected_date': selected_date,  # Pass the selected date to the template
-        'low_stock_items': low_stock_items,  # Pass the low stock items to the template
+        'selected_date': selected_date,  # Ensure it's timezone-aware
+        'low_stock_items': low_stock_items,  # Pass low stock items
     })
+
+@csrf_exempt
+def cancel_appointment(request):
+    if request.method == 'POST':
+        try:
+            # Parse JSON data
+            data = json.loads(request.body)
+            appointment_id = data.get('appointment_id')
+
+            if not appointment_id:
+                return JsonResponse({'success': False, 'error': 'Appointment ID is missing'})
+
+            # Retrieve the appointment and update its status to "Cancelled"
+            appointment = get_object_or_404(Appointment, pk=appointment_id)
+            appointment.app_status = 'Cancelled'
+            appointment.save()
+
+            # Return success message
+            return JsonResponse({'success': True, 'message': 'Appointment cancelled successfully'})
+        except Appointment.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Appointment not found'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
 
 @csrf_exempt
 def update_appointment_status(request):
@@ -50,26 +225,69 @@ def update_appointment_status(request):
     else:
         return JsonResponse({'success': False, 'error': 'Invalid request method'})
     
+def generate_wordcloud(request):
+    try:
+        # Fetch purchased item data and aggregate frequencies
+        purchases = Purchased_Item.objects.select_related('item_code__item_category_id').all()
+        item_counts = {}
+
+        for purchase in purchases:
+            if purchase.item_code:  # Ensure item_code is not None
+                # Use item category and brand to generate key
+                item_category = (
+                    purchase.item_code.item_category_id.item_category_name
+                    if purchase.item_code.item_category_id else "Unknown Category"
+                )
+                item_name = f"{item_category} {purchase.item_code.item_brand}"
+                item_counts[item_name] = item_counts.get(item_name, 0) + 1  # Increment count for each purchase
+            else:
+                # Handle cases where item_code is NULL
+                item_counts["Unknown Item"] = item_counts.get("Unknown Item", 0) + 1
+
+        if not item_counts:
+            item_counts = {"No Data Available": 1}  # Prevent word cloud errors if no data exists
+
+        # Generate the word cloud
+        wordcloud = WordCloud(width=800, height=200, background_color="white").generate_from_frequencies(item_counts)
+
+        # Render the word cloud to an image
+        buffer = io.BytesIO()
+        plt.figure(figsize=(10, 5), dpi=100)
+        plt.imshow(wordcloud, interpolation="bilinear")
+        plt.axis("off")
+        plt.savefig(buffer, format="png")
+        plt.close()
+        buffer.seek(0)
+
+        return HttpResponse(buffer, content_type="image/png")
+    except Exception as e:
+        print(f"Error generating word cloud: {e}")
+        return HttpResponse("Error generating word cloud", content_type="text/plain")
+    
 #_____________________________________APPOINTMENT__________________________________________________________
 
 def appointment(request):
     # Fetch all appointment dates from the database
     appointments = Appointment.objects.all().values('app_date')
 
-    # Convert to datetime and adjust for time zone
+    # Ensure all appointment dates are in PHT
     appointment_dates = [
-        (datetime.combine(appointment['app_date'], datetime.min.time())  # Combine date with a dummy time
-         .astimezone(timezone.get_current_timezone()).date().isoformat())  # Convert to local time zone and then to string
+        appointment['app_date'].isoformat()  # Convert to string in YYYY-MM-DD format
         for appointment in appointments
     ]
 
     context = {
-        'appointment_dates': appointment_dates,  # Pass the dates to the template
+        'appointment_dates': appointment_dates,  # Pass corrected dates to the template
     }
     return render(request, 'clinic/Appointment/appointment.html', context)
 
 def view_appointment(request):
-    date_str = request.GET.get('date')  # Get the selected date from the query parameters
+    # Auto-update overdue appointments before rendering the page
+    auto_cancel_appointments()
+
+    date_str = request.GET.get('date')
+    search_query = request.GET.get('search', '')
+
     selected_date = None
     formatted_date = "Unknown Date"
     appointments = []
@@ -79,50 +297,51 @@ def view_appointment(request):
 
     if date_str:
         try:
-            selected_date = datetime.strptime(date_str, "%Y-%m-%d")  # Convert to a datetime object
-            formatted_date = selected_date.strftime("%B %d, %Y")  # Format the date as 'Month Day, Year'
+            # Convert date string to timezone-aware date
+            selected_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+            formatted_date = selected_date.strftime("%B %d, %Y")
 
-            # Get today's date and time
-            now = datetime.now()
+            now = timezone.localtime(timezone.now())  # Get local time
             current_time = now.time()
 
-            # Check if the selected date is in the past
-            if selected_date.date() < now.date():  # Compare only the date part
+            if selected_date < now.date():
                 is_past_date = True
-            elif selected_date.date() == now.date():
-                # Check if the current time is outside business hours (8:00 AM - 5:00 PM)
+            elif selected_date == now.date():
                 start_time = datetime.strptime("08:00", "%H:%M").time()
                 end_time = datetime.strptime("17:00", "%H:%M").time()
 
                 if current_time < start_time or current_time > end_time:
                     is_past_time = True
 
-            # Check if the selected date is a Sunday
-            if selected_date.weekday() == 6:  # 6 represents Sunday
+            if selected_date.weekday() == 6:
                 is_sunday = True
 
-            # Get all appointments for the selected date and sort by appointment time
-            appointments = Appointment.objects.filter(app_date=selected_date).order_by('app_time')
+            # Fetch appointments, ensuring correct timezone handling
+            appointments = Appointment.objects.filter(app_date=selected_date)
 
-            # Add a flag to each appointment to indicate if it occurs in the past
+            if search_query:
+                appointments = appointments.filter(app_fname__icontains=search_query)
+
+            # Convert each appointment's time to local timezone
             for appointment in appointments:
-                appointment_time = datetime.combine(selected_date, appointment.app_time)
-                appointment.is_past = appointment_time < now  # Compare with the current datetime
+                appointment.app_time = timezone.localtime(
+                    timezone.make_aware(datetime.combine(selected_date, appointment.app_time))
+                ).time()
 
         except ValueError:
-            pass  # Handle invalid date strings gracefully
+            pass  
 
-    # Create the form instance and pass the selected date to the form's `app_date` field
     form = AppointmentForm(initial={'app_date': selected_date})
 
     context = {
-        'formatted_date': formatted_date,  # Pass the formatted date
-        'selected_date': selected_date,   # Optionally, pass the raw datetime object
-        'appointments': appointments,      # Pass the sorted appointments to the template
-        'form': form,                      # Pass the form to the template
-        'is_past_date': is_past_date,      # Flag to check if it's a past date
-        'is_past_time': is_past_time,      # Flag to check if it's a past time for today
-        'is_sunday': is_sunday,            # Pass the is_sunday flag to the template
+        'formatted_date': formatted_date,
+        'selected_date': selected_date,
+        'appointments': appointments,
+        'form': form,
+        'is_past_date': is_past_date,
+        'is_past_time': is_past_time,
+        'is_sunday': is_sunday,
+        'search_query': search_query,
     }
 
     return render(request, 'clinic/Appointment/view_appointment.html', context)
@@ -131,38 +350,94 @@ def create_appointment(request):
     if request.method == 'POST':
         form = AppointmentForm(request.POST)
         if form.is_valid():
-            form.save()
-            # Redirect to the same date's view after creation
-            return redirect(f"{reverse('view_appointment')}?date={form.cleaned_data['app_date']}")
+            appointment = form.save(commit=False)
+            appointment.app_date = request.POST.get('app_date')  # Get date from hidden input
+            appointment.app_status = 'Waiting'  # Default status
+
+            # Convert date and time to datetime object
+            appointment_date = datetime.strptime(appointment.app_date, '%Y-%m-%d').date()
+            appointment_time = form.cleaned_data['app_time']
+            appointment_start = datetime.combine(appointment_date, appointment_time)
+            appointment_end = appointment_start + timedelta(minutes=15)  # Block 15 minutes after
+            appointment_start_buffer = appointment_start - timedelta(minutes=14)  # Prevent booking too close
+
+            now = datetime.now()
+            if appointment_start < now:
+                messages.error(request, "Cannot create an appointment for a past time.")
+                return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
+
+            # Strictly enforce 15-minute slot restriction, excluding "Cancelled" appointments
+            overlapping_appointments = Appointment.objects.filter(
+                app_date=appointment_date,
+                app_status__in=['Waiting', 'Ongoing', 'Done']  # Exclude "Cancelled" appointments
+            ).filter(
+                app_time__gte=appointment_start_buffer.time(),
+                app_time__lt=appointment_end.time()
+            )
+
+            if overlapping_appointments.exists():
+                messages.error(request, "This appointment time is already taken. Please choose another time.")
+                return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
+
+            # Save the appointment
+            appointment.save()
+            return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
     else:
         form = AppointmentForm()
 
     return render(request, 'clinic/Appointment/create_appointment.html', {'form': form})
 
+
 def edit_appointment(request):
     if request.method == 'POST':
         appointment_id = request.POST.get('appointment_id')
-
-        # Ensure appointment_id is provided and valid
         if not appointment_id:
-            messages.error(request, "Appointment ID is missing.")
-            return redirect('view_appointment')
+            messages.error(request, "Invalid appointment ID.")
+            return redirect('view_appointment')  # Redirect to avoid returning None
 
-        # Fetch the appointment or return 404 if not found
-        appointment = get_object_or_404(Appointment, pk=appointment_id)
+        appointment = get_object_or_404(Appointment, app_id=appointment_id)
         form = AppointmentForm(request.POST, instance=appointment)
-
-        # If the form is valid, save the changes and provide success feedback
+        
         if form.is_valid():
-            form.save()
-            messages.success(request, "Appointment updated successfully.")
-            # Redirect to the `view_appointment` page, passing the updated date to the query string
-            return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
-        else:
-            messages.error(request, "Invalid form submission.")
-            return redirect('view_appointment')
+            appointment = form.save(commit=False)
+            appointment.app_date = request.POST.get('app_date')
 
-    return redirect('view_appointment')  # Fallback for non-POST requests
+            # Convert date and time to datetime object
+            appointment_date = datetime.strptime(appointment.app_date, '%Y-%m-%d').date()
+            appointment_time = form.cleaned_data['app_time']
+            appointment_start = datetime.combine(appointment_date, appointment_time)
+            appointment_end = appointment_start + timedelta(minutes=15)
+            appointment_start_buffer = appointment_start - timedelta(minutes=14)
+
+            now = datetime.now()
+            if appointment_start < now:
+                messages.error(request, "Cannot edit an appointment for a past time.")
+                return HttpResponseRedirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
+
+            # Strict 15-minute overlap check, excluding "Cancelled" appointments
+            overlapping_appointments = Appointment.objects.filter(
+                app_date=appointment_date,
+                app_status__in=['Waiting', 'Ongoing', 'Done']  # Exclude "Cancelled" appointments
+            ).filter(
+                app_time__gte=appointment_start_buffer.time(),
+                app_time__lt=appointment_end.time()
+            ).exclude(app_id=appointment_id)
+
+            if overlapping_appointments.exists():
+                messages.error(request, "This appointment time is already taken. Please choose another time.")
+                return HttpResponseRedirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
+
+            # Save changes
+            appointment.save()
+            messages.success(request, "Appointment updated successfully.")
+            return HttpResponseRedirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
+        else:
+            messages.error(request, "Invalid form data. Please check your inputs.")
+            return HttpResponseRedirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
+
+    # Ensure function always returns a response
+    messages.error(request, "Invalid request method.")
+    return redirect('view_appointment')
 
 @csrf_exempt
 def delete_appointment(request):
@@ -187,6 +462,128 @@ def delete_appointment(request):
             return JsonResponse({'success': False, 'error': str(e)})
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
+def auto_cancel_appointments():
+    current_datetime = localtime(now())  # ✅ Use local time (Philippines Time)
+    current_time = current_datetime.time()
+    current_date = current_datetime.date()
+
+    five_minutes_ago = (current_datetime - timedelta(minutes=5)).time()  # ✅ 5 minutes ago
+
+    print(f"Local Time Now: {current_time}")  # Debugging
+    print(f"Threshold Time (5 min ago): {five_minutes_ago}")  # Debugging
+
+    # Get appointments that should be canceled
+    overdue_appointments = Appointment.objects.filter(
+        app_date=current_date,
+        app_time__lte=five_minutes_ago,
+        app_status__in=['Waiting', 'Ongoing']
+    )
+
+    if overdue_appointments.exists():
+        print(f"Found {overdue_appointments.count()} overdue appointments.")
+        for appointment in overdue_appointments:
+            print(f"Auto-cancelling ID: {appointment.app_id}, Scheduled Time: {appointment.app_time}")
+    
+    overdue_appointments.update(app_status='Cancelled')
+
+
+# Add this function in any relevant view so it runs when the page is accessed
+def check_and_update_appointments(request):
+    """
+    This view will check and update overdue appointments every time the page is loaded.
+    """
+    auto_cancel_appointments()
+    return JsonResponse({'success': True, 'message': 'Overdue appointments have been updated.'})
+
+# def create_appointment(request):
+#     if request.method == 'POST':
+#         form = AppointmentForm(request.POST)
+#         if form.is_valid():
+#             appointment = form.save(commit=False)
+#             appointment.app_date = request.POST.get('app_date')  # Get date from hidden input
+#             appointment.app_status = 'Waiting'  # Default status
+
+#             # Convert date and time to datetime object
+#             appointment_date = datetime.strptime(appointment.app_date, '%Y-%m-%d').date()
+#             appointment_time = form.cleaned_data['app_time']
+#             appointment_start = datetime.combine(appointment_date, appointment_time)
+#             appointment_end = appointment_start + timedelta(minutes=15)  # Block 15 minutes after
+#             appointment_start_buffer = appointment_start - timedelta(minutes=14)  # Prevent booking too close
+
+#             now = datetime.now()
+#             if appointment_start < now:
+#                 messages.error(request, "Cannot create an appointment for a past time.")
+#                 return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
+
+#             # Strictly enforce 15-minute slot restriction
+#             overlapping_appointments = Appointment.objects.filter(
+#                 app_date=appointment_date
+#             ).filter(
+#                 app_time__gte=appointment_start_buffer.time(),
+#                 app_time__lt=appointment_end.time()
+#             )
+
+#             if overlapping_appointments.exists():
+#                 messages.error(request, "This appointment time is already taken. Please choose another time.")
+#                 return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
+
+#             # Save the appointment
+#             appointment.save()
+#             return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
+#     else:
+#         form = AppointmentForm()
+
+#     return render(request, 'clinic/Appointment/create_appointment.html', {'form': form})
+
+# def edit_appointment(request):
+#     if request.method == 'POST':
+#         appointment_id = request.POST.get('appointment_id')
+#         if not appointment_id:
+#             messages.error(request, "Invalid appointment ID.")
+#             return redirect('view_appointment')  # Redirect to avoid returning None
+
+#         appointment = get_object_or_404(Appointment, app_id=appointment_id)
+#         form = AppointmentForm(request.POST, instance=appointment)
+        
+#         if form.is_valid():
+#             appointment = form.save(commit=False)
+#             appointment.app_date = request.POST.get('app_date')
+
+#             # Convert date and time to datetime object
+#             appointment_date = datetime.strptime(appointment.app_date, '%Y-%m-%d').date()
+#             appointment_time = form.cleaned_data['app_time']
+#             appointment_start = datetime.combine(appointment_date, appointment_time)
+#             appointment_end = appointment_start + timedelta(minutes=15)
+#             appointment_start_buffer = appointment_start - timedelta(minutes=14)
+
+#             now = datetime.now()
+#             if appointment_start < now:
+#                 messages.error(request, "Cannot edit an appointment for a past time.")
+#                 return HttpResponseRedirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
+
+#             # Strict 15-minute overlap check (excluding itself)
+#             overlapping_appointments = Appointment.objects.filter(
+#                 app_date=appointment_date
+#             ).filter(
+#                 app_time__gte=appointment_start_buffer.time(),
+#                 app_time__lt=appointment_end.time()
+#             ).exclude(app_id=appointment_id)
+
+#             if overlapping_appointments.exists():
+#                 messages.error(request, "This appointment time is already taken. Please choose another time.")
+#                 return HttpResponseRedirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
+
+#             # Save changes
+#             appointment.save()
+#             messages.success(request, "Appointment updated successfully.")
+#             return HttpResponseRedirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
+#         else:
+#             messages.error(request, "Invalid form data. Please check your inputs.")
+#             return HttpResponseRedirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
+
+#     # Ensure function always returns a response
+#     messages.error(request, "Invalid request method.")
+#     return redirect('view_appointment')
 #_____________________________________INVENTORY__________________________________________________________
 
 def inventory(request):

@@ -39,6 +39,54 @@ body {
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     overflow: hidden; /* Ensures header aligns perfectly with rounded corners */
+    height: 300px; /* Fixed height */
+    display: flex;
+    flex-direction: column; /* Ensures content stacks vertically */
+}
+
+/* Scrollable Content Area */
+.widget .scrollable-content {
+    flex: 1; /* Ensures this section takes up remaining space */
+    overflow-y: auto; /* Adds a vertical scrollbar when content overflows */
+    padding: 10px; /* Optional: Add padding for better aesthetics */
+}
+
+/* Appointments Widget Specific */
+.appointments-widget .scrollable-content {
+    max-height: calc(400px - 60px); /* Subtract header height for the remaining area */
+}
+
+/* 📅 Date Picker Styling */
+#appointment-date-picker {
+    padding: 10px;
+    font-size: 16px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    border: 2px solid #1a8ebc; /* Match widget color */
+    border-radius: 6px;
+    outline: none;
+    background: #ffffff;
+    color: #333;
+    transition: all 0.3s ease;
+    width: 200px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 📅 Date Picker Hover & Focus Effects */
+#appointment-date-picker:hover,
+#appointment-date-picker:focus {
+    border-color: #29b6f6; /* Lighter blue */
+    background: #f4f4f9;
+    box-shadow: 0px 0px 8px rgba(41, 182, 246, 0.5);
+}
+
+
+
+
+/* Hide default calendar icon and style */
+#appointment-date-picker::-webkit-calendar-picker-indicator {
+    filter: invert(0.5);
+    cursor: pointer;
 }
 
 /* Reusable Widget Header */
@@ -113,7 +161,7 @@ body {
 
 /* Graph Widget */
 .graph-widget {
-    width: 700px;
+    width: 400px;
     flex: 2; /* Larger share of space */
     text-align: center;
 }
@@ -226,4 +274,9 @@ body {
     color: #a9a9a9; /* Light gray text */
     cursor: not-allowed; /* Disable pointer on hover */
     transform: none; /* No zoom effect */
+}
+
+.additional-widget {
+    width: 700px;
+    flex: 1; /* Larger share of space */
 }

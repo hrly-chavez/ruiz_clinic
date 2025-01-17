@@ -4,10 +4,22 @@ from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 urlpatterns = [
+
+#_______________________________LOGIN__________________________________
+    path("", views.login, name="login"),
+    path("signup/", views.signup, name="signup"),
+    path("forgotpass/", views.forgotpass, name="forgotpass"),
+    # path('check-phone/', views.check_phone, name='check_phone'),
+    path('check-phone-number/', views.check_phone_number, name='check_phone_number'),
+    path('send-otp/', views.send_otp, name='send_otp'),
+    path('verify-otp/', views.verify_otp, name='verify_otp'),
+    path('changepass/', views.changepass, name="changepass"),
 #______________________________DASHBOARD_______________________________ 
       
-    path("", views.dashboard, name="dashboard"),
+    path("dashboard/", views.dashboard, name="dashboard"),
+    path('wordcloud/', views.generate_wordcloud, name='wordcloud'),
     path('update-appointment-status/', views.update_appointment_status, name='update_appointment_status'),
+    path('cancel_appointment/', views.cancel_appointment, name='cancel_appointment'),
 #______________________________APPOINTMENT_______________________________    
 
     path("appointment/", views.appointment, name="appointment"),

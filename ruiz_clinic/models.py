@@ -104,13 +104,19 @@ class Appointment(models.Model):
         ('Ongoing', 'Ongoing'),
         ('Waiting', 'Waiting'),
         ('Done', 'Done'),
+        ('Cancelled', 'Cancelled'),
     ]
     app_id = models.AutoField(primary_key=True)
     app_fname = models.CharField(max_length=50, null=True, blank=True)  # Temporarily allow nulls
     app_lname = models.CharField(max_length=50, null=True, blank=True)  # Temporarily allow nulls
     app_contact = models.CharField(max_length=11, null=True, blank=True)  # Temporarily allow nulls
-    app_date = models.DateField()
+    app_date = models.DateField(default=now)
     app_time = models.TimeField()
     app_status = models.CharField(max_length=50, choices=app_status_choices)
     patient_id = models.ForeignKey(Patient, null=True, blank=True, on_delete=models.CASCADE)
     
+class Account(models.Model):
+    account_id = models.AutoField(primary_key=True)
+    account_username = models.CharField(max_length=100)
+    account_password = models.CharField(max_length=100)
+    account_contact = models.CharField(max_length=11)

@@ -1,0 +1,45 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="stylesheet" href="{% static 'css/signup.css' %}">
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-left">
+            <h1>Register Account</h1>
+            <!-- Display messages -->
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li class="message">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            <form action="{% url 'signup' %}" method="post">
+                {% csrf_token %}
+                <div class="input-group">
+                    <label for="username"><i class="fa fa-user"></i></label>
+                    <input type="text" id="username" name="username" placeholder="Username" required>
+                </div>
+                <div class="input-group">
+                    <label for="password"><i class="fa fa-lock"></i></label>
+                    <input type="password" id="password" name="password" placeholder="Password" required>
+                </div>
+                <div class="input-group">
+                    <label for="phone"><i class="fa fa-phone"></i></label>
+                    <input type="tel" id="phone" name="phone" placeholder="Phone Number" required>
+                </div>
+                <button type="submit" class="btn-register">Register</button>
+            </form>
+        </div>
+        <div class="register-right">
+            <img src="{% static 'eye.jpg' %}" alt="Eye Illustration">
+        </div>
+    </div>
+</body>
+</html>
