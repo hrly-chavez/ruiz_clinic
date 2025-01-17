@@ -18,6 +18,7 @@
                     <th>Quantity</th>
                     <th>Category</th>
                     <th>Frame Type</th>
+                    <th>View Details</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -34,6 +35,13 @@
                     <td>
                         <a href="{% url 'view_item' item_id=item.item_code %}" class="btn btn-info btn-sm" style="border-radius: 5px;">
                             <i class="fa fa-eye"></i> View Details
+                        </a>
+                    </td>
+
+                    <td>
+                        <!-- Edit button -->
+                        <a href="{% url 'edit_item' item_id=item.item_code %}" class="btn btn-warning btn-sm" style="border-radius: 5px; margin-right: 5px;">
+                            <i class="fa fa-edit"></i> Edit
                         </a>
                         <!-- Delete button -->
                         <form action="{% url 'delete_item' item_id=item.item_code %}" method="post" style="display:inline;">

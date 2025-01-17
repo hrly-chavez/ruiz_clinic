@@ -3,17 +3,22 @@
 {% block content %}
 <!-- Header Section -->
 <div style="padding: 25px; background-color: #2db9fae8; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px; height: 125px; display: flex; align-items: center;">
-    <h1 style="color: #fff; font-size: 37px; font-family: 'Istok Web', sans-serif; font-weight: normal;">Item Details</h1>
+    <h1 style="color: #fff; font-size: 37px; font-family: 'Istok Web', sans-serif; font-weight: normal;">ITEM DETAILS</h1>
 </div>
 
 <!-- Item Details Section Inside a Form Container -->
 <div class="container mt-4">
     <div class="form-container p-4" style="background-color: #fff; border-radius: 8px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);">
-        <h2 class="mb-4">{{ item.item_brand }} {{ item.item_model }}</h2>
+        <h2 class="mb-4">{{ item.item_brand }}  | {{ item.item_model }} </h2>
         
         <div class="row">
             <div class="col-md-6">
                 <!-- Item Details -->
+                <div class="mb-3">
+                    <label class="form-label"><strong>Item Name:</strong></label>
+                    {{ item.item_name }}
+                </div>
+
                 <div class="mb-3">
                     <label class="form-label"><strong>Item Code:</strong></label>
                     {{ item.item_code }}
