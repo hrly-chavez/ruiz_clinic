@@ -84,23 +84,6 @@ class Payment(models.Model):
     def __str__(self):
         return f" {self.payment_payed}, {self.payment_to_be_payed}"
 
-# class Patient(models.Model):
-#     patient_id = models.AutoField(primary_key=True)
-#     patient_fname = models.CharField(max_length=50)
-#     patient_lname = models.CharField(max_length=100)
-#     patient_initial = models.CharField(max_length=1, null=True, blank=True)
-#     patient_date_checked_up = models.DateField(default=now)
-#     patient_address = models.CharField(max_length=400)
-#     patient_occupation = models.CharField(max_length=500, null=True , blank=True)
-#     patient_age = models.IntegerField()
-#     patient_birthdate = models.DateField()
-#     patient_contact = models.CharField(max_length=13)
-#     patient_diag = models.TextField(null=True,blank=True)
-#     pur_id = models.ForeignKey(Purchased_Item,null=True,blank=True,on_delete=models.SET_NULL)
-#     payment_id = models.ForeignKey(Payment,null=True,blank=True,on_delete=models.SET_NULL)
-
-#     def __str__(self):
-#         return f"{self.patient_fname}, {self.patient_fname}, - Diagnosed with {self.patient_diag[:30]} ,{self.pur_id}, {self.payment_id}"
 
 
 
