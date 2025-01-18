@@ -19,121 +19,183 @@ from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.utils.timezone import localtime, now, make_aware, is_aware, localdate
 from pytz import timezone
+import smtplib
+from email.mime.text import MIMEText
 PH_TZ = timezone("Asia/Manila")
 
 
-# Infobip Configuration
-INFOBIP_BASE_URL = "https://xkm5e3.api.infobip.com"  # Replace with your Infobip base URL
-INFOBIP_API_KEY = "ef6357427130c5f5399221a21b70144c-faf48786-0b9b-48f3-bc9f-7a675623c093"  # Replace with your Infobip API key
-SENDER_ID = "RuizClinic"  # Replace with your sender ID (optional)
+# # Infobip Configuration
+# INFOBIP_BASE_URL = "https://xkm5e3.api.infobip.com"  # Replace with your Infobip base URL
+# INFOBIP_API_KEY = "ef6357427130c5f5399221a21b70144c-faf48786-0b9b-48f3-bc9f-7a675623c093"  # Replace with your Infobip API key
+# SENDER_ID = "RuizClinic"  # Replace with your sender ID (optional)
 
-def send_otp(request):
-    if request.method == 'GET':
-        phone = request.GET.get('phone', '')
-        if Account.objects.filter(account_contact=phone).exists():
-            # Generate a 6-digit OTP
-            otp = random.randint(100000, 999999)
+# def send_otp(request):
+#     if request.method == 'GET':
+#         phone = request.GET.get('phone', '')
+#         if Account.objects.filter(account_contact=phone).exists():
+#             # Generate a 6-digit OTP
+#             otp = random.randint(100000, 999999)
             
-            # Infobip SMS API payload
-            url = f"{INFOBIP_BASE_URL}/sms/2/text/advanced"
-            headers = {
-                "Authorization": f"App {INFOBIP_API_KEY}",
-                "Content-Type": "application/json"
-            }
-            payload = {
-                "messages": [
-                    {
-                        "from": SENDER_ID,
-                        "destinations": [{"to": f"+63{phone[1:]}"}],  # Ensure correct E.164 format
-                        "text": f"Your OTP is: {otp}"
-                    }
-                ]
-            }
+#             # Infobip SMS API payload
+#             url = f"{INFOBIP_BASE_URL}/sms/2/text/advanced"
+#             headers = {
+#                 "Authorization": f"App {INFOBIP_API_KEY}",
+#                 "Content-Type": "application/json"
+#             }
+#             payload = {
+#                 "messages": [
+#                     {
+#                         "from": SENDER_ID,
+#                         "destinations": [{"to": f"+63{phone[1:]}"}],  # Ensure correct E.164 format
+#                         "text": f"Your OTP is: {otp}"
+#                     }
+#                 ]
+#             }
             
-            # Send SMS via Infobip
-            try:
-                response = requests.post(url, json=payload, headers=headers)
-                response_data = response.json()
-                if response.status_code == 200:
-                    # For debugging, log OTP; in production, store it securely
-                    print(f"OTP for {phone}: {otp}")
-                    # Optionally store OTP in the session or database for verification
-                    request.session['otp'] = otp
-                    request.session['otp_phone'] = phone
-                    return JsonResponse({'success': True, 'otp': otp})
-                else:
-                    return JsonResponse({'success': False, 'error': response_data.get('message', 'Failed to send OTP')})
-            except requests.RequestException as e:
-                return JsonResponse({'success': False, 'error': str(e)})
-        else:
-            return JsonResponse({'success': False, 'error': 'Phone number not found'})
+#             # Send SMS via Infobip
+#             try:
+#                 response = requests.post(url, json=payload, headers=headers)
+#                 response_data = response.json()
+#                 if response.status_code == 200:
+#                     # For debugging, log OTP; in production, store it securely
+#                     print(f"OTP for {phone}: {otp}")
+#                     # Optionally store OTP in the session or database for verification
+#                     request.session['otp'] = otp
+#                     request.session['otp_phone'] = phone
+#                     return JsonResponse({'success': True, 'otp': otp})
+#                 else:
+#                     return JsonResponse({'success': False, 'error': response_data.get('message', 'Failed to send OTP')})
+#             except requests.RequestException as e:
+#                 return JsonResponse({'success': False, 'error': str(e)})
+#         else:
+#             return JsonResponse({'success': False, 'error': 'Phone number not found'})
         
-def verify_otp(request):
-    if request.method == 'POST':
-        phone = request.POST.get('phone')
-        otp = request.POST.get('otp')
+# def verify_otp(request):
+#     if request.method == 'POST':
+#         phone = request.POST.get('phone')
+#         otp = request.POST.get('otp')
         
-        # Retrieve the OTP and phone number stored in the session
-        stored_otp = request.session.get('otp')
-        stored_phone = request.session.get('otp_phone')
+#         # Retrieve the OTP and phone number stored in the session
+#         stored_otp = request.session.get('otp')
+#         stored_phone = request.session.get('otp_phone')
         
-        # Validate OTP and phone number
-        if stored_otp and stored_phone and stored_phone == phone and str(stored_otp) == otp:
-            return JsonResponse({'valid': True})
-        else:
-            return JsonResponse({'valid': False, 'error': 'Invalid OTP or phone number'})
+#         # Validate OTP and phone number
+#         if stored_otp and stored_phone and stored_phone == phone and str(stored_otp) == otp:
+#             return JsonResponse({'valid': True})
+#         else:
+#             return JsonResponse({'valid': False, 'error': 'Invalid OTP or phone number'})
 
 
-def changepass(request):
-    return render(request, 'clinic/Signup/changepass.html')
+# def changepass(request):
+#     return render(request, 'clinic/Signup/changepass.html')
 
 #_____________________________________Signup_____________________________________________________________
 
+# Store OTPs temporarily (use session for better security)
+OTP_STORAGE = {}
+
+# Function to generate OTP
+def generate_otp():
+    otp = str(random.randint(100000, 999999))
+    print(f"Generated OTP: {otp}")  # Debugging
+    return otp
+
+def send_otp_email(email, otp):
+    sender_email = "carataojoegie@gmail.com"  # Replace with your Gmail
+    sender_password = "svdd pqan vcbh tagf"  # Use the App Password you generated
+    subject = "Your OTP Code"
+    body = f"Your OTP code is {otp}. Please enter it to verify your account."
+
+    msg = MIMEText(body)
+    msg['Subject'] = subject
+    msg['From'] = sender_email
+    msg['To'] = email
+
+    try:
+        print(f"Sending OTP to {email}...")  # Debugging
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, email, msg.as_string())
+        server.quit()
+        print(f"OTP email sent to {email} successfully!")  # Debugging
+    except Exception as e:
+        print(f"Error sending email: {e}")  # Debugging
+
+# Test the function
+send_otp_email("caratao@gmail.com", "123456")  # Replace with your email for testing
+
+# Signup View
 def signup(request):
     if request.method == 'POST':
-        # Get form data
         username = request.POST.get('username')
         password = request.POST.get('password')
-        phone = request.POST.get('phone')  # This will store the phone number in account_contact
+        email = request.POST.get('email')
 
         if Account.objects.filter(account_username=username).exists():
             messages.error(request, 'Username already exists. Please choose another.')
+        elif Account.objects.filter(account_email=email).exists():
+            messages.error(request, 'Email is already registered.')
         else:
-            # Create a new account and save the phone number as account_contact
-            Account.objects.create(
-                account_username=username, 
-                account_password=password, 
-                account_contact=phone  # Include the phone number here
-            )
+            otp = generate_otp()
+            print(f"Storing OTP for {email}: {otp}")  # Debugging
+            OTP_STORAGE[email] = otp  # Store OTP temporarily
+            send_otp_email(email, otp)  # Send OTP to user's email
+            request.session['pending_user'] = {
+                'username': username,
+                'password': password,
+                'email': email,
+            }
+            return redirect('verify_otp')  # Redirect to OTP verification page
 
-            # Redirect to login page or a success page
-            return redirect('login')  # Replace 'login' with the appropriate name for your login page
-
-    # Render the signup form
     return render(request, 'clinic/Signup/signup.html')
 
-def forgotpass(request):
-    if request.method == 'POST':
-        phone = request.POST.get('phone')
-        
-        # Check if the phone number exists in the Account model
-        try:
-            account = Account.objects.get(account_contact=phone)
-            messages.success(request, "Phone number matches our records. You will receive a password reset link.")
-            message_type = 'success'  # Success message type
-        except Account.DoesNotExist:
-            messages.error(request, "Phone number does not match our records. Please try again.")
-            message_type = 'error'  # Error message type
-        
-        return render(request, 'clinic/Signup/forgotpass.html', {'message_type': message_type})
-    
-    return render(request, 'clinic/Signup/forgotpass.html')
 
-def check_phone_number(request):
-    if request.method == 'GET':
-        phone = request.GET.get('phone', '')
-        exists = Account.objects.filter(account_contact=phone).exists()
-        return JsonResponse({'exists': exists})
+# OTP Verification View
+def verify_otp(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        entered_otp = request.POST.get('otp')
+
+        if email in OTP_STORAGE and OTP_STORAGE[email] == entered_otp:
+            user_data = request.session.get('pending_user')
+            if user_data:
+                Account.objects.create(
+                    account_username=user_data['username'],
+                    account_password=user_data['password'],  # Hash this in production
+                    account_email=user_data['email']
+                )
+                del OTP_STORAGE[email]  # Remove OTP after successful registration
+                del request.session['pending_user']  # Clear session
+                messages.success(request, 'Registration successful! You can now log in.')
+                return redirect('login')
+        else:
+            messages.error(request, 'Invalid OTP. Please try again.')
+
+    return render(request, 'clinic/Signup/verify_otp.html')
+
+# def forgotpass(request):
+#     if request.method == 'POST':
+#         phone = request.POST.get('phone')
+        
+#         # Check if the phone number exists in the Account model
+#         try:
+#             account = Account.objects.get(account_contact=phone)
+#             messages.success(request, "Phone number matches our records. You will receive a password reset link.")
+#             message_type = 'success'  # Success message type
+#         except Account.DoesNotExist:
+#             messages.error(request, "Phone number does not match our records. Please try again.")
+#             message_type = 'error'  # Error message type
+        
+#         return render(request, 'clinic/Signup/forgotpass.html', {'message_type': message_type})
+    
+#     return render(request, 'clinic/Signup/forgotpass.html')
+
+# def check_phone_number(request):
+#     if request.method == 'GET':
+#         phone = request.GET.get('phone', '')
+#         exists = Account.objects.filter(account_contact=phone).exists()
+#         return JsonResponse({'exists': exists})
 #______________________________________LOGIN___________________________________________________________
 @csrf_exempt
 def login(request):

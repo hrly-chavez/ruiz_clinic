@@ -144,6 +144,6 @@ class Appointment(models.Model):
     
 class Account(models.Model):
     account_id = models.AutoField(primary_key=True)
-    account_username = models.CharField(max_length=100)
+    account_username = models.CharField(max_length=100, unique=True)
     account_password = models.CharField(max_length=100)
-    account_contact = models.CharField(max_length=11)
+    account_email = models.CharField(max_length=100, unique=True)

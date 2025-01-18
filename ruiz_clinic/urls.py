@@ -8,12 +8,13 @@ urlpatterns = [
 #_______________________________LOGIN__________________________________
     path("", views.login, name="login"),
     path("signup/", views.signup, name="signup"),
-    path("forgotpass/", views.forgotpass, name="forgotpass"),
-    # path('check-phone/', views.check_phone, name='check_phone'),
-    path('check-phone-number/', views.check_phone_number, name='check_phone_number'),
-    path('send-otp/', views.send_otp, name='send_otp'),
     path('verify-otp/', views.verify_otp, name='verify_otp'),
-    path('changepass/', views.changepass, name="changepass"),
+    # path("forgotpass/", views.forgotpass, name="forgotpass"),
+    # path('check-phone/', views.check_phone, name='check_phone'),
+    # path('check-phone-number/', views.check_phone_number, name='check_phone_number'),
+    # path('send-otp/', views.send_otp, name='send_otp'),
+    # path('verify-otp/', views.verify_otp, name='verify_otp'),
+    # path('changepass/', views.changepass, name="changepass"),
 #______________________________DASHBOARD_______________________________ 
       
     path("dashboard/", views.dashboard, name="dashboard"),
