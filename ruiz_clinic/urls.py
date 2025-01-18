@@ -12,12 +12,6 @@ urlpatterns = [
     path('forgot-password/', views.forgot_password, name='forgot_password'),
     path('verify-reset-otp/', views.verify_reset_otp, name='verify_reset_otp'),
     path('reset-password/', views.reset_password, name='reset_password'),
-    # path("forgotpass/", views.forgotpass, name="forgotpass"),
-    # path('check-phone/', views.check_phone, name='check_phone'),
-    # path('check-phone-number/', views.check_phone_number, name='check_phone_number'),
-    # path('send-otp/', views.send_otp, name='send_otp'),
-    # path('verify-otp/', views.verify_otp, name='verify_otp'),
-    # path('changepass/', views.changepass, name="changepass"),
 #______________________________DASHBOARD_______________________________ 
       
     path("dashboard/", views.dashboard, name="dashboard"),
@@ -54,4 +48,9 @@ urlpatterns = [
      path('delete_item/<int:item_id>/', views.delete_item, name='delete_item'),
      path('view_item/<int:item_id>/', views.view_item, name='view_item'),
      path('edit_item/<int:item_id>/', views.edit_item, name='edit_item'),
+
+#______________________________LOGOUT____________________________________
+    path('logout/', views.user_logout, name='logout'),
+    
 ]
+

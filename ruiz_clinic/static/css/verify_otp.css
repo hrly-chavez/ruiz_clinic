@@ -1,7 +1,7 @@
 /* General styles */
 body {
     font-family: Arial, sans-serif;
-    background-color: #87CEEB; /* Updated background color */
+    background-color: #87CEEB;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -9,8 +9,8 @@ body {
     margin: 0;
 }
 
-/* Forgot Password container */
-.login-container {
+/* Container */
+.register-container {
     background: #fff;
     padding: 30px;
     border-radius: 10px;
@@ -23,7 +23,7 @@ body {
 h1 {
     font-size: 24px;
     color: #333;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 /* Messages */
@@ -44,7 +44,7 @@ h1 {
 /* Input group */
 .input-group {
     position: relative;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     display: flex;
     align-items: center;
     border: 1px solid #ccc;
@@ -65,11 +65,12 @@ h1 {
     background: transparent;
     width: 100%;
     font-size: 16px;
+    padding: 5px;
 }
 
-/* Button */
-.btn-login {
-    background: #007BFF; /* Updated to match primary blue */
+/* Verify OTP Button */
+.btn-register {
+    background: #007BFF;
     color: white;
     border: none;
     padding: 12px;
@@ -80,13 +81,13 @@ h1 {
     transition: background 0.3s ease;
 }
 
-.btn-login:hover {
-    background: #0056b3; /* Darker shade of blue */
+.btn-register:hover {
+    background: #0056b3;
 }
 
 /* Responsive Design */
 @media (max-width: 400px) {
-    .login-container {
+    .register-container {
         width: 90%;
     }
 }

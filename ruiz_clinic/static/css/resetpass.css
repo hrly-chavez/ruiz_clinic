@@ -1,7 +1,7 @@
 /* General styles */
 body {
     font-family: Arial, sans-serif;
-    background-color: #87CEEB; /* Updated background color */
+    background-color: #87CEEB;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -9,8 +9,8 @@ body {
     margin: 0;
 }
 
-/* Forgot Password container */
-.login-container {
+/* Reset Password Container */
+.reset-container {
     background: #fff;
     padding: 30px;
     border-radius: 10px;
@@ -23,6 +23,13 @@ body {
 h1 {
     font-size: 24px;
     color: #333;
+    margin-bottom: 10px;
+}
+
+/* Instructions */
+.instructions {
+    font-size: 14px;
+    color: #666;
     margin-bottom: 20px;
 }
 
@@ -44,7 +51,7 @@ h1 {
 /* Input group */
 .input-group {
     position: relative;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     display: flex;
     align-items: center;
     border: 1px solid #ccc;
@@ -59,17 +66,29 @@ h1 {
     margin-right: 10px;
 }
 
+/* Password input field */
 .input-group input {
     border: none;
     outline: none;
     background: transparent;
     width: 100%;
     font-size: 16px;
+    padding: 5px;
 }
 
-/* Button */
-.btn-login {
-    background: #007BFF; /* Updated to match primary blue */
+/* Toggle Password Button */
+.toggle-password {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: #666;
+    margin-left: 10px;
+}
+
+/* Reset Button */
+.btn-reset {
+    background: #007BFF;
     color: white;
     border: none;
     padding: 12px;
@@ -80,13 +99,37 @@ h1 {
     transition: background 0.3s ease;
 }
 
-.btn-login:hover {
-    background: #0056b3; /* Darker shade of blue */
+.btn-reset:hover {
+    background: #0056b3;
+}
+
+/* Error Message */
+.error-message {
+    font-size: 14px;
+    color: red;
+    margin-bottom: 10px;
 }
 
 /* Responsive Design */
 @media (max-width: 400px) {
-    .login-container {
+    .reset-container {
         width: 90%;
     }
+}
+/* Show Password Checkbox */
+.show-password-container {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.show-password-container input {
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+.show-password-container label {
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
 }

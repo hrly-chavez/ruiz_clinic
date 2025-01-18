@@ -21,109 +21,20 @@ from django.utils.timezone import localtime, now, make_aware, is_aware, localdat
 from pytz import timezone
 import smtplib
 from email.mime.text import MIMEText
+from django.contrib.auth import logout
 PH_TZ = timezone("Asia/Manila")
 
+from functools import wraps
 
-# # Infobip Configuration
-# INFOBIP_BASE_URL = "https://xkm5e3.api.infobip.com"  # Replace with your Infobip base URL
-# INFOBIP_API_KEY = "ef6357427130c5f5399221a21b70144c-faf48786-0b9b-48f3-bc9f-7a675623c093"  # Replace with your Infobip API key
-# SENDER_ID = "RuizClinic"  # Replace with your sender ID (optional)
+def login_required(view_func):
+    @wraps(view_func)  # ✅ Keeps function metadata
+    def wrapper(request, *args, **kwargs):
+        if 'user_id' not in request.session:
+            messages.error(request, "You need to log in first.")  # Show message
+            return redirect('login')  # ✅ Redirect to login page
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
-# def send_otp(request):
-#     if request.method == 'GET':
-#         phone = request.GET.get('phone', '')
-#         if Account.objects.filter(account_contact=phone).exists():
-#             # Generate a 6-digit OTP
-#             otp = random.randint(100000, 999999)
-            
-#             # Infobip SMS API payload
-#             url = f"{INFOBIP_BASE_URL}/sms/2/text/advanced"
-#             headers = {
-#                 "Authorization": f"App {INFOBIP_API_KEY}",
-#                 "Content-Type": "application/json"
-#             }
-#             payload = {
-#                 "messages": [
-#                     {
-#                         "from": SENDER_ID,
-#                         "destinations": [{"to": f"+63{phone[1:]}"}],  # Ensure correct E.164 format
-#                         "text": f"Your OTP is: {otp}"
-#                     }
-#                 ]
-#             }
-            
-#             # Send SMS via Infobip
-#             try:
-#                 response = requests.post(url, json=payload, headers=headers)
-#                 response_data = response.json()
-#                 if response.status_code == 200:
-#                     # For debugging, log OTP; in production, store it securely
-#                     print(f"OTP for {phone}: {otp}")
-#                     # Optionally store OTP in the session or database for verification
-#                     request.session['otp'] = otp
-#                     request.session['otp_phone'] = phone
-#                     return JsonResponse({'success': True, 'otp': otp})
-#                 else:
-#                     return JsonResponse({'success': False, 'error': response_data.get('message', 'Failed to send OTP')})
-#             except requests.RequestException as e:
-#                 return JsonResponse({'success': False, 'error': str(e)})
-#         else:
-#             return JsonResponse({'success': False, 'error': 'Phone number not found'})
-        
-# def verify_otp(request):
-#     if request.method == 'POST':
-#         phone = request.POST.get('phone')
-#         otp = request.POST.get('otp')
-        
-#         # Retrieve the OTP and phone number stored in the session
-#         stored_otp = request.session.get('otp')
-#         stored_phone = request.session.get('otp_phone')
-        
-#         # Validate OTP and phone number
-#         if stored_otp and stored_phone and stored_phone == phone and str(stored_otp) == otp:
-#             return JsonResponse({'valid': True})
-#         else:
-#             return JsonResponse({'valid': False, 'error': 'Invalid OTP or phone number'})
-
-
-# def changepass(request):
-#     return render(request, 'clinic/Signup/changepass.html')
-
-#_____________________________________Signup_____________________________________________________________
-
-# Store OTPs temporarily (use session for better security)
-# OTP_STORAGE = {}
-
-# # Function to generate OTP
-# def generate_otp():
-#     otp = str(random.randint(100000, 999999))
-#     print(f"Generated OTP: {otp}")  # Debugging
-#     return otp
-
-# def send_otp_email(email, otp):
-#     sender_email = "carataojoegie@gmail.com"  # Replace with your Gmail
-#     sender_password = "svdd pqan vcbh tagf"  # Use the App Password you generated
-#     subject = "Your OTP Code"
-#     body = f"Your OTP code is {otp}. Please enter it to verify your account."
-
-#     msg = MIMEText(body)
-#     msg['Subject'] = subject
-#     msg['From'] = sender_email
-#     msg['To'] = email
-
-#     try:
-#         print(f"Sending OTP to {email}...")  # Debugging
-#         server = smtplib.SMTP("smtp.gmail.com", 587)
-#         server.starttls()
-#         server.login(sender_email, sender_password)
-#         server.sendmail(sender_email, email, msg.as_string())
-#         server.quit()
-#         print(f"OTP email sent to {email} successfully!")  # Debugging
-#     except Exception as e:
-#         print(f"Error sending email: {e}")  # Debugging
-
-# # Test the function
-# send_otp_email("caratao@gmail.com", "123456")  # Replace with your email for testing
 
 # Temporary storage for OTPs (consider using a session for better security)
 RESET_OTP_STORAGE = {}
@@ -186,19 +97,25 @@ def reset_password(request):
     if request.method == 'POST':
         email = request.session.get('reset_email')
         new_password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
 
+        # Check if passwords match
+        if new_password != confirm_password:
+            messages.error(request, "Passwords do not match!")
+            return redirect('reset_password')
+
+        # Ensure email exists in session and is valid
         if email and Account.objects.filter(account_email=email).exists():
             user = Account.objects.get(account_email=email)
-            user.account_password = new_password  # Hash password in production
+            user.account_password = new_password  # Storing password as plain text (Not Recommended)
             user.save()
             del request.session['reset_email']  # Remove session data
             messages.success(request, "Password reset successful! You can now log in.")
             return redirect('login')
         else:
-            messages.error(request, "Error resetting password.")
+            messages.error(request, "Error resetting password. Please try again.")
 
     return render(request, 'clinic/Login/reset_password.html')
-
 
 # Signup View
 def signup(request):
@@ -249,48 +166,31 @@ def verify_otp(request):
 
     return render(request, 'clinic/Signup/verify_otp.html')
 
-# def forgotpass(request):
-#     if request.method == 'POST':
-#         phone = request.POST.get('phone')
-        
-#         # Check if the phone number exists in the Account model
-#         try:
-#             account = Account.objects.get(account_contact=phone)
-#             messages.success(request, "Phone number matches our records. You will receive a password reset link.")
-#             message_type = 'success'  # Success message type
-#         except Account.DoesNotExist:
-#             messages.error(request, "Phone number does not match our records. Please try again.")
-#             message_type = 'error'  # Error message type
-        
-#         return render(request, 'clinic/Signup/forgotpass.html', {'message_type': message_type})
-    
-#     return render(request, 'clinic/Signup/forgotpass.html')
-
-# def check_phone_number(request):
-#     if request.method == 'GET':
-#         phone = request.GET.get('phone', '')
-#         exists = Account.objects.filter(account_contact=phone).exists()
-#         return JsonResponse({'exists': exists})
 #______________________________________LOGIN___________________________________________________________
 @csrf_exempt
 def login(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
+        username = request.POST.get('username')
+        password = request.POST.get('password')
 
-        # Check if user exists in the Account table
         try:
             user = Account.objects.get(account_username=username, account_password=password)
-            # Redirect to the dashboard
-            return redirect('dashboard')  # 'dashboard' is the name of the URL for your dashboard view
+            
+            # ✅ Store user ID in session
+            request.session['user_id'] = user.account_id  # Store primary key
+            request.session['username'] = user.account_username  # Store username (optional)
+
+            messages.success(request, "Login successful!")
+            return redirect('dashboard')  # ✅ Now it will redirect properly
         except Account.DoesNotExist:
-            # If user not found, show an error message
             messages.error(request, 'Invalid username or password. Please try again.')
 
     return render(request, "clinic/Login/login.html")
 
 #_____________________________________DASHBOARD__________________________________________________________
+# @login_required
 def dashboard(request):
+    auto_cancel_appointments(request)
     # Get the selected date from the request or default to today
     selected_date_str = request.GET.get('selected_date')
     
@@ -316,7 +216,7 @@ def dashboard(request):
     })
 
 
-
+# @login_required
 @csrf_exempt
 def cancel_appointment(request):
     if request.method == 'POST':
@@ -342,6 +242,7 @@ def cancel_appointment(request):
     
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
+# @login_required
 @csrf_exempt
 def update_appointment_status(request):
     if request.method == 'POST':
@@ -362,7 +263,8 @@ def update_appointment_status(request):
             return JsonResponse({'success': False, 'error': str(e)})
     else:
         return JsonResponse({'success': False, 'error': 'Invalid request method'})
-    
+
+# @login_required
 def generate_wordcloud(request):
     try:
         # Fetch purchased item data and aggregate frequencies
@@ -403,7 +305,7 @@ def generate_wordcloud(request):
         return HttpResponse("Error generating word cloud", content_type="text/plain")
     
 #_____________________________________APPOINTMENT__________________________________________________________
-
+# @login_required
 def appointment(request):
     # Fetch all appointment dates from the database
     appointments = Appointment.objects.all().values('app_date')
@@ -419,9 +321,10 @@ def appointment(request):
     }
     return render(request, 'clinic/Appointment/appointment.html', context)
 
+# @login_required
 def view_appointment(request):
     # ✅ Ensure `auto_cancel_appointments` is correctly called
-    auto_cancel_appointments()
+    auto_cancel_appointments(request)
 
     date_str = request.GET.get('date')
     search_query = request.GET.get('search', '')
@@ -485,99 +388,7 @@ def view_appointment(request):
 
     return render(request, 'clinic/Appointment/view_appointment.html', context)
 
-# def create_appointment(request):
-#     if request.method == 'POST':
-#         form = AppointmentForm(request.POST)
-#         if form.is_valid():
-#             appointment = form.save(commit=False)
-#             appointment.app_date = request.POST.get('app_date')  # Get date from hidden input
-#             appointment.app_status = 'Waiting'  # Default status
-
-#             # Convert date and time to datetime object
-#             appointment_date = datetime.strptime(appointment.app_date, '%Y-%m-%d').date()
-#             appointment_time = form.cleaned_data['app_time']
-#             appointment_start = datetime.combine(appointment_date, appointment_time)
-#             appointment_end = appointment_start + timedelta(minutes=15)  # Block 15 minutes after
-#             appointment_start_buffer = appointment_start - timedelta(minutes=14)  # Prevent booking too close
-
-#             now = datetime.now()
-#             if appointment_start < now:
-#                 messages.error(request, "Cannot create an appointment for a past time.")
-#                 return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
-
-#             # Strictly enforce 15-minute slot restriction, excluding "Cancelled" appointments
-#             overlapping_appointments = Appointment.objects.filter(
-#                 app_date=appointment_date,
-#                 app_status__in=['Waiting', 'Ongoing', 'Done']  # Exclude "Cancelled" appointments
-#             ).filter(
-#                 app_time__gte=appointment_start_buffer.time(),
-#                 app_time__lt=appointment_end.time()
-#             )
-
-#             if overlapping_appointments.exists():
-#                 messages.error(request, "This appointment time is already taken. Please choose another time.")
-#                 return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
-
-#             # Save the appointment
-#             appointment.save()
-#             return redirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
-#     else:
-#         form = AppointmentForm()
-
-#     return render(request, 'clinic/Appointment/create_appointment.html', {'form': form})
-
-
-# def edit_appointment(request):
-#     if request.method == 'POST':
-#         appointment_id = request.POST.get('appointment_id')
-#         if not appointment_id:
-#             messages.error(request, "Invalid appointment ID.")
-#             return redirect('view_appointment')  # Redirect to avoid returning None
-
-#         appointment = get_object_or_404(Appointment, app_id=appointment_id)
-#         form = AppointmentForm(request.POST, instance=appointment)
-        
-#         if form.is_valid():
-#             appointment = form.save(commit=False)
-#             appointment.app_date = request.POST.get('app_date')
-
-#             # Convert date and time to datetime object
-#             appointment_date = datetime.strptime(appointment.app_date, '%Y-%m-%d').date()
-#             appointment_time = form.cleaned_data['app_time']
-#             appointment_start = datetime.combine(appointment_date, appointment_time)
-#             appointment_end = appointment_start + timedelta(minutes=15)
-#             appointment_start_buffer = appointment_start - timedelta(minutes=14)
-
-#             now = datetime.now()
-#             if appointment_start < now:
-#                 messages.error(request, "Cannot edit an appointment for a past time.")
-#                 return HttpResponseRedirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
-
-#             # Strict 15-minute overlap check, excluding "Cancelled" appointments
-#             overlapping_appointments = Appointment.objects.filter(
-#                 app_date=appointment_date,
-#                 app_status__in=['Waiting', 'Ongoing', 'Done']  # Exclude "Cancelled" appointments
-#             ).filter(
-#                 app_time__gte=appointment_start_buffer.time(),
-#                 app_time__lt=appointment_end.time()
-#             ).exclude(app_id=appointment_id)
-
-#             if overlapping_appointments.exists():
-#                 messages.error(request, "This appointment time is already taken. Please choose another time.")
-#                 return HttpResponseRedirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
-
-#             # Save changes
-#             appointment.save()
-#             messages.success(request, "Appointment updated successfully.")
-#             return HttpResponseRedirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
-#         else:
-#             messages.error(request, "Invalid form data. Please check your inputs.")
-#             return HttpResponseRedirect(f"{reverse('view_appointment')}?date={appointment.app_date}")
-
-#     # Ensure function always returns a response
-#     messages.error(request, "Invalid request method.")
-#     return redirect('view_appointment')
-
+# @login_required
 def create_appointment(request):
     if request.method == 'POST':
         form = AppointmentForm(request.POST)
@@ -628,7 +439,7 @@ def create_appointment(request):
 
     return render(request, 'clinic/Appointment/create_appointment.html', {'form': form})
 
-
+# @login_required
 def edit_appointment(request):
     if request.method == 'POST':
         appointment_id = request.POST.get('appointment_id')
@@ -687,6 +498,7 @@ def edit_appointment(request):
     messages.error(request, "Invalid request method.")
     return redirect('view_appointment')
 
+# @login_required
 @csrf_exempt
 def delete_appointment(request):
     if request.method == 'POST':
@@ -710,7 +522,8 @@ def delete_appointment(request):
             return JsonResponse({'success': False, 'error': str(e)})
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
-def auto_cancel_appointments():
+# @login_required
+def auto_cancel_appointments(request):
     """Automatically cancel appointments that are past their scheduled time by 5 minutes."""
     # Get the current time in the Philippine timezone
     current_time_pht = localtime(now())
@@ -729,20 +542,22 @@ def auto_cancel_appointments():
     return count  # Optionally return the number of updated appointments
 
 # Add this function in any relevant view so it runs when the page is accessed
+# @login_required
 def check_and_update_appointments(request):
     """
     This view will check and update overdue appointments every time the page is loaded.
     """
-    auto_cancel_appointments()
+    auto_cancel_appointments(request)
     return JsonResponse({'success': True, 'message': 'Overdue appointments have been updated.'})
 
 
 #_____________________________________INVENTORY__________________________________________________________
-
+# @login_required
 def inventory(request):
     items = Item.objects.all()  # Fetch all items from the database
     return render(request, 'clinic/Inventory/inventory.html', {'items': items})
 
+# @login_required
 def add_item(request):
     if request.method == 'POST':
         form = ItemForm(request.POST)
@@ -753,6 +568,7 @@ def add_item(request):
         form = ItemForm()
     return render(request, 'clinic/Inventory/add_item.html', {'form': form})
 
+# @login_required
 def edit_item(request, item_id):
     item = get_object_or_404(Item, pk=item_id)  # Fetch the item by id
     if request.method == 'POST':
@@ -764,6 +580,7 @@ def edit_item(request, item_id):
         form = ItemForm(instance=item)
     return render(request, 'clinic/Inventory/edit_item.html', {'form': form})
 
+# @login_required
 def delete_item(request, item_id):
     item = get_object_or_404(Item, pk=item_id)  # Fetch the item by id
     if request.method == 'POST': 
@@ -771,6 +588,7 @@ def delete_item(request, item_id):
         return redirect('inventory')  
     return redirect('inventory') 
 
+# @login_required
 def view_item(request, item_id):
     # Fetch the item by its ID
     item = get_object_or_404(Item, pk=item_id)
@@ -798,11 +616,12 @@ def view_item(request, item_id):
     return render(request, 'clinic/Inventory/view_item.html', context)
 
 #_________________________________________PATIENT________________________________________________________
-
+# @login_required
 def patient(request):
     patients = Patient.objects.all().order_by('patient_lname', 'patient_fname')
     return render(request, 'clinic/Patient/patient.html', {'patients': patients})
 
+# @login_required
 def patient_detail(request, patient_id):
     # Use patient_id instead of id in the query
     patient = get_object_or_404(Patient, patient_id=patient_id)  # Use patient_id here
@@ -817,6 +636,7 @@ def patient_detail(request, patient_id):
     
     return render(request, 'clinic/Patient/patient_detail.html', {'patient': patient, 'form': form})
 
+# @login_required
 def add_patient(request):
     if request.method == 'POST':
         patient_form = PatientForm(request.POST)
@@ -839,6 +659,7 @@ def add_patient(request):
         'patient_form': patient_form,
     })
 
+# @login_required
 def delete_patient(request, patient_id):
     if request.method == 'POST':
         patient = get_object_or_404(Patient, pk=patient_id)
@@ -846,6 +667,7 @@ def delete_patient(request, patient_id):
         return redirect('patient')  # Redirect to the patient list after deletion
     return HttpResponse(status=400)
 
+# @login_required
 def add_purchased_item(request, patient_id):
     patient = get_object_or_404(Patient, patient_id=patient_id)
     purchased_item_form = PurchasedItemForm(request.POST or None, patient=patient)
@@ -882,6 +704,7 @@ def add_purchased_item(request, patient_id):
         'patient': patient,
     })
 
+# @login_required
 def item_search(request):
     query = request.GET.get('q', '').strip()  # Retrieve and strip the search query
     items = Item.objects.filter(
@@ -900,6 +723,7 @@ def item_search(request):
     ]
     return JsonResponse({'items': results})
 
+# @login_required
 def item_price(request):
     item_id = request.GET.get('item_id')
     try:
@@ -911,5 +735,21 @@ def item_price(request):
 def second_sample():
     pass
 #_____________________________________SALES__________________________________________________________
+# @login_required
 def sales(request):
     return render(request, 'clinic/Sales/sales.html')
+
+
+#_________________________________________LOGOUT_______________________________________________________
+# @login_required
+def user_logout(request):
+    # ✅ Remove user session manually
+    if 'user_id' in request.session:
+        del request.session['user_id']  # Remove user ID from session
+    if 'username' in request.session:
+        del request.session['username']  # Remove username from session
+    
+    request.session.flush()  # Clear entire session
+    messages.success(request, "You have been logged out successfully.")
+    
+    return redirect('login')
