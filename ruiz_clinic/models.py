@@ -125,8 +125,16 @@ class Appointment(models.Model):
     app_status = models.CharField(max_length=50, choices=app_status_choices)
     patient_id = models.ForeignKey(Patient, null=True, blank=True, on_delete=models.CASCADE)
     
+# class Account(models.Model):
+#     account_id = models.AutoField(primary_key=True)
+#     account_username = models.CharField(max_length=100, unique=True)
+#     account_password = models.CharField(max_length=100)
+#     account_email = models.CharField(max_length=100, unique=True)
+
 class Account(models.Model):
     account_id = models.AutoField(primary_key=True)
     account_username = models.CharField(max_length=100, unique=True)
-    account_password = models.CharField(max_length=100)
-    account_email = models.CharField(max_length=100, unique=True)
+    account_password = models.CharField(max_length=100)  # Store as hashed in production
+
+    def __str__(self):
+        return self.account_username

@@ -11,7 +11,7 @@
     <div class="register-container">
         <div class="register-left">
             <h1>Register Account</h1>
-            <!-- Display messages -->
+
             {% if messages %}
                 <ul class="messages">
                     {% for message in messages %}
@@ -23,13 +23,11 @@
             <form action="{% url 'signup' %}" method="post">
                 {% csrf_token %}
                 
-                <!-- Username Input -->
                 <div class="input-group">
                     <label for="username"><i class="fa fa-user"></i></label>
                     <input type="text" id="username" name="username" placeholder="Username" required>
                 </div>
-
-                <!-- Password Input -->
+                
                 <div class="input-group">
                     <label for="password"><i class="fa fa-lock"></i></label>
                     <input type="password" id="password" name="password" placeholder="Password" required>
@@ -41,15 +39,10 @@
                     <label for="show-password">Show Password</label>
                 </div>
 
-                <!-- Email Input -->
-                <div class="input-group">
-                    <label for="email"><i class="fa fa-envelope"></i></label>
-                    <input type="email" id="email" name="email" placeholder="Email Address" required>
-                </div>
-
                 <button type="submit" class="btn-register">Register</button>
-            </form>            
+            </form>           
         </div>
+
         <div class="register-right">
             <img src="{% static 'eye.jpg' %}" alt="Eye Illustration">
         </div>
