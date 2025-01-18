@@ -135,3 +135,21 @@ body {
 .message {
     margin-bottom: 5px;
 }
+
+/* Show Password Checkbox */
+.show-password-container {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.show-password-container input {
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+.show-password-container label {
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+}
