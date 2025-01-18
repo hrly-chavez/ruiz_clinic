@@ -38,55 +38,59 @@ def login_required(view_func):
 
 # Temporary storage for OTPs (consider using a session for better security)
 RESET_OTP_STORAGE = {}
+ADMIN_EMAIL = "carataojoegie@gmail.com"  # The only email receiving OTPs
 
 # Generate a random OTP
 def generate_otp():
     return str(random.randint(100000, 999999))
 
-# Function to send OTP via email
-def send_otp_email(email, otp):
+# Function to send OTP only to ADMIN_EMAIL
+def send_otp_email(otp):
     sender_email = "carataojoegie@gmail.com"  # Use your Gmail
-    sender_password = "svdd pqan vcbh tagf"  # Use the App Password
-    subject = "Your Password Reset OTP"
-    body = f"Your OTP for password reset is {otp}. Please enter it to reset your password."
+    sender_password = "svdd pqan vcbh tagf"  # Use Gmail App Password
+    subject = "Your Secure OTP"
+    body = f"Your OTP is: {otp}. Share it only with authorized employees."
 
     msg = MIMEText(body)
     msg['Subject'] = subject
     msg['From'] = sender_email
-    msg['To'] = email
+    msg['To'] = ADMIN_EMAIL
 
     try:
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.starttls()
         server.login(sender_email, sender_password)
-        server.sendmail(sender_email, email, msg.as_string())
+        server.sendmail(sender_email, ADMIN_EMAIL, msg.as_string())
         server.quit()
-        print(f"OTP email sent to {email} successfully!")
+        print(f"OTP email sent to {ADMIN_EMAIL} successfully!")
     except Exception as e:
         print(f"Error sending email: {e}")
 
-# Forgot Password View
 def forgot_password(request):
     if request.method == 'POST':
-        email = request.POST.get('email')
+        username = request.POST.get('username')
 
-        if Account.objects.filter(account_email=email).exists():
+        try:
+            user = Account.objects.get(account_username=username)  # Find user by username
             otp = generate_otp()
-            RESET_OTP_STORAGE[email] = otp  # Store OTP
-            send_otp_email(email, otp)  # Send OTP
-            request.session['reset_email'] = email  # Store email in session
-            return redirect('verify_reset_otp')  # Redirect to OTP verification page
-        else:
-            messages.error(request, "Email not found. Please enter a registered email.")
+            RESET_OTP_STORAGE[username] = otp  # Store OTP linked to the username
+            send_otp_email(otp)  # Send OTP to ADMIN_EMAIL
+            request.session['reset_username'] = username  # Store username in session
+            messages.success(request, "OTP has been sent to the admin. Contact them for the code.")
+            return redirect('verify_reset_otp')
+
+        except Account.DoesNotExist:
+            messages.error(request, "Username not found. Please enter a valid account username.")
 
     return render(request, 'clinic/Login/forgot_password.html')
 
+
 def verify_reset_otp(request):
     if request.method == 'POST':
-        email = request.session.get('reset_email')
+        username = request.session.get('reset_username')  # Retrieve stored username
         entered_otp = request.POST.get('otp')
 
-        if email in RESET_OTP_STORAGE and RESET_OTP_STORAGE[email] == entered_otp:
+        if username in RESET_OTP_STORAGE and RESET_OTP_STORAGE[username] == entered_otp:
             return redirect('reset_password')  # Redirect to reset password form
         else:
             messages.error(request, "Invalid OTP. Please try again.")
@@ -95,69 +99,57 @@ def verify_reset_otp(request):
 
 def reset_password(request):
     if request.method == 'POST':
-        email = request.session.get('reset_email')
+        username = request.session.get('reset_username')  # Get stored username
         new_password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
 
-        # Check if passwords match
         if new_password != confirm_password:
             messages.error(request, "Passwords do not match!")
             return redirect('reset_password')
 
-        # Ensure email exists in session and is valid
-        if email and Account.objects.filter(account_email=email).exists():
-            user = Account.objects.get(account_email=email)
-            user.account_password = new_password  # Storing password as plain text (Not Recommended)
+        try:
+            user = Account.objects.get(account_username=username)  # Get user by username
+            user.account_password = new_password  # Hash in production
             user.save()
-            del request.session['reset_email']  # Remove session data
+            del request.session['reset_username']  # Remove session data after reset
             messages.success(request, "Password reset successful! You can now log in.")
             return redirect('login')
-        else:
+
+        except Account.DoesNotExist:
             messages.error(request, "Error resetting password. Please try again.")
 
     return render(request, 'clinic/Login/reset_password.html')
 
-# Signup View
+
 def signup(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-        email = request.POST.get('email')
 
         if Account.objects.filter(account_username=username).exists():
             messages.error(request, 'Username already exists. Please choose another.')
-        elif Account.objects.filter(account_email=email).exists():
-            messages.error(request, 'Email is already registered.')
         else:
             otp = generate_otp()
-            print(f"Storing OTP for {email}: {otp}")  # Debugging
-            RESET_OTP_STORAGE[email] = otp  # Store OTP temporarily
-            send_otp_email(email, otp)  # Send OTP to user's email
-            request.session['pending_user'] = {
-                'username': username,
-                'password': password,
-                'email': email,
-            }
+            print(f"Generated OTP: {otp}")  # Debugging
+            RESET_OTP_STORAGE['signup_otp'] = otp  # Store OTP temporarily
+            send_otp_email(otp)  # Send OTP to ADMIN_EMAIL
+            request.session['pending_user'] = {'username': username, 'password': password}
             return redirect('verify_otp')  # Redirect to OTP verification page
 
     return render(request, 'clinic/Signup/signup.html')
 
-
-# OTP Verification View
 def verify_otp(request):
     if request.method == 'POST':
-        email = request.POST.get('email')
         entered_otp = request.POST.get('otp')
 
-        if email in RESET_OTP_STORAGE and RESET_OTP_STORAGE[email] == entered_otp:
+        if 'signup_otp' in RESET_OTP_STORAGE and RESET_OTP_STORAGE['signup_otp'] == entered_otp:
             user_data = request.session.get('pending_user')
             if user_data:
                 Account.objects.create(
                     account_username=user_data['username'],
-                    account_password=user_data['password'],  # Hash this in production
-                    account_email=user_data['email']
+                    account_password=user_data['password']  # Hash this in production
                 )
-                del RESET_OTP_STORAGE[email]  # Remove OTP after successful registration
+                del RESET_OTP_STORAGE['signup_otp']  # Remove OTP after successful registration
                 del request.session['pending_user']  # Clear session
                 messages.success(request, 'Registration successful! You can now log in.')
                 return redirect('login')
@@ -165,6 +157,136 @@ def verify_otp(request):
             messages.error(request, 'Invalid OTP. Please try again.')
 
     return render(request, 'clinic/Signup/verify_otp.html')
+
+
+# RESET_OTP_STORAGE = {}
+
+# # Generate a random OTP
+# def generate_otp():
+#     return str(random.randint(100000, 999999))
+
+# # Function to send OTP via email
+# def send_otp_email(email, otp):
+#     sender_email = "carataojoegie@gmail.com"  # Use your Gmail
+#     sender_password = "svdd pqan vcbh tagf"  # Use the App Password
+#     subject = "Your Password Reset OTP"
+#     body = f"Your OTP for password reset is {otp}. Please enter it to reset your password."
+
+#     msg = MIMEText(body)
+#     msg['Subject'] = subject
+#     msg['From'] = sender_email
+#     msg['To'] = email
+
+#     try:
+#         server = smtplib.SMTP("smtp.gmail.com", 587)
+#         server.starttls()
+#         server.login(sender_email, sender_password)
+#         server.sendmail(sender_email, email, msg.as_string())
+#         server.quit()
+#         print(f"OTP email sent to {email} successfully!")
+#     except Exception as e:
+#         print(f"Error sending email: {e}")
+
+# # Forgot Password View
+# def forgot_password(request):
+#     if request.method == 'POST':
+#         email = request.POST.get('email')
+
+#         if Account.objects.filter(account_email=email).exists():
+#             otp = generate_otp()
+#             RESET_OTP_STORAGE[email] = otp  # Store OTP
+#             send_otp_email(email, otp)  # Send OTP
+#             request.session['reset_email'] = email  # Store email in session
+#             return redirect('verify_reset_otp')  # Redirect to OTP verification page
+#         else:
+#             messages.error(request, "Email not found. Please enter a registered email.")
+
+#     return render(request, 'clinic/Login/forgot_password.html')
+
+# def verify_reset_otp(request):
+#     if request.method == 'POST':
+#         email = request.session.get('reset_email')
+#         entered_otp = request.POST.get('otp')
+
+#         if email in RESET_OTP_STORAGE and RESET_OTP_STORAGE[email] == entered_otp:
+#             return redirect('reset_password')  # Redirect to reset password form
+#         else:
+#             messages.error(request, "Invalid OTP. Please try again.")
+
+#     return render(request, 'clinic/Login/verify_reset_otp.html')
+
+# def reset_password(request):
+#     if request.method == 'POST':
+#         email = request.session.get('reset_email')
+#         new_password = request.POST.get('password')
+#         confirm_password = request.POST.get('confirm_password')
+
+#         # Check if passwords match
+#         if new_password != confirm_password:
+#             messages.error(request, "Passwords do not match!")
+#             return redirect('reset_password')
+
+#         # Ensure email exists in session and is valid
+#         if email and Account.objects.filter(account_email=email).exists():
+#             user = Account.objects.get(account_email=email)
+#             user.account_password = new_password  # Storing password as plain text (Not Recommended)
+#             user.save()
+#             del request.session['reset_email']  # Remove session data
+#             messages.success(request, "Password reset successful! You can now log in.")
+#             return redirect('login')
+#         else:
+#             messages.error(request, "Error resetting password. Please try again.")
+
+#     return render(request, 'clinic/Login/reset_password.html')
+
+# # Signup View
+# def signup(request):
+#     if request.method == 'POST':
+#         username = request.POST.get('username')
+#         password = request.POST.get('password')
+#         email = request.POST.get('email')
+
+#         if Account.objects.filter(account_username=username).exists():
+#             messages.error(request, 'Username already exists. Please choose another.')
+#         elif Account.objects.filter(account_email=email).exists():
+#             messages.error(request, 'Email is already registered.')
+#         else:
+#             otp = generate_otp()
+#             print(f"Storing OTP for {email}: {otp}")  # Debugging
+#             RESET_OTP_STORAGE[email] = otp  # Store OTP temporarily
+#             send_otp_email(email, otp)  # Send OTP to user's email
+#             request.session['pending_user'] = {
+#                 'username': username,
+#                 'password': password,
+#                 'email': email,
+#             }
+#             return redirect('verify_otp')  # Redirect to OTP verification page
+
+#     return render(request, 'clinic/Signup/signup.html')
+
+
+# # OTP Verification View
+# def verify_otp(request):
+#     if request.method == 'POST':
+#         email = request.POST.get('email')
+#         entered_otp = request.POST.get('otp')
+
+#         if email in RESET_OTP_STORAGE and RESET_OTP_STORAGE[email] == entered_otp:
+#             user_data = request.session.get('pending_user')
+#             if user_data:
+#                 Account.objects.create(
+#                     account_username=user_data['username'],
+#                     account_password=user_data['password'],  # Hash this in production
+#                     account_email=user_data['email']
+#                 )
+#                 del RESET_OTP_STORAGE[email]  # Remove OTP after successful registration
+#                 del request.session['pending_user']  # Clear session
+#                 messages.success(request, 'Registration successful! You can now log in.')
+#                 return redirect('login')
+#         else:
+#             messages.error(request, 'Invalid OTP. Please try again.')
+
+#     return render(request, 'clinic/Signup/verify_otp.html')
 
 #______________________________________LOGIN___________________________________________________________
 @csrf_exempt
