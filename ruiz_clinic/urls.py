@@ -43,6 +43,7 @@ urlpatterns = [
 
     path("sales/", views.sales_page, name='sales_page'),
     path('api/sales/', views.sales_api, name='sales_api'),
+    path("api/patient-balances/", views.patient_balances_api, name="patient_balances_api"),  # New API
     
 #______________________________Inventory_______________________________
 
