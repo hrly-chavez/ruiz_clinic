@@ -808,3 +808,7 @@ def user_logout(request):
     messages.success(request, "You have been logged out successfully.")
     
     return redirect('login')
+
+
+def samlpe():
+    pass
