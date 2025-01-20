@@ -125,11 +125,6 @@ class Appointment(models.Model):
     app_status = models.CharField(max_length=50, choices=app_status_choices)
     patient_id = models.ForeignKey(Patient, null=True, blank=True, on_delete=models.CASCADE)
     
-# class Account(models.Model):
-#     account_id = models.AutoField(primary_key=True)
-#     account_username = models.CharField(max_length=100, unique=True)
-#     account_password = models.CharField(max_length=100)
-#     account_email = models.CharField(max_length=100, unique=True)
 
 class Account(models.Model):
     account_id = models.AutoField(primary_key=True)
@@ -138,3 +133,12 @@ class Account(models.Model):
 
     def __str__(self):
         return self.account_username
+    
+class Sales(models.Model):
+    sales_id = models.AutoField(primary_key=True)
+    sales_date = models.DateField(default=now, unique=True)  # Unique per day
+    sales_total = models.FloatField(default=0.0)  # Total earnings of the day
+    number_products_sold = models.IntegerField(default=0)  # Total product count
+
+    def __str__(self):
+        return f"Sales {self.sales_date}: {self.sales_total}, {self.number_products_sold}"

@@ -39,7 +39,8 @@ urlpatterns = [
     path('item-price/', views.item_price, name='item_price'),
 #______________________________SALES_______________________________    
 
-    path("sales/", views.sales, name='sales'),
+    path("sales/", views.sales_page, name='sales_page'),
+    path('api/sales/', views.sales_api, name='sales_api'),
     
 #______________________________Inventory_______________________________
 

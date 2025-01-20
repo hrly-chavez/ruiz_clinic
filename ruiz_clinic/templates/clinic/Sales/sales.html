@@ -14,31 +14,16 @@
     <div class="stats-container"> <!-- Cards-like format -->
         <div class="card">
             <h4>Total Earnings</h4>
-            <p id="total-earnings">₱ 8,200</p>
+            <p id="total-earnings">₱ 0</p> <!-- Set default to 0 -->
         </div>
         <div class="card">
             <h4>Number of Products Sold</h4>
-            <p id="products-sold">3</p>
+            <p id="products-sold">0</p> <!-- Set default to 0 -->
         </div>
         <div class="card">
             <h4>Products Sold</h4>
-            <div class="product-list">
-                <div class="product-item">
-                    <img src="{% static 'eyeglasses.png' %}" alt="Eyeglasses">
-                    <span>Eyeglasses</span> 
-                    <span>Frames</span> 
-                    <span>Skechers</span>
-                    <span>Qty: 2</span>
-                    <span>₱ 7,000</span>
-                </div>
-                <div class="product-item">
-                    <img src="{% static 'contact-lenses.png' %}" alt="Contact Lenses">
-                    <span>Contact Lenses</span> 
-                    <span>Soft Contact Lenses</span> 
-                    <span>Acuvue</span>
-                    <span>Qty: 1</span>
-                    <span>₱ 1,200</span>
-                </div>
+            <div id="product-list"> <!-- This will be updated dynamically -->
+                <p>No products sold.</p>
             </div>
         </div>
         <div class="card">
