@@ -75,7 +75,7 @@ class Payment(models.Model):
     
     payment_id = models.AutoField(primary_key=True)
     payment_payed = models.FloatField(null=True,blank=True) #Tracks the total amount the customer has paid so far.
-    current_payment = models.FloatField(null=True,blank=True) #Current payment of the customer
+    current_payment = models.FloatField(null=True,blank=True) # Tracks the current payment made by the customer
     current_payment_date = models.DateField(default=now) #when was the current payment made
     payment_to_be_payed = models.FloatField(null=True,blank=True) #Tracks the customer's current balance (how much they still owe).
     payment_method = models.CharField(max_length=50,choices=payment_method_choices,default='Cash')
