@@ -588,7 +588,7 @@ def view_item(request, item_id):
     patient_details = []
     for purchased_item in purchased_items:
         patient_name = f"{purchased_item.patient_id.patient_fname} {purchased_item.patient_id.patient_lname}"
-        item_date_out = purchased_item.item_date_out  # Correctly fetch `item_date_out`
+        item_date_out = purchased_item.item_date_out  
         patient_details.append({
             'patient_name': patient_name,
             'item_date_out': item_date_out,  # Use the correct key
@@ -786,36 +786,50 @@ def item_price(request):
     except Item.DoesNotExist:
         return JsonResponse({'error': 'Item not found'}, status=404)
 
+
 # def edit_purchased_item(request, purchase_id):
 #     # Fetch the purchased item
 #     purchased_item = get_object_or_404(Purchased_Item, pk=purchase_id)
     
 #     if request.method == 'POST':
-#         # Update fields based on POST data
+#         # Get form data
 #         item_id = request.POST.get('item_code')
 #         pur_stat = request.POST.get('pur_stat')
-#         payment_payed = request.POST.get('payment_payed')
-#         payment_to_be_payed = request.POST.get('payment_to_be_payed')
-#         item_date_out = request.POST.get('item_date_out') 
+#         current_payment = float(request.POST.get('current_payment', 0))  # Current payment amount entered by the user
         
 #         # Update Purchased_Item fields
 #         purchased_item.item_code = Item.objects.get(pk=item_id) if item_id else None
 #         purchased_item.pur_stat = pur_stat
         
 #         # Handle the 'item_date_out' field if provided
+#         item_date_out = request.POST.get('item_date_out')
 #         if item_date_out:
 #             purchased_item.item_date_out = item_date_out
 
 #         # Update Payment fields
 #         payment = purchased_item.payment_id
 #         if payment:
-#             payment.payment_payed = payment_payed
-#             payment.payment_to_be_payed = payment_to_be_payed
+#             # Ensure we don't increment payment beyond what's owed
+#             remaining_balance = payment.payment_to_be_payed or 0
+
+#             # Check if the current payment is more than the remaining balance
+#             if current_payment > remaining_balance:
+#                 messages.error(request, f"Cannot pay more than the remaining balance of {remaining_balance}.")
+#                 return redirect('edit_purchased_item', purchase_id=purchase_id)
+
+#             # Increment the payment_payed by the current payment amount
+#             payment.payment_payed = (payment.payment_payed or 0) + current_payment
+
+#             # Decrease the remaining balance (payment_to_be_payed)
+#             payment.payment_to_be_payed = max((payment.payment_to_be_payed or 0) - current_payment, 0)
+
+#             # Save the payment
 #             payment.save()
-        
+
 #         # Save Purchased_Item changes
 #         purchased_item.save()
         
+#         # Redirect to the patient detail page
 #         return redirect('patient_detail', patient_id=purchased_item.patient_id.patient_id)
     
 #     # Fetch all items for the dropdown
@@ -826,40 +840,54 @@ def item_price(request):
 #         'payment': purchased_item.payment_id,
 #     })
 
+from django.utils import timezone
+
 def edit_purchased_item(request, purchase_id):
     # Fetch the purchased item
     purchased_item = get_object_or_404(Purchased_Item, pk=purchase_id)
     
     if request.method == 'POST':
-        # Update fields based on POST data
+        # Get form data
         item_id = request.POST.get('item_code')
         pur_stat = request.POST.get('pur_stat')
-        payment_payed = request.POST.get('payment_payed')
-        payment_to_be_payed = request.POST.get('payment_to_be_payed')
-        current_payment = float(request.POST.get('current_payment', 0))  # Get the current payment amount
-        item_date_out = request.POST.get('item_date_out')
+        current_payment = float(request.POST.get('current_payment', 0))  # Current payment amount entered by the user
         
         # Update Purchased_Item fields
         purchased_item.item_code = Item.objects.get(pk=item_id) if item_id else None
         purchased_item.pur_stat = pur_stat
         
         # Handle the 'item_date_out' field if provided
+        item_date_out = request.POST.get('item_date_out')
         if item_date_out:
             purchased_item.item_date_out = item_date_out
 
         # Update Payment fields
         payment = purchased_item.payment_id
         if payment:
-            # Update current payment
-            payment.current_payment = current_payment
-            # Update payment_payed and payment_to_be_payed
+            # Ensure we don't increment payment beyond what's owed
+            remaining_balance = payment.payment_to_be_payed or 0
+
+            # Check if the current payment is more than the remaining balance
+            if current_payment > remaining_balance:
+                messages.error(request, f"Cannot pay more than the remaining balance of {remaining_balance}.")
+                return redirect('edit_purchased_item', purchase_id=purchase_id)
+
+            # Increment the payment_payed by the current payment amount
             payment.payment_payed = (payment.payment_payed or 0) + current_payment
+
+            # Decrease the remaining balance (payment_to_be_payed)
             payment.payment_to_be_payed = max((payment.payment_to_be_payed or 0) - current_payment, 0)
+
+            # Update the current_payment_date to the current date
+            payment.current_payment_date = timezone.now().date()  # Set the current date
+
+            # Save the payment
             payment.save()
-        
+
         # Save Purchased_Item changes
         purchased_item.save()
         
+        # Redirect to the patient detail page
         return redirect('patient_detail', patient_id=purchased_item.patient_id.patient_id)
     
     # Fetch all items for the dropdown
