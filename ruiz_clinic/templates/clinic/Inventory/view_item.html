@@ -99,8 +99,8 @@
                     {% for detail in patient_details %}
                         <tr>
                             <td>{{ detail.patient_name }}</td>
-                            <td>{{ detail.pur_date_purchased }}</td>
-                            <!-- <td>{{ detail.date_out }}</td> -->
+                            <td>{{ detail.pur_date_purchased }}</td>   
+                            <td>{{ detail.item_date_out|default:"None"|date:"M. d, Y" }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>

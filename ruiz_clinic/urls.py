@@ -12,12 +12,6 @@ urlpatterns = [
     path('forgot-password/', views.forgot_password, name='forgot_password'),
     path('verify-reset-otp/', views.verify_reset_otp, name='verify_reset_otp'),
     path('reset-password/', views.reset_password, name='reset_password'),
-    # path("forgotpass/", views.forgotpass, name="forgotpass"),
-    # path('check-phone/', views.check_phone, name='check_phone'),
-    # path('check-phone-number/', views.check_phone_number, name='check_phone_number'),
-    # path('send-otp/', views.send_otp, name='send_otp'),
-    # path('verify-otp/', views.verify_otp, name='verify_otp'),
-    # path('changepass/', views.changepass, name="changepass"),
 #______________________________DASHBOARD_______________________________ 
       
     path("dashboard/", views.dashboard, name="dashboard"),
@@ -32,8 +26,7 @@ urlpatterns = [
     path('appointment/edit/', views.edit_appointment, name='edit_appointment'),
     path('delete_appointment/', views.delete_appointment, name='delete_appointment'),
     path('check_and_update_appointments/', views.check_and_update_appointments, name='check_and_update_appointments'),  # ✅ Add this line
-    # path('edit_appointment/<int:appointment_id>/', views.edit_appointment, name='edit_appointment'),
-    # path('get-appointments/', views.get_appointments, name='get-appointments'),
+    
 #______________________________PATIENT_______________________________    
 
     path("patient/", views.patient, name="patient"),
@@ -43,15 +36,18 @@ urlpatterns = [
     path('delete_patient/<int:patient_id>/', views.delete_patient, name='delete_patient'),
     path('item_search/', views.item_search, name='item_search'),
     path('item-price/', views.item_price, name='item_price'),
+    path('edit-purchased-item/<int:purchase_id>/', views.edit_purchased_item, name='edit_purchased_item'),
+    path('delete_purchased_item/<int:pur_id>/', views.delete_purchased_item, name='delete_purchased_item'),
+    
 #______________________________SALES_______________________________    
 
     path("sales/", views.sales, name='sales'),
     
 #______________________________Inventory_______________________________
 
-     path("inventory/", views.inventory, name='inventory'),
-     path("add_item/", views.add_item, name='add_item'),
-     path('delete_item/<int:item_id>/', views.delete_item, name='delete_item'),
-     path('view_item/<int:item_id>/', views.view_item, name='view_item'),
-     path('edit_item/<int:item_id>/', views.edit_item, name='edit_item'),
+    path("inventory/", views.inventory, name='inventory'),
+    path("add_item/", views.add_item, name='add_item'),
+    path('delete_item/<int:item_id>/', views.delete_item, name='delete_item'),
+    path('view_item/<int:item_id>/', views.view_item, name='view_item'),
+    path('edit_item/<int:item_id>/', views.edit_item, name='edit_item'),
 ]

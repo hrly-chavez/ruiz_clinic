@@ -1,11 +1,11 @@
 from django.shortcuts import render,redirect, get_object_or_404
 from .forms import *
 from datetime import datetime, timedelta
-from django.http import HttpResponse, JsonResponse,Http404
+from django.http import HttpResponse, JsonResponse,Http404 ,HttpResponseRedirect
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 import matplotlib
 matplotlib.use('Agg')
 from wordcloud import WordCloud
@@ -15,114 +15,20 @@ import json
 import random
 import requests
 from django.conf import settings
-from django.http import HttpResponseRedirect
+
 from django.utils.timezone import localtime, now, make_aware, is_aware, localdate
 from pytz import timezone
 import smtplib
 from email.mime.text import MIMEText
+
 PH_TZ = timezone("Asia/Manila")
 
 
-# # Infobip Configuration
-# INFOBIP_BASE_URL = "https://xkm5e3.api.infobip.com"  # Replace with your Infobip base URL
-# INFOBIP_API_KEY = "ef6357427130c5f5399221a21b70144c-faf48786-0b9b-48f3-bc9f-7a675623c093"  # Replace with your Infobip API key
-# SENDER_ID = "RuizClinic"  # Replace with your sender ID (optional)
 
-# def send_otp(request):
-#     if request.method == 'GET':
-#         phone = request.GET.get('phone', '')
-#         if Account.objects.filter(account_contact=phone).exists():
-#             # Generate a 6-digit OTP
-#             otp = random.randint(100000, 999999)
-            
-#             # Infobip SMS API payload
-#             url = f"{INFOBIP_BASE_URL}/sms/2/text/advanced"
-#             headers = {
-#                 "Authorization": f"App {INFOBIP_API_KEY}",
-#                 "Content-Type": "application/json"
-#             }
-#             payload = {
-#                 "messages": [
-#                     {
-#                         "from": SENDER_ID,
-#                         "destinations": [{"to": f"+63{phone[1:]}"}],  # Ensure correct E.164 format
-#                         "text": f"Your OTP is: {otp}"
-#                     }
-#                 ]
-#             }
-            
-#             # Send SMS via Infobip
-#             try:
-#                 response = requests.post(url, json=payload, headers=headers)
-#                 response_data = response.json()
-#                 if response.status_code == 200:
-#                     # For debugging, log OTP; in production, store it securely
-#                     print(f"OTP for {phone}: {otp}")
-#                     # Optionally store OTP in the session or database for verification
-#                     request.session['otp'] = otp
-#                     request.session['otp_phone'] = phone
-#                     return JsonResponse({'success': True, 'otp': otp})
-#                 else:
-#                     return JsonResponse({'success': False, 'error': response_data.get('message', 'Failed to send OTP')})
-#             except requests.RequestException as e:
-#                 return JsonResponse({'success': False, 'error': str(e)})
-#         else:
-#             return JsonResponse({'success': False, 'error': 'Phone number not found'})
-        
-# def verify_otp(request):
-#     if request.method == 'POST':
-#         phone = request.POST.get('phone')
-#         otp = request.POST.get('otp')
-        
-#         # Retrieve the OTP and phone number stored in the session
-#         stored_otp = request.session.get('otp')
-#         stored_phone = request.session.get('otp_phone')
-        
-#         # Validate OTP and phone number
-#         if stored_otp and stored_phone and stored_phone == phone and str(stored_otp) == otp:
-#             return JsonResponse({'valid': True})
-#         else:
-#             return JsonResponse({'valid': False, 'error': 'Invalid OTP or phone number'})
-
-
-# def changepass(request):
-#     return render(request, 'clinic/Signup/changepass.html')
 
 #_____________________________________Signup_____________________________________________________________
 
-# Store OTPs temporarily (use session for better security)
-# OTP_STORAGE = {}
 
-# # Function to generate OTP
-# def generate_otp():
-#     otp = str(random.randint(100000, 999999))
-#     print(f"Generated OTP: {otp}")  # Debugging
-#     return otp
-
-# def send_otp_email(email, otp):
-#     sender_email = "carataojoegie@gmail.com"  # Replace with your Gmail
-#     sender_password = "svdd pqan vcbh tagf"  # Use the App Password you generated
-#     subject = "Your OTP Code"
-#     body = f"Your OTP code is {otp}. Please enter it to verify your account."
-
-#     msg = MIMEText(body)
-#     msg['Subject'] = subject
-#     msg['From'] = sender_email
-#     msg['To'] = email
-
-#     try:
-#         print(f"Sending OTP to {email}...")  # Debugging
-#         server = smtplib.SMTP("smtp.gmail.com", 587)
-#         server.starttls()
-#         server.login(sender_email, sender_password)
-#         server.sendmail(sender_email, email, msg.as_string())
-#         server.quit()
-#         print(f"OTP email sent to {email} successfully!")  # Debugging
-#     except Exception as e:
-#         print(f"Error sending email: {e}")  # Debugging
-
-# # Test the function
-# send_otp_email("caratao@gmail.com", "123456")  # Replace with your email for testing
 
 # Temporary storage for OTPs (consider using a session for better security)
 RESET_OTP_STORAGE = {}
@@ -248,28 +154,6 @@ def verify_otp(request):
 
     return render(request, 'clinic/Signup/verify_otp.html')
 
-# def forgotpass(request):
-#     if request.method == 'POST':
-#         phone = request.POST.get('phone')
-        
-#         # Check if the phone number exists in the Account model
-#         try:
-#             account = Account.objects.get(account_contact=phone)
-#             messages.success(request, "Phone number matches our records. You will receive a password reset link.")
-#             message_type = 'success'  # Success message type
-#         except Account.DoesNotExist:
-#             messages.error(request, "Phone number does not match our records. Please try again.")
-#             message_type = 'error'  # Error message type
-        
-#         return render(request, 'clinic/Signup/forgotpass.html', {'message_type': message_type})
-    
-#     return render(request, 'clinic/Signup/forgotpass.html')
-
-# def check_phone_number(request):
-#     if request.method == 'GET':
-#         phone = request.GET.get('phone', '')
-#         exists = Account.objects.filter(account_contact=phone).exists()
-#         return JsonResponse({'exists': exists})
 #______________________________________LOGIN___________________________________________________________
 @csrf_exempt
 def login(request):
@@ -676,6 +560,8 @@ def delete_item(request, item_id):
         return redirect('inventory')  
     return redirect('inventory') 
 
+
+
 def view_item(request, item_id):
     # Fetch the item by its ID
     item = get_object_or_404(Item, pk=item_id)
@@ -687,10 +573,10 @@ def view_item(request, item_id):
     patient_details = []
     for purchased_item in purchased_items:
         patient_name = f"{purchased_item.patient_id.patient_fname} {purchased_item.patient_id.patient_lname}"
-        date_out = item.item_date_out  # Assuming item date_out should be shown for all purchased items
+        item_date_out = purchased_item.item_date_out  # Correctly fetch `item_date_out`
         patient_details.append({
             'patient_name': patient_name,
-            'date_out': date_out,
+            'item_date_out': item_date_out,  # Use the correct key
             'pur_date_purchased': purchased_item.pur_date_purchased,
         })
 
@@ -702,6 +588,7 @@ def view_item(request, item_id):
 
     return render(request, 'clinic/Inventory/view_item.html', context)
 
+
 #_________________________________________PATIENT________________________________________________________
 
 def patient(request):
@@ -709,18 +596,32 @@ def patient(request):
     return render(request, 'clinic/Patient/patient.html', {'patients': patients})
 
 def patient_detail(request, patient_id):
-    # Use patient_id instead of id in the query
-    patient = get_object_or_404(Patient, patient_id=patient_id)  # Use patient_id here
+    # Fetch the patient object with related purchased items and their associated details
+    patient = get_object_or_404(
+        Patient.objects.prefetch_related(
+            Prefetch(
+                'purchased_item_set',  # Related name for Purchased_Item
+                queryset=Purchased_Item.objects.select_related(
+                    'item_code',  # Fetch related Item for brand and model
+                    'payment_id'  # Fetch related Payment for payment details
+                )
+            )
+        ),
+        patient_id=patient_id
+    )
     
     # Create the form, passing the patient to pre-fill the patient_id field
     form = PurchasedItemForm(request.POST or None, patient=patient)
-    
+
     if form.is_valid():
         form.save()
         # Redirect to a success page or handle the success case
         return redirect('success_url')  # Replace with actual success URL
     
-    return render(request, 'clinic/Patient/patient_detail.html', {'patient': patient, 'form': form})
+    return render(request, 'clinic/Patient/patient_detail.html', {
+        'patient': patient,
+        'form': form
+    })
 
 def add_patient(request):
     if request.method == 'POST':
@@ -772,9 +673,11 @@ def add_purchased_item(request, patient_id):
             purchased_item.patient_id = patient
             purchased_item.save()
 
-            # Update the 'date out' field for the purchased item
-            item.date_out = now()  # Assuming you have a field date_out
-            item.save()
+            # Check payment terms and update purchase status (pur_stat)
+            if payment.payment_terms in ['Deposit', 'Fully Paid']:
+                purchased_item.pur_stat = 'For Release'
+            elif payment.payment_terms == 'Installment':
+                purchased_item.pur_stat = 'For follow up'
 
             messages.success(request, "Item and payment added successfully!")
             return redirect('patient_detail', patient_id=patient_id)
@@ -804,7 +707,7 @@ def item_search(request):
         for item in items
     ]
     return JsonResponse({'items': results})
-
+#kuyog sa item search
 def item_price(request):
     item_id = request.GET.get('item_id')
     try:
@@ -812,9 +715,62 @@ def item_price(request):
         return JsonResponse({'price': item.item_price})
     except Item.DoesNotExist:
         return JsonResponse({'error': 'Item not found'}, status=404)
+
+def edit_purchased_item(request, purchase_id):
+    # Fetch the purchased item
+    purchased_item = get_object_or_404(Purchased_Item, pk=purchase_id)
     
-def second_sample():
-    pass
+    if request.method == 'POST':
+        # Update fields based on POST data
+        item_id = request.POST.get('item_code')
+        pur_stat = request.POST.get('pur_stat')
+        payment_payed = request.POST.get('payment_payed')
+        payment_to_be_payed = request.POST.get('payment_to_be_payed')
+        item_date_out = request.POST.get('item_date_out') 
+        
+        # Update Purchased_Item fields
+        purchased_item.item_code = Item.objects.get(pk=item_id) if item_id else None
+        purchased_item.pur_stat = pur_stat
+        
+        # Handle the 'item_date_out' field if provided
+        if item_date_out:
+            purchased_item.item_date_out = item_date_out
+
+        # Update Payment fields
+        payment = purchased_item.payment_id
+        if payment:
+            payment.payment_payed = payment_payed
+            payment.payment_to_be_payed = payment_to_be_payed
+            payment.save()
+        
+        # Save Purchased_Item changes
+        purchased_item.save()
+        
+        return redirect('patient_detail', patient_id=purchased_item.patient_id.patient_id)
+    
+    # Fetch all items for the dropdown
+    items = Item.objects.all()
+    return render(request, 'clinic/Patient/edit_purchased_item.html', {
+        'purchased_item': purchased_item,
+        'items': items,
+        'payment': purchased_item.payment_id,
+    })
+
+
+def delete_purchased_item(request, pur_id):
+    # Retrieve the purchased item by pur_id
+    purchased_item = get_object_or_404(Purchased_Item, pur_id=pur_id)
+
+    # Delete the purchased item
+    purchased_item.delete()
+
+    # Display a success message
+    messages.success(request, "Purchased item deleted successfully.")
+
+    # Redirect to the patient details page or purchased items list
+    return redirect('patient_detail', patient_id=purchased_item.patient_id.patient_id)
+
+
 #_____________________________________SALES__________________________________________________________
 def sales(request):
     return render(request, 'clinic/Sales/sales.html')

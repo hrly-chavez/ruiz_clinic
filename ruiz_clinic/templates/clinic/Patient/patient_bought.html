@@ -13,7 +13,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 
 <!-- Main Form Section -->
-<div class="container mt-5">
+<div class="container mt-3">
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card shadow-sm rounded">
@@ -34,8 +34,15 @@
                             <label for="id_item_price">Price:</label>
                             <input type="text" id="id_item_price" class="form-control" readonly placeholder="Price will appear here">
                         </div>
+                    </br>
                         <hr>
+                    </br>
                         <h4 class="mb-3">Payment Details</h4>
+                    
+                        <div class="form-group">
+                            <label for="id_payment_terms">Payment Terms:</label>
+                            {{ payment_form.payment_terms }}
+                        </div>
                         <div class="form-group">
                             <label for="id_payment_payed">Amount Paid:</label>
                             {{ payment_form.payment_payed }}
@@ -48,10 +55,7 @@
                             <label for="id_payment_method">Payment Method:</label>
                             {{ payment_form.payment_method }}
                         </div>
-                        <div class="form-group">
-                            <label for="id_payment_terms">Payment Terms:</label>
-                            {{ payment_form.payment_terms }}
-                        </div>
+                        
 
                         <div class="d-flex justify-content-between">
                             <button type="submit" class="btn btn-primary btn-lg w-48">
@@ -60,6 +64,7 @@
                             <a href="{% url 'patient' %}" class="btn btn-secondary btn-lg w-48">
                                 <i class="fa fa-arrow-left"></i> Back to Patient List
                             </a>
+                           
                         </div>
                     </form>
                 </div>

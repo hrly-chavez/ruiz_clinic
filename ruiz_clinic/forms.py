@@ -79,23 +79,24 @@ class PatientForm(forms.ModelForm):
             raise ValidationError("Check-up date cannot be in the future")
         return date
 
-
 class PurchasedItemForm(forms.ModelForm):
-    item_price = forms.CharField(
-        required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly', 'placeholder': 'Price will appear here'}),
-        label='Item Price'
+    item_date_out = forms.DateField(
+        required=False,  # Make the date optional
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        label='Date Out'
     )
 
     class Meta:
         model = Purchased_Item
-        fields = ['item_code', 'patient_id']  # Exclude payment_id
+        fields = ['item_code', 'patient_id', 'item_date_out']  # Include 'item_date_out' in the form
         widgets = {
             'item_code': forms.Select(attrs={'class': 'form-control'}),
             'patient_id': forms.HiddenInput(),
+            'item_date_out': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
         labels = {
             'item_code': 'Item',
+            'item_date_out': 'Date Out',
         }
 
     def __init__(self, *args, **kwargs):
@@ -104,8 +105,6 @@ class PurchasedItemForm(forms.ModelForm):
 
         if patient:
             self.fields['patient_id'].initial = patient.patient_id  # Set the patient_id field value dynamically
-
-
 
 class ItemPaymentForm(forms.ModelForm):
     class Meta:
@@ -138,28 +137,6 @@ class ItemPaymentForm(forms.ModelForm):
         return cleaned_data
 
 #_________________________________APPOINTMENT___________________________________________________
-
-# class AppointmentForm(forms.ModelForm):
-#     class Meta:
-#         model = Appointment
-#         fields = ['app_fname', 'app_lname', 'app_contact', 'app_date', 'app_time']  # Exclude 'app_status'
-#         widgets = {
-#             'app_date': forms.DateInput(attrs={'type': 'date'}),
-#             'app_time': forms.TimeInput(attrs={'type': 'time'}),
-#         }
-#         labels = {
-#             'app_fname': 'First Name',
-#             'app_lname': 'Last Name',
-#             'app_contact': 'Contact Number',
-#             'app_date': 'Date',
-#             'app_time': 'Time',
-#         }
-
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         # If an initial date is passed, populate the `app_date` field
-#         if 'initial' in kwargs and 'app_date' in kwargs['initial']:
-#             self.fields['app_date'].initial = kwargs['initial']['app_date']
 
 
 class AppointmentForm(forms.ModelForm):

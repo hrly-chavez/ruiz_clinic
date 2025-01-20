@@ -33,7 +33,6 @@ class Item(models.Model):
     item_model = models.CharField(max_length=20,null=True,blank=True)
     item_price = models.FloatField()
     item_date_in = models.DateField(default=now)
-    item_date_out = models.DateField(null=True,blank=True)
     item_quantity = models.IntegerField()
     item_color = models.CharField(max_length=100,null=True,blank=True)
     item_measurement = models.CharField(max_length=200,null=True,blank=True)
@@ -45,16 +44,17 @@ class Item(models.Model):
 
 class Purchased_Item(models.Model):   
     pur_stat_choices = [
-        ('Waiting', 'Waiting'), 
-        ('For follow up', 'For follow up'), 
-        ('Done', 'Done'),
+        ('For Realease', 'For Release'), #deposited or waiting for item to be delivered
+        ('For follow up', 'For follow up'), # installment
+        ('Done', 'Done'), #paid
     ]
     pur_id = models.AutoField(primary_key=True)
     pur_date_purchased = models.DateField(default=now)
-    pur_stat = models.CharField(max_length=20, choices= pur_stat_choices)
+    pur_stat = models.CharField(max_length=20, choices= pur_stat_choices,db_default='For Release')
     item_code =  models.ForeignKey(Item,null=True, blank=True, on_delete=models.SET_NULL)
-    patient_id = models.ForeignKey('Patient', null=True, blank=True, on_delete=models.SET_NULL)
-    payment_id = models.ForeignKey('Payment', null=True, blank=True, on_delete=models.SET_NULL)
+    patient_id = models.ForeignKey('Patient', null=True, blank=True, on_delete=models.CASCADE)
+    payment_id = models.ForeignKey('Payment', null=True, blank=True, on_delete=models.CASCADE)
+    item_date_out = models.DateField(null=True, blank=True)
     def __str__(self):
         return f"{self.item_code},  {self.pur_date_purchased}"
 
@@ -71,6 +71,7 @@ class Payment(models.Model):
 
     pay_terms_choices = [
         ('Installment', 'Installment'),
+        ('Deposit', 'Deposit'),
         ('Fully Paid', 'Fully Paid'),
     ]
     
