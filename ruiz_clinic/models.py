@@ -44,7 +44,7 @@ class Item(models.Model):
 
 class Purchased_Item(models.Model):   
     pur_stat_choices = [
-        ('For Realease', 'For Release'), #deposited or waiting for item to be delivered
+        ('For Release', 'For Release'), #deposited or waiting for item to be delivered
         ('For follow up', 'For follow up'), # installment
         ('Done', 'Done'), #paid transaction done
     ]
@@ -96,6 +96,7 @@ class Patient(models.Model):
     patient_birthdate = models.DateField()
     patient_contact = models.CharField(max_length=13)
     patient_diag = models.TextField(null=True, blank=True)
+    patient_money = models.FloatField(null=True,blank=True)
     pur_id = models.ForeignKey(Purchased_Item, null=True, blank=True, on_delete=models.SET_NULL)
     payment_id = models.ForeignKey(Payment, null=True, blank=True, on_delete=models.SET_NULL)
 

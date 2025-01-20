@@ -47,7 +47,7 @@ class PatientForm(forms.ModelForm):
         fields = [
             'patient_fname', 'patient_lname', 'patient_initial', 
             'patient_address', 'patient_occupation', 
-            'patient_date_checked_up','patient_birthdate', 'patient_contact','patient_diag'
+            'patient_date_checked_up','patient_birthdate', 'patient_contact','patient_diag','patient_money'
         ]
         widgets = {
             'patient_fname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter first name'}),
@@ -59,7 +59,7 @@ class PatientForm(forms.ModelForm):
             'patient_birthdate': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'patient_contact': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter contact number'}),
             'patient_diag': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Diagnosed with..'}),
-            
+            'patient_money': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter patient balace'})
         }
         labels = {
             'patient_fname': 'First Name',
@@ -71,6 +71,7 @@ class PatientForm(forms.ModelForm):
             'patient_birthdate': 'Birthdate',
             'patient_contact': 'Contact',
             'patient_diag': 'Diagnosed',  
+            'patient_money': 'Balance'
         }
 
     def clean_patient_date_checked_up(self):
