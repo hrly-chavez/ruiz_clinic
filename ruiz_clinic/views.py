@@ -15,7 +15,7 @@ import json
 import random
 import requests
 from django.conf import settings
-
+from django.utils import timezone
 from django.utils.timezone import localtime, now, make_aware, is_aware, localdate
 from pytz import timezone
 import smtplib
@@ -23,8 +23,7 @@ from email.mime.text import MIMEText
 from django.contrib.auth import logout
 matplotlib.use('Agg')
 PH_TZ = timezone("Asia/Manila")
-
-
+from django.utils.timezone import now
 
 def login_required(view_func):
     @wraps(view_func)  # ✅ Keeps function metadata
@@ -840,7 +839,7 @@ def item_price(request):
 #         'payment': purchased_item.payment_id,
 #     })
 
-from django.utils import timezone
+
 
 def edit_purchased_item(request, purchase_id):
     # Fetch the purchased item
@@ -879,7 +878,7 @@ def edit_purchased_item(request, purchase_id):
             payment.payment_to_be_payed = max((payment.payment_to_be_payed or 0) - current_payment, 0)
 
             # Update the current_payment_date to the current date
-            payment.current_payment_date = timezone.now().date()  # Set the current date
+            payment.current_payment_date = now().date()  # Set the current date
 
             # Save the payment
             payment.save()
