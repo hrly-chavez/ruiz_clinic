@@ -9,7 +9,7 @@
 </div>
 
 <!-- Patient Details Card -->
-<div class="container mt-5">
+<div class="container mt-3" style="max-width: 90%; margin: auto;">
     <div class="card shadow-sm rounded" style="font-size: 18px;">
         <div class="card-body">
             <!-- Patient Name -->
@@ -41,21 +41,32 @@
                 <table class="table table-striped table-bordered">
                     <thead>
                         <tr>
-                            <th>Item</th>
-                            <th>Status</th>
-                            <th>Payment Status</th>
+                            <th>Item Code</th>
+                            <th>Brand</th>
+                            <th>Model</th>
+                            <th>Purchase Status</th>
+                            <th>Paid</th>
+                            <th>To Be Paid</th>
+                            <th>Date Out</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for purchase in patient.purchased_item_set.all %}
                         <tr>
-                            <td>{{ purchase.item_code.item_brand }} - {{ purchase.item_code.item_model }}</td>
+                            <td>{{ purchase.item_code.item_code }}</td>
+                            <td>{{ purchase.item_code.item_brand }}</td>
+                            <td>{{ purchase.item_code.item_model }}</td>
                             <td>{{ purchase.pur_stat }}</td>
                             <td>{{ purchase.payment_id.payment_payed }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="3" class="text-center">No purchased items found.</td>
+                            <td>{{ purchase.payment_id.payment_to_be_payed }}</td>
+                            <td>{{ purchase.item_date_out|default:"None"|date:"M. d, Y" }}</td>
+                            <td>
+                                <!-- Edit Button -->
+                                <a href="{% url 'edit_purchased_item' purchase.pur_id %}" class="btn btn-warning btn-sm">Update</a>
+                               <!-- Delete Button -->
+                                <a href="{% url 'delete_purchased_item' pur_id=purchase.pur_id %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this purchased item?');">Delete</a>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
