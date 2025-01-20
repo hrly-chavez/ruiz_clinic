@@ -13,7 +13,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 
 <!-- Main Form Section -->
-<div class="container mt-5">
+<div class="container mt-3">
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card shadow-sm rounded">
@@ -34,12 +34,21 @@
                             <label for="id_item_price">Price:</label>
                             <input type="text" id="id_item_price" class="form-control" readonly placeholder="Price will appear here">
                         </div>
+                    </br>
                         <hr>
+                    </br>
                         <h4 class="mb-3">Payment Details</h4>
+                    
                         <div class="form-group">
-                            <label for="id_payment_payed">Amount Paid:</label>
-                            {{ payment_form.payment_payed }}
+                            <label for="id_payment_terms">Payment Terms:</label>
+                            {{ payment_form.payment_terms }}
                         </div>
+
+                       <div class="form-group">
+                            <label for="id_current_payment">Current Payment:</label>
+                            {{ payment_form.current_payment }}
+                        </div>
+
                         <div class="form-group">
                             <label for="id_payment_to_be_payed">Total Amount to Pay:</label>
                             <input type="text" id="id_payment_to_be_payed" class="form-control" readonly>
@@ -48,10 +57,7 @@
                             <label for="id_payment_method">Payment Method:</label>
                             {{ payment_form.payment_method }}
                         </div>
-                        <div class="form-group">
-                            <label for="id_payment_terms">Payment Terms:</label>
-                            {{ payment_form.payment_terms }}
-                        </div>
+                        
 
                         <div class="d-flex justify-content-between">
                             <button type="submit" class="btn btn-primary btn-lg w-48">
@@ -60,6 +66,7 @@
                             <a href="{% url 'patient' %}" class="btn btn-secondary btn-lg w-48">
                                 <i class="fa fa-arrow-left"></i> Back to Patient List
                             </a>
+                           
                         </div>
                     </form>
                 </div>
@@ -93,7 +100,7 @@
 
 <!-- JavaScript for Dynamic Price Update and Payment Calculation -->
 <script>
-    $(document).ready(function() {
+      $(document).ready(function() {
         // Initialize Select2 for item_code
         $('#id_item_code').select2({
             placeholder: 'Select Item',
@@ -133,12 +140,12 @@
         });
 
         // Update the total amount to pay after the user finishes input (on blur)
-        $('#id_payment_payed').on('blur', function() {
-            const amountPaid = parseFloat($(this).val()) || 0;  // Get the amount paid, default to 0 if not a number
+        $('#id_current_payment').on('blur', function() {
+            const currentPayment = parseFloat($(this).val()) || 0;  // Get the current payment, default to 0 if not a number
             const totalAmount = parseFloat($('#id_payment_to_be_payed').val()) || 0;  // Get the total amount to pay
 
-            // Subtract the amount paid from the total amount
-            const remainingAmount = totalAmount - amountPaid;
+            // Subtract the current payment from the total amount
+            const remainingAmount = totalAmount - currentPayment;
 
             // Update the Total Amount to Pay field
             $('#id_payment_to_be_payed').val(remainingAmount.toFixed(2));

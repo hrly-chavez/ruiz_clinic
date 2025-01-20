@@ -33,7 +33,6 @@ class Item(models.Model):
     item_model = models.CharField(max_length=20,null=True,blank=True)
     item_price = models.FloatField()
     item_date_in = models.DateField(default=now)
-    item_date_out = models.DateField(null=True,blank=True)
     item_quantity = models.IntegerField()
     item_color = models.CharField(max_length=100,null=True,blank=True)
     item_measurement = models.CharField(max_length=200,null=True,blank=True)
@@ -45,20 +44,19 @@ class Item(models.Model):
 
 class Purchased_Item(models.Model):   
     pur_stat_choices = [
-        ('Waiting', 'Waiting'), 
-        ('For follow up', 'For follow up'), 
-        ('Done', 'Done'),
+        ('For Realease', 'For Release'), #deposited or waiting for item to be delivered
+        ('For follow up', 'For follow up'), # installment
+        ('Done', 'Done'), #paid transaction done
     ]
     pur_id = models.AutoField(primary_key=True)
     pur_date_purchased = models.DateField(default=now)
-    pur_stat = models.CharField(max_length=20, choices= pur_stat_choices)
+    pur_stat = models.CharField(max_length=20, choices= pur_stat_choices,db_default='For Release')
     item_code =  models.ForeignKey(Item,null=True, blank=True, on_delete=models.SET_NULL)
-    patient_id = models.ForeignKey('Patient', null=True, blank=True, on_delete=models.SET_NULL)
-    payment_id = models.ForeignKey('Payment', null=True, blank=True, on_delete=models.SET_NULL)
+    patient_id = models.ForeignKey('Patient', null=True, blank=True, on_delete=models.CASCADE)
+    payment_id = models.ForeignKey('Payment', null=True, blank=True, on_delete=models.CASCADE)
+    item_date_out = models.DateField(null=True, blank=True)
     def __str__(self):
         return f"{self.item_code},  {self.pur_date_purchased}"
-
-
 
 class Payment(models.Model): 
     payment_method_choices = [
@@ -71,21 +69,21 @@ class Payment(models.Model):
 
     pay_terms_choices = [
         ('Installment', 'Installment'),
+        ('Deposit', 'Deposit'),
         ('Fully Paid', 'Fully Paid'),
     ]
     
     payment_id = models.AutoField(primary_key=True)
-    payment_payed = models.FloatField(null=True,blank=True)
-    payment_to_be_payed = models.FloatField(null=True,blank=True)
+    payment_payed = models.FloatField(null=True,blank=True) #Tracks the total amount the customer has paid so far.
+    current_payment = models.FloatField(null=True,blank=True) # Tracks the current payment made by the customer
+    current_payment_date = models.DateField(default=now) #when was the current payment made
+    payment_to_be_payed = models.FloatField(null=True,blank=True) #Tracks the customer's current balance (how much they still owe).
     payment_method = models.CharField(max_length=50,choices=payment_method_choices,default='Cash')
     payment_terms = models.CharField(max_length=20, choices=pay_terms_choices,default='Fully Paid')
     
 
     def __str__(self):
         return f" {self.payment_payed}, {self.payment_to_be_payed}"
-
-
-
 
 class Patient(models.Model):
     patient_id = models.AutoField(primary_key=True)
@@ -125,11 +123,7 @@ class Appointment(models.Model):
     app_status = models.CharField(max_length=50, choices=app_status_choices)
     patient_id = models.ForeignKey(Patient, null=True, blank=True, on_delete=models.CASCADE)
     
-# class Account(models.Model):
-#     account_id = models.AutoField(primary_key=True)
-#     account_username = models.CharField(max_length=100, unique=True)
-#     account_password = models.CharField(max_length=100)
-#     account_email = models.CharField(max_length=100, unique=True)
+
 
 class Account(models.Model):
     account_id = models.AutoField(primary_key=True)

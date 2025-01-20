@@ -26,8 +26,7 @@ urlpatterns = [
     path('appointment/edit/', views.edit_appointment, name='edit_appointment'),
     path('delete_appointment/', views.delete_appointment, name='delete_appointment'),
     path('check_and_update_appointments/', views.check_and_update_appointments, name='check_and_update_appointments'),  # ✅ Add this line
-    # path('edit_appointment/<int:appointment_id>/', views.edit_appointment, name='edit_appointment'),
-    # path('get-appointments/', views.get_appointments, name='get-appointments'),
+    
 #______________________________PATIENT_______________________________    
 
     path("patient/", views.patient, name="patient"),
@@ -37,6 +36,9 @@ urlpatterns = [
     path('delete_patient/<int:patient_id>/', views.delete_patient, name='delete_patient'),
     path('item_search/', views.item_search, name='item_search'),
     path('item-price/', views.item_price, name='item_price'),
+    path('edit-purchased-item/<int:purchase_id>/', views.edit_purchased_item, name='edit_purchased_item'),
+    path('delete_purchased_item/<int:pur_id>/', views.delete_purchased_item, name='delete_purchased_item'),
+    
 #______________________________SALES_______________________________    
 
     path("sales/", views.sales, name='sales'),
