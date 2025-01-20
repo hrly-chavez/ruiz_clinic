@@ -49,6 +49,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'ruiz_clinic.middleware.NoCacheMiddleware',
 ]
 
 ROOT_URLCONF = 'RUIZ.urls'

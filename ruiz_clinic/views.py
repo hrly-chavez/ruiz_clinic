@@ -20,67 +20,77 @@ from django.utils.timezone import localtime, now, make_aware, is_aware, localdat
 from pytz import timezone
 import smtplib
 from email.mime.text import MIMEText
+from django.contrib.auth import logout
 
 PH_TZ = timezone("Asia/Manila")
 
+from functools import wraps
 
-
-
-#_____________________________________Signup_____________________________________________________________
-
+def login_required(view_func):
+    @wraps(view_func)  # ✅ Keeps function metadata
+    def wrapper(request, *args, **kwargs):
+        if 'user_id' not in request.session:
+            messages.error(request, "You need to log in first.")  # Show message
+            return redirect('login')  # ✅ Redirect to login page
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
 
 # Temporary storage for OTPs (consider using a session for better security)
 RESET_OTP_STORAGE = {}
+ADMIN_EMAIL = "carataojoegie@gmail.com"  # The only email receiving OTPs
 
 # Generate a random OTP
 def generate_otp():
     return str(random.randint(100000, 999999))
 
-# Function to send OTP via email
-def send_otp_email(email, otp):
+# Function to send OTP only to ADMIN_EMAIL
+def send_otp_email(otp):
     sender_email = "carataojoegie@gmail.com"  # Use your Gmail
-    sender_password = "svdd pqan vcbh tagf"  # Use the App Password
-    subject = "Your Password Reset OTP"
-    body = f"Your OTP for password reset is {otp}. Please enter it to reset your password."
+    sender_password = "svdd pqan vcbh tagf"  # Use Gmail App Password
+    subject = "Your Secure OTP"
+    body = f"Your OTP is: {otp}. Share it only with authorized employees."
 
     msg = MIMEText(body)
     msg['Subject'] = subject
     msg['From'] = sender_email
-    msg['To'] = email
+    msg['To'] = ADMIN_EMAIL
 
     try:
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.starttls()
         server.login(sender_email, sender_password)
-        server.sendmail(sender_email, email, msg.as_string())
+        server.sendmail(sender_email, ADMIN_EMAIL, msg.as_string())
         server.quit()
-        print(f"OTP email sent to {email} successfully!")
+        print(f"OTP email sent to {ADMIN_EMAIL} successfully!")
     except Exception as e:
         print(f"Error sending email: {e}")
 
-# Forgot Password View
 def forgot_password(request):
     if request.method == 'POST':
-        email = request.POST.get('email')
+        username = request.POST.get('username')
 
-        if Account.objects.filter(account_email=email).exists():
+        try:
+            user = Account.objects.get(account_username=username)  # Find user by username
             otp = generate_otp()
-            RESET_OTP_STORAGE[email] = otp  # Store OTP
-            send_otp_email(email, otp)  # Send OTP
-            request.session['reset_email'] = email  # Store email in session
-            return redirect('verify_reset_otp')  # Redirect to OTP verification page
-        else:
-            messages.error(request, "Email not found. Please enter a registered email.")
+            RESET_OTP_STORAGE[username] = otp  # Store OTP linked to the username
+            send_otp_email(otp)  # Send OTP to ADMIN_EMAIL
+            request.session['reset_username'] = username  # Store username in session
+            messages.success(request, "OTP has been sent to the admin. Contact them for the code.")
+            return redirect('verify_reset_otp')
+
+        except Account.DoesNotExist:
+            messages.error(request, "Username not found. Please enter a valid account username.")
 
     return render(request, 'clinic/Login/forgot_password.html')
 
+
 def verify_reset_otp(request):
     if request.method == 'POST':
-        email = request.session.get('reset_email')
+        username = request.session.get('reset_username')  # Retrieve stored username
         entered_otp = request.POST.get('otp')
 
-        if email in RESET_OTP_STORAGE and RESET_OTP_STORAGE[email] == entered_otp:
+        if username in RESET_OTP_STORAGE and RESET_OTP_STORAGE[username] == entered_otp:
             return redirect('reset_password')  # Redirect to reset password form
         else:
             messages.error(request, "Invalid OTP. Please try again.")
@@ -89,63 +99,57 @@ def verify_reset_otp(request):
 
 def reset_password(request):
     if request.method == 'POST':
-        email = request.session.get('reset_email')
+        username = request.session.get('reset_username')  # Get stored username
         new_password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
 
-        if email and Account.objects.filter(account_email=email).exists():
-            user = Account.objects.get(account_email=email)
-            user.account_password = new_password  # Hash password in production
+        if new_password != confirm_password:
+            messages.error(request, "Passwords do not match!")
+            return redirect('reset_password')
+
+        try:
+            user = Account.objects.get(account_username=username)  # Get user by username
+            user.account_password = new_password  # Hash in production
             user.save()
-            del request.session['reset_email']  # Remove session data
+            del request.session['reset_username']  # Remove session data after reset
             messages.success(request, "Password reset successful! You can now log in.")
             return redirect('login')
-        else:
-            messages.error(request, "Error resetting password.")
+
+        except Account.DoesNotExist:
+            messages.error(request, "Error resetting password. Please try again.")
 
     return render(request, 'clinic/Login/reset_password.html')
 
 
-# Signup View
 def signup(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-        email = request.POST.get('email')
 
         if Account.objects.filter(account_username=username).exists():
             messages.error(request, 'Username already exists. Please choose another.')
-        elif Account.objects.filter(account_email=email).exists():
-            messages.error(request, 'Email is already registered.')
         else:
             otp = generate_otp()
-            print(f"Storing OTP for {email}: {otp}")  # Debugging
-            RESET_OTP_STORAGE[email] = otp  # Store OTP temporarily
-            send_otp_email(email, otp)  # Send OTP to user's email
-            request.session['pending_user'] = {
-                'username': username,
-                'password': password,
-                'email': email,
-            }
+            print(f"Generated OTP: {otp}")  # Debugging
+            RESET_OTP_STORAGE['signup_otp'] = otp  # Store OTP temporarily
+            send_otp_email(otp)  # Send OTP to ADMIN_EMAIL
+            request.session['pending_user'] = {'username': username, 'password': password}
             return redirect('verify_otp')  # Redirect to OTP verification page
 
     return render(request, 'clinic/Signup/signup.html')
 
-
-# OTP Verification View
 def verify_otp(request):
     if request.method == 'POST':
-        email = request.POST.get('email')
         entered_otp = request.POST.get('otp')
 
-        if email in RESET_OTP_STORAGE and RESET_OTP_STORAGE[email] == entered_otp:
+        if 'signup_otp' in RESET_OTP_STORAGE and RESET_OTP_STORAGE['signup_otp'] == entered_otp:
             user_data = request.session.get('pending_user')
             if user_data:
                 Account.objects.create(
                     account_username=user_data['username'],
-                    account_password=user_data['password'],  # Hash this in production
-                    account_email=user_data['email']
+                    account_password=user_data['password']  # Hash this in production
                 )
-                del RESET_OTP_STORAGE[email]  # Remove OTP after successful registration
+                del RESET_OTP_STORAGE['signup_otp']  # Remove OTP after successful registration
                 del request.session['pending_user']  # Clear session
                 messages.success(request, 'Registration successful! You can now log in.')
                 return redirect('login')
@@ -154,26 +158,53 @@ def verify_otp(request):
 
     return render(request, 'clinic/Signup/verify_otp.html')
 
+# def forgotpass(request):
+#     if request.method == 'POST':
+#         phone = request.POST.get('phone')
+        
+#         # Check if the phone number exists in the Account model
+#         try:
+#             account = Account.objects.get(account_contact=phone)
+#             messages.success(request, "Phone number matches our records. You will receive a password reset link.")
+#             message_type = 'success'  # Success message type
+#         except Account.DoesNotExist:
+#             messages.error(request, "Phone number does not match our records. Please try again.")
+#             message_type = 'error'  # Error message type
+        
+#         return render(request, 'clinic/Signup/forgotpass.html', {'message_type': message_type})
+    
+#     return render(request, 'clinic/Signup/forgotpass.html')
+
+# def check_phone_number(request):
+#     if request.method == 'GET':
+#         phone = request.GET.get('phone', '')
+#         exists = Account.objects.filter(account_contact=phone).exists()
+#         return JsonResponse({'exists': exists})
 #______________________________________LOGIN___________________________________________________________
 @csrf_exempt
 def login(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
+        username = request.POST.get('username')
+        password = request.POST.get('password')
 
-        # Check if user exists in the Account table
         try:
             user = Account.objects.get(account_username=username, account_password=password)
-            # Redirect to the dashboard
-            return redirect('dashboard')  # 'dashboard' is the name of the URL for your dashboard view
+            
+            # ✅ Store user ID in session
+            request.session['user_id'] = user.account_id  # Store primary key
+            request.session['username'] = user.account_username  # Store username (optional)
+
+            messages.success(request, "Login successful!")
+            return redirect('dashboard')  # ✅ Now it will redirect properly
         except Account.DoesNotExist:
-            # If user not found, show an error message
             messages.error(request, 'Invalid username or password. Please try again.')
 
     return render(request, "clinic/Login/login.html")
 
 #_____________________________________DASHBOARD__________________________________________________________
+# @login_required
 def dashboard(request):
+    auto_cancel_appointments(request)
     # Get the selected date from the request or default to today
     selected_date_str = request.GET.get('selected_date')
     
@@ -198,6 +229,8 @@ def dashboard(request):
         'low_stock_items': low_stock_items,  # Pass low stock items
     })
 
+
+# @login_required
 @csrf_exempt
 def cancel_appointment(request):
     if request.method == 'POST':
@@ -223,6 +256,7 @@ def cancel_appointment(request):
     
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
+# @login_required
 @csrf_exempt
 def update_appointment_status(request):
     if request.method == 'POST':
@@ -243,7 +277,8 @@ def update_appointment_status(request):
             return JsonResponse({'success': False, 'error': str(e)})
     else:
         return JsonResponse({'success': False, 'error': 'Invalid request method'})
-    
+
+# @login_required
 def generate_wordcloud(request):
     try:
         # Fetch purchased item data and aggregate frequencies
@@ -284,7 +319,7 @@ def generate_wordcloud(request):
         return HttpResponse("Error generating word cloud", content_type="text/plain")
     
 #_____________________________________APPOINTMENT__________________________________________________________
-
+# @login_required
 def appointment(request):
     # Fetch all appointment dates from the database
     appointments = Appointment.objects.all().values('app_date')
@@ -300,9 +335,10 @@ def appointment(request):
     }
     return render(request, 'clinic/Appointment/appointment.html', context)
 
+# @login_required
 def view_appointment(request):
     # ✅ Ensure `auto_cancel_appointments` is correctly called
-    auto_cancel_appointments()
+    auto_cancel_appointments(request)
 
     date_str = request.GET.get('date')
     search_query = request.GET.get('search', '')
@@ -366,7 +402,7 @@ def view_appointment(request):
 
     return render(request, 'clinic/Appointment/view_appointment.html', context)
 
-
+# @login_required
 def create_appointment(request):
     if request.method == 'POST':
         form = AppointmentForm(request.POST)
@@ -417,7 +453,7 @@ def create_appointment(request):
 
     return render(request, 'clinic/Appointment/create_appointment.html', {'form': form})
 
-
+# @login_required
 def edit_appointment(request):
     if request.method == 'POST':
         appointment_id = request.POST.get('appointment_id')
@@ -476,6 +512,7 @@ def edit_appointment(request):
     messages.error(request, "Invalid request method.")
     return redirect('view_appointment')
 
+# @login_required
 @csrf_exempt
 def delete_appointment(request):
     if request.method == 'POST':
@@ -499,7 +536,8 @@ def delete_appointment(request):
             return JsonResponse({'success': False, 'error': str(e)})
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
-def auto_cancel_appointments():
+# @login_required
+def auto_cancel_appointments(request):
     """Automatically cancel appointments that are past their scheduled time by 5 minutes."""
     # Get the current time in the Philippine timezone
     current_time_pht = localtime(now())
@@ -518,20 +556,22 @@ def auto_cancel_appointments():
     return count  # Optionally return the number of updated appointments
 
 # Add this function in any relevant view so it runs when the page is accessed
+# @login_required
 def check_and_update_appointments(request):
     """
     This view will check and update overdue appointments every time the page is loaded.
     """
-    auto_cancel_appointments()
+    auto_cancel_appointments(request)
     return JsonResponse({'success': True, 'message': 'Overdue appointments have been updated.'})
 
 
 #_____________________________________INVENTORY__________________________________________________________
-
+# @login_required
 def inventory(request):
     items = Item.objects.all()  # Fetch all items from the database
     return render(request, 'clinic/Inventory/inventory.html', {'items': items})
 
+# @login_required
 def add_item(request):
     if request.method == 'POST':
         form = ItemForm(request.POST)
@@ -542,6 +582,7 @@ def add_item(request):
         form = ItemForm()
     return render(request, 'clinic/Inventory/add_item.html', {'form': form})
 
+# @login_required
 def edit_item(request, item_id):
     item = get_object_or_404(Item, pk=item_id)  # Fetch the item by id
     if request.method == 'POST':
@@ -553,14 +594,13 @@ def edit_item(request, item_id):
         form = ItemForm(instance=item)
     return render(request, 'clinic/Inventory/edit_item.html', {'form': form})
 
+# @login_required
 def delete_item(request, item_id):
     item = get_object_or_404(Item, pk=item_id)  # Fetch the item by id
     if request.method == 'POST': 
         item.delete()  
         return redirect('inventory')  
     return redirect('inventory') 
-
-
 
 def view_item(request, item_id):
     # Fetch the item by its ID
@@ -590,11 +630,12 @@ def view_item(request, item_id):
 
 
 #_________________________________________PATIENT________________________________________________________
-
+# @login_required
 def patient(request):
     patients = Patient.objects.all().order_by('patient_lname', 'patient_fname')
     return render(request, 'clinic/Patient/patient.html', {'patients': patients})
 
+# @login_required
 def patient_detail(request, patient_id):
     # Fetch the patient object with related purchased items and their associated details
     patient = get_object_or_404(
@@ -623,6 +664,7 @@ def patient_detail(request, patient_id):
         'form': form
     })
 
+# @login_required
 def add_patient(request):
     if request.method == 'POST':
         patient_form = PatientForm(request.POST)
@@ -645,6 +687,7 @@ def add_patient(request):
         'patient_form': patient_form,
     })
 
+# @login_required
 def delete_patient(request, patient_id):
     if request.method == 'POST':
         patient = get_object_or_404(Patient, pk=patient_id)
@@ -652,6 +695,7 @@ def delete_patient(request, patient_id):
         return redirect('patient')  # Redirect to the patient list after deletion
     return HttpResponse(status=400)
 
+# @login_required
 def add_purchased_item(request, patient_id):
     patient = get_object_or_404(Patient, patient_id=patient_id)
     purchased_item_form = PurchasedItemForm(request.POST or None, patient=patient)
@@ -690,6 +734,7 @@ def add_purchased_item(request, patient_id):
         'patient': patient,
     })
 
+# @login_required
 def item_search(request):
     query = request.GET.get('q', '').strip()  # Retrieve and strip the search query
     items = Item.objects.filter(
@@ -707,7 +752,7 @@ def item_search(request):
         for item in items
     ]
     return JsonResponse({'items': results})
-#kuyog sa item search
+
 def item_price(request):
     item_id = request.GET.get('item_id')
     try:
@@ -772,5 +817,21 @@ def delete_purchased_item(request, pur_id):
 
 
 #_____________________________________SALES__________________________________________________________
+# @login_required
 def sales(request):
     return render(request, 'clinic/Sales/sales.html')
+
+
+#_________________________________________LOGOUT_______________________________________________________
+# @login_required
+def user_logout(request):
+    # ✅ Remove user session manually
+    if 'user_id' in request.session:
+        del request.session['user_id']  # Remove user ID from session
+    if 'username' in request.session:
+        del request.session['username']  # Remove username from session
+    
+    request.session.flush()  # Clear entire session
+    messages.success(request, "You have been logged out successfully.")
+    
+    return redirect('login')

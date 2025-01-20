@@ -1,4 +1,3 @@
-
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -12,7 +11,7 @@
     <div class="register-container">
         <div class="register-left">
             <h1>Register Account</h1>
-            <!-- Display messages -->
+
             {% if messages %}
                 <ul class="messages">
                     {% for message in messages %}
@@ -20,26 +19,47 @@
                     {% endfor %}
                 </ul>
             {% endif %}
+
             <form action="{% url 'signup' %}" method="post">
                 {% csrf_token %}
+                
                 <div class="input-group">
                     <label for="username"><i class="fa fa-user"></i></label>
                     <input type="text" id="username" name="username" placeholder="Username" required>
                 </div>
+                
                 <div class="input-group">
                     <label for="password"><i class="fa fa-lock"></i></label>
                     <input type="password" id="password" name="password" placeholder="Password" required>
                 </div>
-                <div class="input-group">
-                    <label for="email"><i class="fa fa-envelope"></i></label>
-                    <input type="email" id="email" name="email" placeholder="Email Address" required>
+
+                <!-- Show Password Checkbox -->
+                <div class="show-password-container">
+                    <input type="checkbox" id="show-password" onclick="togglePasswordVisibility()">
+                    <label for="show-password">Show Password</label>
                 </div>
+
                 <button type="submit" class="btn-register">Register</button>
-            </form>            
+            </form>           
         </div>
+
         <div class="register-right">
             <img src="{% static 'eye.jpg' %}" alt="Eye Illustration">
         </div>
     </div>
+
+    <script>
+        function togglePasswordVisibility() {
+            var passwordField = document.getElementById("password");
+            var checkbox = document.getElementById("show-password");
+
+            if (checkbox.checked) {
+                passwordField.type = "text";
+            } else {
+                passwordField.type = "password";
+            }
+        }
+    </script>
+
 </body>
 </html>
