@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.db.models import Q, Prefetch
 import matplotlib
-matplotlib.use('Agg')
+from functools import wraps
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import io
@@ -21,10 +21,10 @@ from pytz import timezone
 import smtplib
 from email.mime.text import MIMEText
 from django.contrib.auth import logout
-
+matplotlib.use('Agg')
 PH_TZ = timezone("Asia/Manila")
 
-from functools import wraps
+
 
 def login_required(view_func):
     @wraps(view_func)  # ✅ Keeps function metadata
@@ -84,7 +84,6 @@ def forgot_password(request):
 
     return render(request, 'clinic/Login/forgot_password.html')
 
-
 def verify_reset_otp(request):
     if request.method == 'POST':
         username = request.session.get('reset_username')  # Retrieve stored username
@@ -119,7 +118,6 @@ def reset_password(request):
             messages.error(request, "Error resetting password. Please try again.")
 
     return render(request, 'clinic/Login/reset_password.html')
-
 
 def signup(request):
     if request.method == 'POST':
@@ -157,136 +155,6 @@ def verify_otp(request):
             messages.error(request, 'Invalid OTP. Please try again.')
 
     return render(request, 'clinic/Signup/verify_otp.html')
-
-
-# RESET_OTP_STORAGE = {}
-
-# # Generate a random OTP
-# def generate_otp():
-#     return str(random.randint(100000, 999999))
-
-# # Function to send OTP via email
-# def send_otp_email(email, otp):
-#     sender_email = "carataojoegie@gmail.com"  # Use your Gmail
-#     sender_password = "svdd pqan vcbh tagf"  # Use the App Password
-#     subject = "Your Password Reset OTP"
-#     body = f"Your OTP for password reset is {otp}. Please enter it to reset your password."
-
-#     msg = MIMEText(body)
-#     msg['Subject'] = subject
-#     msg['From'] = sender_email
-#     msg['To'] = email
-
-#     try:
-#         server = smtplib.SMTP("smtp.gmail.com", 587)
-#         server.starttls()
-#         server.login(sender_email, sender_password)
-#         server.sendmail(sender_email, email, msg.as_string())
-#         server.quit()
-#         print(f"OTP email sent to {email} successfully!")
-#     except Exception as e:
-#         print(f"Error sending email: {e}")
-
-# # Forgot Password View
-# def forgot_password(request):
-#     if request.method == 'POST':
-#         email = request.POST.get('email')
-
-#         if Account.objects.filter(account_email=email).exists():
-#             otp = generate_otp()
-#             RESET_OTP_STORAGE[email] = otp  # Store OTP
-#             send_otp_email(email, otp)  # Send OTP
-#             request.session['reset_email'] = email  # Store email in session
-#             return redirect('verify_reset_otp')  # Redirect to OTP verification page
-#         else:
-#             messages.error(request, "Email not found. Please enter a registered email.")
-
-#     return render(request, 'clinic/Login/forgot_password.html')
-
-# def verify_reset_otp(request):
-#     if request.method == 'POST':
-#         email = request.session.get('reset_email')
-#         entered_otp = request.POST.get('otp')
-
-#         if email in RESET_OTP_STORAGE and RESET_OTP_STORAGE[email] == entered_otp:
-#             return redirect('reset_password')  # Redirect to reset password form
-#         else:
-#             messages.error(request, "Invalid OTP. Please try again.")
-
-#     return render(request, 'clinic/Login/verify_reset_otp.html')
-
-# def reset_password(request):
-#     if request.method == 'POST':
-#         email = request.session.get('reset_email')
-#         new_password = request.POST.get('password')
-#         confirm_password = request.POST.get('confirm_password')
-
-#         # Check if passwords match
-#         if new_password != confirm_password:
-#             messages.error(request, "Passwords do not match!")
-#             return redirect('reset_password')
-
-#         # Ensure email exists in session and is valid
-#         if email and Account.objects.filter(account_email=email).exists():
-#             user = Account.objects.get(account_email=email)
-#             user.account_password = new_password  # Storing password as plain text (Not Recommended)
-#             user.save()
-#             del request.session['reset_email']  # Remove session data
-#             messages.success(request, "Password reset successful! You can now log in.")
-#             return redirect('login')
-#         else:
-#             messages.error(request, "Error resetting password. Please try again.")
-
-#     return render(request, 'clinic/Login/reset_password.html')
-
-# # Signup View
-# def signup(request):
-#     if request.method == 'POST':
-#         username = request.POST.get('username')
-#         password = request.POST.get('password')
-#         email = request.POST.get('email')
-
-#         if Account.objects.filter(account_username=username).exists():
-#             messages.error(request, 'Username already exists. Please choose another.')
-#         elif Account.objects.filter(account_email=email).exists():
-#             messages.error(request, 'Email is already registered.')
-#         else:
-#             otp = generate_otp()
-#             print(f"Storing OTP for {email}: {otp}")  # Debugging
-#             RESET_OTP_STORAGE[email] = otp  # Store OTP temporarily
-#             send_otp_email(email, otp)  # Send OTP to user's email
-#             request.session['pending_user'] = {
-#                 'username': username,
-#                 'password': password,
-#                 'email': email,
-#             }
-#             return redirect('verify_otp')  # Redirect to OTP verification page
-
-#     return render(request, 'clinic/Signup/signup.html')
-
-
-# # OTP Verification View
-# def verify_otp(request):
-#     if request.method == 'POST':
-#         email = request.POST.get('email')
-#         entered_otp = request.POST.get('otp')
-
-#         if email in RESET_OTP_STORAGE and RESET_OTP_STORAGE[email] == entered_otp:
-#             user_data = request.session.get('pending_user')
-#             if user_data:
-#                 Account.objects.create(
-#                     account_username=user_data['username'],
-#                     account_password=user_data['password'],  # Hash this in production
-#                     account_email=user_data['email']
-#                 )
-#                 del RESET_OTP_STORAGE[email]  # Remove OTP after successful registration
-#                 del request.session['pending_user']  # Clear session
-#                 messages.success(request, 'Registration successful! You can now log in.')
-#                 return redirect('login')
-#         else:
-#             messages.error(request, 'Invalid OTP. Please try again.')
-
-#     return render(request, 'clinic/Signup/verify_otp.html')
 
 #______________________________________LOGIN___________________________________________________________
 @csrf_exempt
@@ -336,7 +204,6 @@ def dashboard(request):
         'selected_date': selected_date,  # Ensure it's timezone-aware
         'low_stock_items': low_stock_items,  # Pass low stock items
     })
-
 
 # @login_required
 @csrf_exempt
@@ -663,7 +530,7 @@ def auto_cancel_appointments(request):
     count = overdue_appointments.update(app_status='Cancelled')
     return count  # Optionally return the number of updated appointments
 
-# Add this function in any relevant view so it runs when the page is accessed
+
 # @login_required
 def check_and_update_appointments(request):
     """
@@ -909,7 +776,6 @@ def edit_purchased_item(request, purchase_id):
         'payment': purchased_item.payment_id,
     })
 
-
 def delete_purchased_item(request, pur_id):
     # Retrieve the purchased item by pur_id
     purchased_item = get_object_or_404(Purchased_Item, pur_id=pur_id)
@@ -922,7 +788,6 @@ def delete_purchased_item(request, pur_id):
 
     # Redirect to the patient details page or purchased items list
     return redirect('patient_detail', patient_id=purchased_item.patient_id.patient_id)
-
 
 #_____________________________________SALES__________________________________________________________
 # @login_required

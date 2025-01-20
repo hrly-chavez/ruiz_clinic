@@ -46,7 +46,7 @@ class Purchased_Item(models.Model):
     pur_stat_choices = [
         ('For Realease', 'For Release'), #deposited or waiting for item to be delivered
         ('For follow up', 'For follow up'), # installment
-        ('Done', 'Done'), #paid
+        ('Done', 'Done'), #paid transaction done
     ]
     pur_id = models.AutoField(primary_key=True)
     pur_date_purchased = models.DateField(default=now)
@@ -57,8 +57,6 @@ class Purchased_Item(models.Model):
     item_date_out = models.DateField(null=True, blank=True)
     def __str__(self):
         return f"{self.item_code},  {self.pur_date_purchased}"
-
-
 
 class Payment(models.Model): 
     payment_method_choices = [
@@ -76,17 +74,16 @@ class Payment(models.Model):
     ]
     
     payment_id = models.AutoField(primary_key=True)
-    payment_payed = models.FloatField(null=True,blank=True)
-    payment_to_be_payed = models.FloatField(null=True,blank=True)
+    payment_payed = models.FloatField(null=True,blank=True) #Tracks the total amount the customer has paid so far.
+    current_payment = models.FloatField(null=True,blank=True) #Current payment of the customer
+    current_payment_date = models.DateField(default=now) #when was the current payment made
+    payment_to_be_payed = models.FloatField(null=True,blank=True) #Tracks the customer's current balance (how much they still owe).
     payment_method = models.CharField(max_length=50,choices=payment_method_choices,default='Cash')
     payment_terms = models.CharField(max_length=20, choices=pay_terms_choices,default='Fully Paid')
     
 
     def __str__(self):
         return f" {self.payment_payed}, {self.payment_to_be_payed}"
-
-
-
 
 class Patient(models.Model):
     patient_id = models.AutoField(primary_key=True)
@@ -126,11 +123,7 @@ class Appointment(models.Model):
     app_status = models.CharField(max_length=50, choices=app_status_choices)
     patient_id = models.ForeignKey(Patient, null=True, blank=True, on_delete=models.CASCADE)
     
-# class Account(models.Model):
-#     account_id = models.AutoField(primary_key=True)
-#     account_username = models.CharField(max_length=100, unique=True)
-#     account_password = models.CharField(max_length=100)
-#     account_email = models.CharField(max_length=100, unique=True)
+
 
 class Account(models.Model):
     account_id = models.AutoField(primary_key=True)
