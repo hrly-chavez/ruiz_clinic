@@ -13,10 +13,10 @@
     <form method="POST">
         {% csrf_token %}
         
-        <!-- Item Selection -->
+     <!-- Item Selection -->
         <div class="form-inputs">
             <label for="item_code">Item:</label>
-            <select name="item_code" id="item_code" required>
+            <select name="item_code" id="item_code" required disabled>
                 {% for item in items %}
                     <option value="{{ item.item_code }}" {% if item.item_code == purchased_item.item_code.item_code %}selected{% endif %}>
                         {{ item.item_brand }} | {{ item.item_model }}
@@ -36,7 +36,7 @@
         </div>
         
          <!-- Date Out -->
-         <div class="form-inputs">
+         <div class="form-inputs">  
             <label for="item_date_out">Date Out:</label>
             <input type="date" name="item_date_out" id="item_date_out" value="{{ purchased_item.item_date_out|date:'Y-m-d' }}" class="form-control">
         </div>
@@ -44,20 +44,20 @@
         <!-- Current Payment -->
         <div class="form-inputs">
             <label for="current_payment">Current Payment:</label>
-            <input type="number" name="current_payment" id="current_payment" step="0.01" value="{{ payment.current_payment }}">
+            <input type="number" name="current_payment" id="current_payment" step="0.01">
         </div>
 
-        <!-- Payment Paid -->
-        <div class="form-inputs">
-            <label for="payment_payed">Payment Paid:</label>
-            <input type="number" name="payment_payed" id="payment_payed" step="0.01" value="{{ payment.payment_payed }}">
-        </div>
+       <!-- Payment Paid -->
+            <div class="form-inputs">
+                <label for="payment_payed">Payment Paid:</label>
+                <input type="number" name="payment_payed" id="payment_payed" step="0.01" value="{{ payment.payment_payed }}" readonly>
+            </div>
 
-        <!-- Total Payment -->
-        <div class="form-inputs">
-            <label for="payment_to_be_payed">Total Payment:</label>
-            <input type="number" name="payment_to_be_payed" id="payment_to_be_payed" step="0.01" value="{{ payment.payment_to_be_payed }}">
-        </div>
+            <!-- Total Payment -->
+            <div class="form-inputs">
+                <label for="payment_to_be_payed">Total Payment:</label>
+                <input type="number" name="payment_to_be_payed" id="payment_to_be_payed" step="0.01" value="{{ payment.payment_to_be_payed }}" readonly>
+            </div>
 
         <!-- Form Buttons -->
         <div class="form-buttons">
@@ -150,5 +150,12 @@
         background-color: #5a6268;
     }
 </style>
-
+<script>
+    window.onload = function() {
+        var currentPaymentField = document.getElementById('current_payment');
+        if (!currentPaymentField.value) {
+            currentPaymentField.value = '0';
+        }
+    };
+</script>
 {% endblock %}
