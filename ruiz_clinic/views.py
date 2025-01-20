@@ -915,10 +915,74 @@ def delete_purchased_item(request, pur_id):
     return redirect('patient_detail', patient_id=purchased_item.patient_id.patient_id)
 
 #_____________________________________SALES__________________________________________________________
-# @login_required
-def sales(request):
-    return render(request, 'clinic/Sales/sales.html')
+def get_sales_data(date=None):
+    """ Fetches sales data for a given date, including payments made """
+    if not date:
+        date = now().date()
 
+    # Get or create the Sales record for today
+    sales_entry, created = Sales.objects.get_or_create(sales_date=date)
+
+    # Get payments made today (current_payment)
+    payments_today = Payment.objects.filter(current_payment_date=date)
+
+    # Sum of all current payments made today
+    total_earnings = sum(payment.current_payment or 0 for payment in payments_today)
+
+    # Get all purchased items for today
+    purchased_items_today = Purchased_Item.objects.filter(pur_date_purchased=date)
+
+    # Count of products sold today
+    number_products_sold = purchased_items_today.count()
+
+    # Update the Sales entry
+    sales_entry.sales_total = total_earnings
+    sales_entry.number_products_sold = number_products_sold
+    sales_entry.save()
+
+    # Get the product details sold today
+    products_sold = [
+        {
+            "name": item.item_code.item_name,
+            "category": item.item_code.item_category_id.item_category_name,
+            "brand": item.item_code.item_brand,
+            "qty": 1,  # Assuming each Purchased_Item entry represents one product sold
+            "price": item.item_code.item_price
+        }
+        for item in purchased_items_today
+    ]
+
+    return {
+        "sales_id": sales_entry.sales_id,
+        "sales_total": sales_entry.sales_total,
+        "products_sold_count": sales_entry.number_products_sold,
+        "products_sold": products_sold
+    }
+
+def sales_page(request):
+    """Render the sales page with today's sales data"""
+    today_sales = get_sales_data()
+    return render(request, "clinic/Sales/sales.html", today_sales)
+
+def sales_api(request):
+    """API to fetch sales data for a given date"""
+    date = request.GET.get("date", now().date())  # Get date from request, default to today
+    sales_data = get_sales_data(date)
+    return JsonResponse(sales_data)
+
+def patient_balances_api(request):
+    """ Fetches patients who have a remaining balance """
+    patients_with_balances = Payment.objects.filter(payment_to_be_payed__gt=0)
+
+    balances = [
+        {
+            "patient_name": f"{payment.patient_id.patient_fname} {payment.patient_id.patient_lname}",
+            "previous_balance": payment.payment_to_be_payed
+        }
+        for payment in patients_with_balances
+    ]
+
+    return JsonResponse({"balances": balances})
 
 #_________________________________________LOGOUT_______________________________________________________
 # @login_required

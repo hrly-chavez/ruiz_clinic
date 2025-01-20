@@ -14,31 +14,26 @@
     <div class="stats-container"> <!-- Cards-like format -->
         <div class="card">
             <h4>Total Earnings</h4>
-            <p id="total-earnings">₱ 8,200</p>
+            <p id="total-earnings">₱ {{ sales_total }}</p> <!-- Dynamically updates -->
         </div>
         <div class="card">
             <h4>Number of Products Sold</h4>
-            <p id="products-sold">3</p>
+            <p id="products-sold">{{ products_sold_count }}</p> <!-- Dynamically updates -->
         </div>
         <div class="card">
             <h4>Products Sold</h4>
-            <div class="product-list">
+            <div id="product-list"> <!-- This will be updated dynamically -->
+                {% for product in products_sold %}
                 <div class="product-item">
-                    <img src="{% static 'eyeglasses.png' %}" alt="Eyeglasses">
-                    <span>Eyeglasses</span> 
-                    <span>Frames</span> 
-                    <span>Skechers</span>
-                    <span>Qty: 2</span>
-                    <span>₱ 7,000</span>
+                    <span>{{ product.name }}</span>
+                    <span>{{ product.category }}</span>
+                    <span>{{ product.brand }}</span>
+                    <span>Qty: {{ product.qty }}</span>
+                    <span>₱ {{ product.price }}</span>
                 </div>
-                <div class="product-item">
-                    <img src="{% static 'contact-lenses.png' %}" alt="Contact Lenses">
-                    <span>Contact Lenses</span> 
-                    <span>Soft Contact Lenses</span> 
-                    <span>Acuvue</span>
-                    <span>Qty: 1</span>
-                    <span>₱ 1,200</span>
-                </div>
+                {% empty %}
+                <p>No products sold today.</p>
+                {% endfor %}
             </div>
         </div>
         <div class="card">
@@ -48,7 +43,8 @@
     </div>
 </div>
 
-<div class="modal" id="patient-modal"> <!-- Overlay: Patient Balance Report -->
+<!-- Patient Balance Modal -->
+<div class="modal" id="patient-modal">
     <div class="modal-content">
         <span class="close-btn">&times;</span>
         <h4>Patient Balance Report</h4>
@@ -60,16 +56,9 @@
                     <th>Action</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="patient-balance-list">
                 <tr>
-                    <td>John Doe</td>
-                    <td>₱ 2,500</td>
-                    <td><button class="add-balance-btn">Add</button></td>
-                </tr>
-                <tr>
-                    <td>Jane Smith</td>
-                    <td>₱ 1,000</td>
-                    <td><button class="add-balance-btn">Add</button></td>
+                    <td colspan="3" id="no-balance-message">No patient balance.</td>
                 </tr>
             </tbody>
         </table>
@@ -77,6 +66,5 @@
 </div>
 
 <link rel="stylesheet" href="{% static 'css/sales.css' %}">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <script src="{% static 'js/sales.js' %}"></script>
 {% endblock %}
