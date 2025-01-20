@@ -43,10 +43,12 @@
                             <label for="id_payment_terms">Payment Terms:</label>
                             {{ payment_form.payment_terms }}
                         </div>
-                        <div class="form-group">
-                            <label for="id_payment_payed">Amount Paid:</label>
-                            {{ payment_form.payment_payed }}
+
+                       <div class="form-group">
+                            <label for="id_current_payment">Current Payment:</label>
+                            {{ payment_form.current_payment }}
                         </div>
+
                         <div class="form-group">
                             <label for="id_payment_to_be_payed">Total Amount to Pay:</label>
                             <input type="text" id="id_payment_to_be_payed" class="form-control" readonly>
@@ -98,7 +100,7 @@
 
 <!-- JavaScript for Dynamic Price Update and Payment Calculation -->
 <script>
-    $(document).ready(function() {
+      $(document).ready(function() {
         // Initialize Select2 for item_code
         $('#id_item_code').select2({
             placeholder: 'Select Item',
@@ -138,12 +140,12 @@
         });
 
         // Update the total amount to pay after the user finishes input (on blur)
-        $('#id_payment_payed').on('blur', function() {
-            const amountPaid = parseFloat($(this).val()) || 0;  // Get the amount paid, default to 0 if not a number
+        $('#id_current_payment').on('blur', function() {
+            const currentPayment = parseFloat($(this).val()) || 0;  // Get the current payment, default to 0 if not a number
             const totalAmount = parseFloat($('#id_payment_to_be_payed').val()) || 0;  // Get the total amount to pay
 
-            // Subtract the amount paid from the total amount
-            const remainingAmount = totalAmount - amountPaid;
+            // Subtract the current payment from the total amount
+            const remainingAmount = totalAmount - currentPayment;
 
             // Update the Total Amount to Pay field
             $('#id_payment_to_be_payed').val(remainingAmount.toFixed(2));
