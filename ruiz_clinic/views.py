@@ -586,11 +586,14 @@ def view_item(request, item_id):
     # Prepare patient details
     patient_details = []
     for purchased_item in purchased_items:
-        patient_name = f"{purchased_item.patient_id.patient_fname} {purchased_item.patient_id.patient_lname}"
-        item_date_out = purchased_item.item_date_out  
+        if purchased_item.patient_id:  # Check if patient_id is not None
+            patient_name = f"{purchased_item.patient_id.patient_fname} {purchased_item.patient_id.patient_lname}"
+        else:
+            patient_name = "Unknown"  # Fallback if no patient is associated
+
         patient_details.append({
             'patient_name': patient_name,
-            'item_date_out': item_date_out,  # Use the correct key
+            'item_date_out': purchased_item.item_date_out,
             'pur_date_purchased': purchased_item.pur_date_purchased,
         })
 
