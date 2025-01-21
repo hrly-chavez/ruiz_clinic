@@ -14,22 +14,22 @@
         {% csrf_token %}
         
      <!-- Item Selection -->
-        <div class="form-inputs">
-            <label for="item_code">Item:</label>
-            <select name="item_code" id="item_code" required disabled>
-                {% for item in items %}
-                    <option value="{{ item.item_code }}" {% if item.item_code == purchased_item.item_code.item_code %}selected{% endif %}>
-                        {{ item.item_brand }} | {{ item.item_model }}
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
+     <div class="form-inputs">
+        <label for="item_code">Item:</label>
+        <select name="item_code" id="item_code" required>
+            {% for item in items %}
+                <option value="{{ item.item_code }}" {% if item.item_code == purchased_item.item_code.item_code %}selected{% endif %}>
+                    {{ item.item_brand }} | {{ item.item_model }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
 
         <!-- Purchase Status -->
         <div class="form-inputs">
             <label for="pur_stat">Purchase Status:</label>
             <select name="pur_stat" id="pur_stat" required>
-                <option value="For Realease" {% if purchased_item.pur_stat == 'For Realease' %}selected{% endif %}>For Realease</option>
+                <option value="For Realease" {% if purchased_item.pur_stat == 'For Realease' %}selected{% endif %}>For Release</option>
                 <option value="For follow up" {% if purchased_item.pur_stat == 'For follow up' %}selected{% endif %}>For follow up</option>
                 <option value="Done" {% if purchased_item.pur_stat == 'Done' %}selected{% endif %}>Done</option>
             </select>
@@ -47,17 +47,17 @@
             <input type="number" name="current_payment" id="current_payment" step="0.01">
         </div>
 
-       <!-- Payment Paid -->
-            <div class="form-inputs">
-                <label for="payment_payed">Payment Paid:</label>
-                <input type="number" name="payment_payed" id="payment_payed" step="0.01" value="{{ payment.payment_payed }}" readonly>
-            </div>
+        <!-- Payment Paid -->
+        <div class="form-inputs">
+            <label for="payment_payed">Payment Paid:</label>
+            <input type="number" name="payment_payed" id="payment_payed" step="0.01" value="{{ payment.payment_payed }}">
+        </div>
 
-            <!-- Total Payment -->
-            <div class="form-inputs">
-                <label for="payment_to_be_payed">Total Payment:</label>
-                <input type="number" name="payment_to_be_payed" id="payment_to_be_payed" step="0.01" value="{{ payment.payment_to_be_payed }}" readonly>
-            </div>
+        <!-- Total Payment -->
+        <div class="form-inputs">
+            <label for="payment_to_be_payed">Total Payment:</label>
+            <input type="number" name="payment_to_be_payed" id="payment_to_be_payed" step="0.01" value="{{ payment.payment_to_be_payed }}">
+        </div>
 
         <!-- Form Buttons -->
         <div class="form-buttons">

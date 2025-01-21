@@ -43,6 +43,11 @@
                         </a>
                     </td>
                     <td>
+                        <!-- Edit button -->
+                        <a href="{% url 'edit_patient' patient_id=patient.patient_id %}" class="btn btn-warning btn-sm" style="border-radius: 5px; margin-right: 5px;">
+                            <i class="fa fa-edit"></i> Edit
+                        </a>
+                       
                         <!-- Delete button -->
                         <form method="POST" action="{% url 'delete_patient' patient_id=patient.patient_id %}" style="display: inline;">
                             {% csrf_token %}

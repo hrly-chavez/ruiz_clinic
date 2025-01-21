@@ -82,15 +82,13 @@ DATABASES = {
     
         'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'RuizClinic2',
+        'NAME': 'RuizClinic4',
         'USER': 'postgres',
         'PASSWORD': '123456',
         'HOST': 'localhost',
         'PORT': '5432',
     }
     }
-
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
