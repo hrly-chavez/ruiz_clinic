@@ -32,6 +32,22 @@
         </p>
     </div>
 
+        <!-- Installment Duration (Initially Hidden) -->
+        <div id="installment_duration_section" style="display: none;">
+            <div class="form-inputs">
+                <label>Installment Duration:</label>
+                <p>{{ payment.payment_duration.payment_duration_span|default:"N/A" }}</p>
+            </div>
+            <div class="form-inputs">
+                <label>Start Date:</label>
+                <p>{{ payment.payment_duration.payment_duration_start|date:'Y-m-d'|default:"N/A" }}</p>
+            </div>
+            <div class="form-inputs">
+                <label>End Date:</label>
+                <p>{{ payment.payment_duration.payment_duration_end|date:'Y-m-d'|default:"N/A" }}</p>
+            </div>
+        </div>
+
         <!-- Purchase Status -->
         <div class="form-inputs">
             <label for="pur_stat">Purchase Status:</label>
@@ -65,18 +81,8 @@
             <label for="payment_to_be_payed">Total Payment:</label>
             <input type="number" name="payment_to_be_payed" id="payment_to_be_payed" step="0.01" value="{{ payment.payment_to_be_payed }}">
         </div>
-        <!-- Installment Duration -->
-        {% if purchased_item.is_installment %}
-        <div class="form-inputs">
-            <label for="installment_start_date">Installment Start Date:</label>
-            <input type="date" name="installment_start_date" id="installment_start_date" value="{{ payment.installment_start_date|date:'Y-m-d' }}">
-        </div>
         
-        <div class="form-inputs">
-            <label for="installment_end_date">Installment End Date:</label>
-            <input type="date" name="installment_end_date" id="installment_end_date" value="{{ payment.installment_end_date|date:'Y-m-d' }}">
-        </div>
-        {% endif %}
+
         <!-- Form Buttons -->
         <div class="form-buttons">
             <button type="submit" class="btn btn-primary">Save Changes</button>
@@ -170,9 +176,19 @@
 </style>
 <script>
     window.onload = function() {
+        // Automatically set 'current_payment' to 0 if empty
         var currentPaymentField = document.getElementById('current_payment');
         if (!currentPaymentField.value) {
             currentPaymentField.value = '0';
+        }
+
+        // Toggle installment duration based on payment terms
+        var paymentTerms = document.getElementById('payment_terms').textContent.trim();
+        var installmentDurationSection = document.getElementById('installment_duration_section');
+        if (paymentTerms === "Installment") {
+            installmentDurationSection.style.display = "block";
+        } else {
+            installmentDurationSection.style.display = "none";
         }
     };
 </script>
