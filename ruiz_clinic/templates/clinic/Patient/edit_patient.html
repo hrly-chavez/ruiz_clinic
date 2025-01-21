@@ -1,0 +1,19 @@
+{% extends 'clinic/nav.html' %}
+
+{% block title %}Edit Patient Page{% endblock %}
+
+{% block content %}
+<div style="padding: 20px; background-color: #2db9fae8; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px; height: 125px; display: flex; align-items: center; margin: 0; justify-content: space-between;">
+    <h1 style="color: #fff; font-size: 37px; font-family: 'Istok Web', sans-serif; font-weight: normal;">EDIT PATIENT</h1> 
+</div>
+
+<div class="container mt-5">
+    <h2>Edit Patient</h2>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a href="{% url 'patient' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

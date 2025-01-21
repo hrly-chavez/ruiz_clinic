@@ -13,30 +13,30 @@
     <form method="POST">
         {% csrf_token %}
         
-        <!-- Item Selection -->
-        <div class="form-inputs">
-            <label for="item_code">Item:</label>
-            <select name="item_code" id="item_code" required>
-                {% for item in items %}
-                    <option value="{{ item.item_code }}" {% if item.item_code == purchased_item.item_code.item_code %}selected{% endif %}>
-                        {{ item.item_brand }} | {{ item.item_model }}
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
+     <!-- Item Selection -->
+     <div class="form-inputs">
+        <label for="item_code">Item:</label>
+        <select name="item_code" id="item_code" required>
+            {% for item in items %}
+                <option value="{{ item.item_code }}" {% if item.item_code == purchased_item.item_code.item_code %}selected{% endif %}>
+                    {{ item.item_brand }} | {{ item.item_model }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
 
         <!-- Purchase Status -->
         <div class="form-inputs">
             <label for="pur_stat">Purchase Status:</label>
             <select name="pur_stat" id="pur_stat" required>
-                <option value="For Realease" {% if purchased_item.pur_stat == 'For Realease' %}selected{% endif %}>For Realease</option>
+                <option value="For Realease" {% if purchased_item.pur_stat == 'For Realease' %}selected{% endif %}>For Release</option>
                 <option value="For follow up" {% if purchased_item.pur_stat == 'For follow up' %}selected{% endif %}>For follow up</option>
                 <option value="Done" {% if purchased_item.pur_stat == 'Done' %}selected{% endif %}>Done</option>
             </select>
         </div>
         
          <!-- Date Out -->
-         <div class="form-inputs">
+         <div class="form-inputs">  
             <label for="item_date_out">Date Out:</label>
             <input type="date" name="item_date_out" id="item_date_out" value="{{ purchased_item.item_date_out|date:'Y-m-d' }}" class="form-control">
         </div>
@@ -44,7 +44,7 @@
         <!-- Current Payment -->
         <div class="form-inputs">
             <label for="current_payment">Current Payment:</label>
-            <input type="number" name="current_payment" id="current_payment" step="0.01" value="{{ payment.current_payment }}">
+            <input type="number" name="current_payment" id="current_payment" step="0.01">
         </div>
 
         <!-- Payment Paid -->
@@ -150,5 +150,12 @@
         background-color: #5a6268;
     }
 </style>
-
+<script>
+    window.onload = function() {
+        var currentPaymentField = document.getElementById('current_payment');
+        if (!currentPaymentField.value) {
+            currentPaymentField.value = '0';
+        }
+    };
+</script>
 {% endblock %}
