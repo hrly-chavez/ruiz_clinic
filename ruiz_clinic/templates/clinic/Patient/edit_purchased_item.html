@@ -25,6 +25,13 @@
         </select>
     </div>
 
+    <div class="form-inputs">
+        <label for="payment_terms">Payment Terms:</label>
+        <p id="payment_terms">
+                 {{ purchased_item.payment_id.payment_terms|default:"N/A" }}
+        </p>
+    </div>
+
         <!-- Purchase Status -->
         <div class="form-inputs">
             <label for="pur_stat">Purchase Status:</label>
@@ -58,7 +65,18 @@
             <label for="payment_to_be_payed">Total Payment:</label>
             <input type="number" name="payment_to_be_payed" id="payment_to_be_payed" step="0.01" value="{{ payment.payment_to_be_payed }}">
         </div>
-
+        <!-- Installment Duration -->
+        {% if purchased_item.is_installment %}
+        <div class="form-inputs">
+            <label for="installment_start_date">Installment Start Date:</label>
+            <input type="date" name="installment_start_date" id="installment_start_date" value="{{ payment.installment_start_date|date:'Y-m-d' }}">
+        </div>
+        
+        <div class="form-inputs">
+            <label for="installment_end_date">Installment End Date:</label>
+            <input type="date" name="installment_end_date" id="installment_end_date" value="{{ payment.installment_end_date|date:'Y-m-d' }}">
+        </div>
+        {% endif %}
         <!-- Form Buttons -->
         <div class="form-buttons">
             <button type="submit" class="btn btn-primary">Save Changes</button>
