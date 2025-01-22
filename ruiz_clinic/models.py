@@ -65,7 +65,7 @@ class Purchased_Item(models.Model):
 class Payment(models.Model): 
     payment_method_choices = [
         ('Cash','Cash'),
-        ('Debit Card', 'Debit Card'),
+        ('Debit Card', 'Debit Card'),   
         ('Credit Card','Credit Card'),
         ('E Wallet','E Wallet'),
         ('Other','Other'),
