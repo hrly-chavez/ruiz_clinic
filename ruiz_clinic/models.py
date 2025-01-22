@@ -164,7 +164,6 @@ class Account(models.Model):
     
 class Sales(models.Model):
     sales_id = models.AutoField(primary_key=True)
-    #sales_date = models.DateField(default=now, unique=True)  # Unique per day
     sales_date = models.DateField(default=get_today_date, unique=True)
     sales_total = models.FloatField(default=0.0)  # Total earnings of the day
     number_products_sold = models.IntegerField(default=0)  # Total product count
