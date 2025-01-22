@@ -90,8 +90,7 @@
 
         </div>
     </div>
-
-    <!-- Row containing Graph and Notice -->
+ 
     <div class="widgets-row">
         <!-- Graph Widget -->
         <div class="graph-widget widget">
@@ -100,19 +99,27 @@
                 <img src="{% url 'wordcloud' %}" alt="Word Cloud" style="width: 100%; height: auto;">
             </div>
         </div>
-
+    
         <!-- Notice Widget -->
         <div class="notice-widget widget">
             <div class="widget-header">NOTICE</div>
-            {% if low_stock_items.exists %}
-                {% for item in low_stock_items %}
-                    <p>🔔 Low Stock Alert: {{ item.item_category_id.item_category_name }} {{ item.item_brand }} {{ item.item_model }} ({{ item.item_quantity }} left)</p>
-                {% endfor %}
-            {% else %}
-                <p>No low-stock items.</p>
-            {% endif %}
+            <div class="low-stock-container">
+                {% if low_stock_items.exists %}
+                    {% for item in low_stock_items %}
+                        <div class="low-stock-widget">
+                            <p><strong>🔔 Low Stock Alert:</strong></p>
+                            <p>Category: {{ item.item_category_id.item_category_name }}</p>
+                            <p>Brand: {{ item.item_brand }}</p>
+                            <p>Model: {{ item.item_model }}</p>
+                            <p>Quantity Left: {{ item.item_quantity }}</p>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No low-stock items.</p>
+                {% endif %}
+            </div>
         </div>
-
+    
         <!-- Additional Widget -->
         <div class="additional-widget widget">
             <div class="widget-header">FOLLOW UP PATIENT</div>
@@ -120,7 +127,7 @@
                 <p>Placeholder for additional information or content.</p>
             </div>
         </div>
-    </div>
+    </div>    
 </div>
 
 <script>

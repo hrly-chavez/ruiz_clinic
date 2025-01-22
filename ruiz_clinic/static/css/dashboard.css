@@ -5,20 +5,25 @@
     box-sizing: border-box;
 }
 
-body {
+html, body {
+    height: 100%; /* Full height for the viewport */
+    margin: 0;
+    overflow: hidden; /* Remove main scrollbars */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f4f4f9;
-    overflow-x: hidden;
 }
+
 
 /* Dashboard Container */
 .dashboard-container {
     padding: 20px;
     color: #333;
-    max-width: 100%; /* Ensure container doesn’t exceed screen width */
-    overflow-x: hidden; /* Hide horizontal overflow */
-    height: 100vh; /* Full height of the viewport */
-    overflow: hidden; /* Prevent vertical scrolling */
+    max-width: 100%;
+    height: 100%; /* Full height without overflow */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-sizing: border-box;
 }
 
 /* Date and Time */
@@ -45,28 +50,26 @@ body {
     display: flex;
     justify-content: space-between;
     gap: 20px;
-    flex-wrap: wrap; /* Allow widgets to wrap to the next line */
-    margin-bottom: 20px;
-    width: 100%; /* Ensure widgets take up full width */
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    flex-grow: 1; /* Fill available space */
+    height: auto;
 }
-
 
 /* General Widget Container */
 .widget {
     background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    height: 45vh; /* Adjust the widget height to 45% of the viewport height */
+    flex: 1; /* Allow equal space distribution */
     display: flex;
     flex-direction: column;
+    overflow: hidden; /* Prevent scrolling on widgets unless explicitly set */
 }
 
-
-/* Scrollable Content Area */
+/* Scrollable Content for Widgets (if needed) */
 .widget .scrollable-content {
     flex: 1;
-    overflow-y: auto;
+    overflow-y: auto; /* Enable vertical scrolling */
     padding: 10px;
 }
 
@@ -115,21 +118,21 @@ body {
     cursor: pointer;
 }
 
-/* Reusable Widget Header */
+/* Widget Header */
 .widget-header {
-    background: linear-gradient(145deg, #29B6F6, #1a8ebc);
-    color: #ffffff;
+    padding: 10px;
     font-size: 18px;
-    font-weight: bold;
     text-align: center;
-    padding: 12px 0;
-    border-radius: 8px 8px 0 0; /* Rounded Top Corners */
+    border-radius: 8px 8px 0 0;
+    background: linear-gradient(145deg, #29B6F6, #1a8ebc);
+    color: white;
 }
 
 /* Appointments Widget */
 .appointments-widget {
-    width: 700px;
+    width: 100%; /* Full width on smaller screens */
     flex: 2; /* Larger share of space */
+    margin-bottom: 20px; /* Add space below the widget */
 }
 
 .appointments-table {
@@ -238,19 +241,21 @@ body {
 /* Notice Widget */
 .notice-widget {
     width: 300px;
-    flex: 1; /* Ensures smaller share of space compared to larger widgets */
-    background-color: #fff8e1;
+    flex: 1; /* Ensure it distributes space equally */
+    background-color: #b5e5fc;
     border-radius: 8px; /* Add rounded corners for consistency */
-    overflow: hidden; /* Ensure header stays within the widget */
+    overflow: hidden; /* Prevent unnecessary scrollbars */
     display: flex;
     flex-direction: column; /* Stack header and content vertically */
 }
 
-/* Ensure the header covers the full width of the widget */
+/* Notice Widget Header */
 .notice-widget .widget-header {
     margin: 0; /* Remove extra spacing */
     width: 100%; /* Span full width */
     border-radius: 0; /* Reset rounded corners for the header */
+    flex-shrink: 0; /* Prevent the header from shrinking */
+    padding: 10px; /* Add padding for spacing */
 }
 
 .notice-widget p {
@@ -259,15 +264,68 @@ body {
     margin: 10px 0;
 }
 
+/* Low Stock Container */
+.low-stock-container {
+    flex: 1; /* Fill the remaining height of the widget */
+    overflow-y: auto; /* Enable vertical scrolling for content */
+    padding: 10px; /* Add padding for spacing */
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Add space between low-stock items */
+    box-sizing: border-box;
+    max-height: 100%; /* Allow the container to take up full available height */
+}
+
+/* Individual Low Stock Widget */
+.low-stock-widget {
+    background-color: #e3f2fd; /* Light blue background */
+    border: 1px solid #90caf9; /* Border for the widget */
+    border-radius: 8px; /* Rounded corners */
+    padding: 10px; /* Inner padding */
+    font-size: 14px; /* Adjust font size */
+    color: #333; /* Text color */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Soft shadow */
+}
+
+/* Scrollbar Style for Low Stock Container */
+.low-stock-container::-webkit-scrollbar {
+    width: 8px; /* Width of the scrollbar */
+}
+
+.low-stock-container::-webkit-scrollbar-thumb {
+    background-color: #90caf9; /* Scrollbar thumb color */
+    border-radius: 4px; /* Rounded corners for the scrollbar thumb */
+}
+
+.low-stock-container::-webkit-scrollbar-track {
+    background-color: #e3f2fd; /* Scrollbar track color */
+}
+
+/* Notice Widget Specific Scrollbar */
+.notice-widget .low-stock-container {
+    max-height: 300px; /* Adjust based on design */
+    overflow-y: auto; /* Enable vertical scrolling */
+    padding: 10px;
+}
+
+/* Bottom Widgets (Graph, Notice, Additional Widget) */
+.graph-widget, .notice-widget, .additional-widget {
+    flex: 1; /* Equal size distribution */
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* Responsive Adjustments */
 @media (max-width: 1200px) {
     .appointments-widget,
     .profile-widget,
     .notice-widget {
-        width: 100%;
+        width: 100%; /* Stack widgets in smaller screens */
     }
 
     .widgets-row {
-        flex-direction: column; /* Stack widgets vertically */
+        flex-direction: column; /* Stack rows vertically */
     }
 }
 

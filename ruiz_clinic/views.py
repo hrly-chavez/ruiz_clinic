@@ -603,6 +603,19 @@ def view_item(request, item_id):
 
     return render(request, 'clinic/Inventory/view_item.html', context)
 
+def search_items(request):
+    query = request.GET.get('q', '')  # Get the search query from the request
+    items = Item.objects.filter(
+        Q(item_name__icontains=query) |
+        Q(item_brand__icontains=query) |
+        Q(item_model__icontains=query) |
+        Q(item_color__icontains=query) |
+        Q(item_measurement__icontains=query) |
+        Q(item_category_id__item_category_name__icontains=query) |
+        Q(item_frame_type_id__item_frame_type_name__icontains=query)
+    ).distinct()  # Use distinct to avoid duplicate results if relations are joined
+    
+    return render(request, 'clinic/Inventory/inventory.html', {'items': items, 'query': query})
 
 #_________________________________________PATIENT________________________________________________________
 # @login_required
