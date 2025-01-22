@@ -14,9 +14,10 @@
 <div class="dashboard-container">
     <!-- Row containing Date and Time above Appointments -->
     <div>
-        <div class="date-time" id="date-time">
-            <!-- The content will be replaced by JavaScript -->
-        </div>
+        <div class="date-time-row">
+            <span id="current-date"></span>
+            <span id="current-time"></span>
+        </div><br>
         <div class="widgets-row">
             <!-- Appointments Widget -->
             <div class="appointments-widget widget">
@@ -70,23 +71,23 @@
 
             <!-- Profile Widget -->
             <div class="profile-widget widget">
-                <div class="widget-header">PROFILE</div>
                 <div class="profile-content">
                     <div class="profile-image">
-                        <img src="{% static 'istockphoto-1061001352-612x612.jpg' %}" alt="Dr. Rodjin Caratao">
+                        <img src="{% static 'istockphoto-1061001352-612x612.jpg' %}" alt="LIZALIE R. MAQUILAN O.D">
                     </div>
                     <div class="profile-details">
-                        <h3>Dr. Rodjin Caratao</h3>
-                        <p>Ophthalmologist</p>
+                        <h3>LIZALIE R. MAQUILAN O.D</h3>
+                        <p>Optometrist</p>
                         <p>Lapu-Lapu City, Cebu</p>
                     </div>
                 </div>
                 <div class="additional-info">
-                    <p><strong>Date of Birth:</strong> 9/26/2003</p>
-                    <p><strong>Blood Type:</strong> B+</p>
+                    <p><strong>Date of Birth:</strong> November 8, 1973</p>
+                    <p><strong>Blood Type:</strong> A-</p>
                     <p><strong>Gender:</strong> Female</p>
                 </div>
             </div>
+
         </div>
     </div>
 
@@ -150,11 +151,13 @@
         const date = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-        document.getElementById('date-time').innerHTML = `${day}, ${date} <br> ${time}`;
+        document.getElementById('current-date').textContent = `${day}, ${date}`;
+        document.getElementById('current-time').textContent = time;
     }
 
     setInterval(updateDateTime, 1000);
     updateDateTime();
+
 
     // JavaScript for updating appointment status
     document.querySelectorAll('.status-button').forEach(button => {
