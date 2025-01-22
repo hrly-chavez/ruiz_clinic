@@ -32,20 +32,12 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
 <!-- Dynamic Month Header -->
-<<<<<<< HEAD
-<div id="monthContainer" style="padding: 15px; background-color: #29B6F6; color: white; text-align: center; font-size: 24px; font-weight: bold; border-radius: 8px; margin-bottom: 20px; font-family: 'Istok Web', sans-serif;">
-=======
 <div id="monthContainer" style="padding: 15px; background-color: #29B6F6; color: white; text-align: center; font-size: 24px; font-weight: bold; border-top-left-radius: 8px; border-top-right-radius: 8px; font-family: 'Istok Web', sans-serif;">
->>>>>>> harley
     <span id="monthHeader">January 2025</span>
 </div>
 
 <!-- FullCalendar Container -->
-<<<<<<< HEAD
-<div id="calendar" style="margin: 0 auto; width: 90%; background-color: #fff; padding: 10px; border-radius: 8px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);"></div>
-=======
 <div id="calendar" style="margin: 0 auto; width: 90%; background-color: #fff; padding: 10px; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);"></div>
->>>>>>> harley
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -55,12 +47,9 @@
         // Get the dates with appointments passed from Django
         const appointmentDates = {{ appointment_dates|safe }};
 
-<<<<<<< HEAD
-=======
         // Deduplicate dates to ensure "View Appointment" appears only once per date
         const uniqueDates = [...new Set(appointmentDates)];
 
->>>>>>> harley
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
             headerToolbar: {
@@ -74,11 +63,7 @@
                 const [month, year] = info.view.title.split(' ');
                 monthHeader.textContent = `${month} ${year}`;
             },
-<<<<<<< HEAD
-            events: appointmentDates.map(date => ({
-=======
             events: uniqueDates.map(date => ({
->>>>>>> harley
                 title: 'View Appointment',
                 start: date,
                 textColor: '#1565c0', // Set text color to a matching blue
@@ -140,15 +125,6 @@
     #monthContainer {
         padding: 15px;
         background-color: #29B6F6;
-<<<<<<< HEAD
-        color: white;
-        text-align: center;
-        font-size: 24px;
-        font-weight: bold;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        font-family: 'Istok Web', sans-serif;
-=======
         color: white; /* Keep the text white for better contrast */
         text-align: center;
         font-size: 24px;
@@ -160,38 +136,10 @@
         margin: 0 auto; /* Center align */
         border: 2px solid black; /* Black border for header */
         box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
->>>>>>> harley
     }
 
     /* Calendar Styling */
     #calendar {
-<<<<<<< HEAD
-        border-radius: 8px;
-        padding: 10px;
-        background-color: #ffffff;
-        height: calc(100vh - 260px); /* Adjust height dynamically */
-        overflow: hidden; /* Prevent scrolling */
-    }
-
-    .fc-day-today {
-        background-color: #b3e5fc !important;
-        color: #1565c0 !important;
-        font-weight: bold !important;
-    }
-
-    .fc-day:hover {
-        background-color: #e3f2fd !important;
-    }
-
-    .fc-event {
-        color: #1565c0 !important; /* Set font color to a design-matching blue */
-        font-size: 13px !important;
-        font-weight: bold !important;
-        padding: 5px;
-        text-align: center;
-        background-color: transparent !important; /* Transparent background */
-        border: none !important; /* Remove border */
-=======
         width: 90%; /* Match width with #monthContainer */
         margin: 0 auto; /* Center align */
         border-bottom-left-radius: 8px; /* Rounded bottom-left corner */
@@ -261,7 +209,6 @@
     /* FullCalendar Event Border */
     .fc-daygrid-event {
         border: 1px solid black !important; /* Black border for each event */
->>>>>>> harley
     }
 </style>
 
