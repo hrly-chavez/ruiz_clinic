@@ -540,7 +540,7 @@ def check_and_update_appointments(request):
 #_____________________________________INVENTORY__________________________________________________________
 # @login_required
 def inventory(request):
-    items = Item.objects.all()  # Fetch all items from the database
+    items = Item.objects.all().order_by('-item_code')
     return render(request, 'clinic/Inventory/inventory.html', {'items': items})
 
 # @login_required
@@ -548,8 +548,35 @@ def add_item(request):
     if request.method == 'POST':
         form = ItemForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('inventory')  
+            # Extract data from the form
+            item_name = form.cleaned_data.get('item_name')
+            item_brand = form.cleaned_data.get('item_brand')
+            item_model = form.cleaned_data.get('item_model')
+            item_price = form.cleaned_data.get('item_price')
+            item_color = form.cleaned_data.get('item_color')
+            item_measurement = form.cleaned_data.get('item_measurement')
+            item_frame_type = form.cleaned_data.get('item_frame_type_id')
+            item_quantity = form.cleaned_data.get('item_quantity')
+
+            # Check if an item with the same attributes already exists
+            existing_item = Item.objects.filter(
+                item_name=item_name,
+                item_brand=item_brand,
+                item_model=item_model,
+                item_price=item_price,
+                item_color=item_color,
+                item_measurement=item_measurement,
+                item_frame_type_id=item_frame_type
+            ).first()
+
+            if existing_item:
+                # Increment the quantity of the existing item
+                existing_item.item_quantity += item_quantity
+                existing_item.save()
+            else:
+                # Create a new item if no match is found
+                form.save()
+            return redirect('inventory')
     else:
         form = ItemForm()
     return render(request, 'clinic/Inventory/add_item.html', {'form': form})
@@ -619,9 +646,31 @@ def search_items(request):
 
 #_________________________________________PATIENT________________________________________________________
 # @login_required
+
 def patient(request):
-    patients = Patient.objects.all().order_by('patient_lname', 'patient_fname')
-    return render(request, 'clinic/Patient/patient.html', {'patients': patients})
+    # Get the filter value from the request
+    pur_stat_filter = request.GET.get('pur_stat', '')
+
+    # Debugging: Check the filter value received
+    print(f"Selected Filter: {pur_stat_filter}")
+
+    if pur_stat_filter:
+        # Filter patients based on the related Purchased_Item's pur_stat
+        patients = Patient.objects.filter(
+            purchased_item__pur_stat=pur_stat_filter
+        ).distinct().order_by('patient_lname', 'patient_fname')
+
+        print(f"Filtered Patients: {patients}")
+    else:
+        # Return all patients if no filter is applied
+        patients = Patient.objects.all().order_by('patient_lname', 'patient_fname')
+        print(f"All Patients: {patients}")
+
+    # Render the patient page
+    return render(request, 'clinic/Patient/patient.html', {
+        'patients': patients,
+        'pur_stat_filter': pur_stat_filter
+    })
 
 # @login_required
 def patient_detail(request, patient_id):
@@ -699,7 +748,25 @@ def delete_patient(request, patient_id):
         return redirect('patient')  # Redirect to the patient list after deletion
     return HttpResponse(status=400)
 
+def search_patients(request):
+    query = request.GET.get('query', '')  # Get the search query from the URL
+    if query:
+        # Filter patients based on the search query
+        patients = Patient.objects.filter(
+            patient_fname__icontains=query
+        ) | Patient.objects.filter(
+            patient_lname__icontains=query
+        ) | Patient.objects.filter(
+            patient_address__icontains=query
+        )
+    else:
+        # If no query, return all patients
+        patients = Patient.objects.all()
+
+    return render(request, 'clinic/Patient/patient.html', {'patients': patients, 'query': query})
 # @login_required
+
+# working correctly
 # def add_purchased_item(request, patient_id):
 #     patient = get_object_or_404(Patient, patient_id=patient_id)
 #     purchased_item_form = PurchasedItemForm(request.POST or None, patient=patient)
@@ -736,9 +803,14 @@ def delete_patient(request, patient_id):
 #             else:
 #                 purchased_item.pur_stat = 'For Release'
 
+#             # Save payment and associate it with the purchased item
 #             payment.save()
 #             purchased_item.payment_id = payment
 #             purchased_item.patient_id = patient
+
+#             # Explicitly set the purchase date for the purchased item
+#             purchased_item.pur_date_purchased = now().date()
+
 #             purchased_item.save()
 
 #             messages.success(request, "Item and payment added successfully!")
@@ -753,6 +825,7 @@ def delete_patient(request, patient_id):
 #         'patient': patient,
 #     })
 
+
 def add_purchased_item(request, patient_id):
     patient = get_object_or_404(Patient, patient_id=patient_id)
     purchased_item_form = PurchasedItemForm(request.POST or None, patient=patient)
@@ -764,11 +837,53 @@ def add_purchased_item(request, patient_id):
             purchased_item = purchased_item_form.save(commit=False)
             payment = payment_form.save(commit=False)
 
+            # Get the selected item
             item = purchased_item.item_code
+
             item_price = item.item_price
+
+            # Ensure payment_to_be_payed is initialized
+            if payment.payment_to_be_payed is None:
+                payment.payment_to_be_payed = item_price
 
             # Set current payment
             payment.current_payment = payment_form.cleaned_data['current_payment']
+
+            # Validate current payment
+            if payment.current_payment > payment.payment_to_be_payed:
+                messages.error(request, "Current payment exceeds the remaining balance.")
+                return render(request, 'clinic/Patient/patient_bought.html', {
+                    'purchased_item_form': purchased_item_form,
+                    'payment_form': payment_form,
+                    'payment_duration_form': payment_duration_form,
+                    'patient': patient,
+                })
+
+            # Error trapping for item quantity (only check after payment validation)
+            if item.item_quantity <= 0:
+                messages.error(request, f"The item is out of stock.")
+                return render(request, 'clinic/Patient/patient_bought.html', {
+                    'purchased_item_form': purchased_item_form,
+                    'payment_form': payment_form,
+                    'payment_duration_form': payment_duration_form,
+                    'patient': patient,
+                })
+
+            # Deduct item quantity and ensure no negative stock
+            item.item_quantity -= 1
+            if item.item_quantity < 0:
+                messages.error(request, f"Not enough stock for '{item.item_name}'.")
+                return render(request, 'clinic/Patient/patient_bought.html', {
+                    'purchased_item_form': purchased_item_form,
+                    'payment_form': payment_form,
+                    'payment_duration_form': payment_duration_form,
+                    'patient': patient,
+                })
+
+            # Save the updated item quantity
+            item.save()
+
+            # Calculate payment details
             payment.payment_payed = payment.current_payment if not payment.pk else payment.payment_payed + payment.current_payment
             payment.payment_to_be_payed = item_price - payment.payment_payed
 
@@ -852,12 +967,12 @@ def item_price(request):
 #         # Get form data
 #         item_id = request.POST.get('item_code')
 #         pur_stat = request.POST.get('pur_stat')
-#         new_current_payment = float(request.POST.get('current_payment', 0))  # New payment entered
+#         new_payment = float(request.POST.get('current_payment', 0))  # New payment entered
 #         item_date_out = request.POST.get('item_date_out')
 
 #         # Validate the new payment does not exceed the remaining balance
 #         remaining_balance = payment.payment_to_be_payed or 0
-#         if new_current_payment > remaining_balance:
+#         if new_payment > remaining_balance:
 #             messages.error(
 #                 request,
 #                 f"Cannot pay more than the remaining balance of ₱{remaining_balance}.",
@@ -872,84 +987,11 @@ def item_price(request):
 #             purchased_item.item_date_out = item_date_out
 
 #         # Update payment fields
-#         payment.payment_payed += new_current_payment
-#         payment.payment_to_be_payed = max(remaining_balance - new_current_payment, 0)
-#         payment.current_payment = new_current_payment
-#         payment.current_payment_date = now().date()  # Set payment date to today
-
-#         # Save changes to Payment and Purchased_Item
+#         payment.payment_payed += new_payment  # Increment total paid
+#         payment.payment_to_be_payed = max(remaining_balance - new_payment, 0)  # Update remaining balance
+#         payment.current_payment = new_payment  # Set current payment to the new value
+#         payment.current_payment_date = localtime(now()).date()  # Set the date to today
 #         payment.save()
-#         purchased_item.save()
-
-#         # Update today's Sales record
-#         sales_entry, created = Sales.objects.get_or_create(sales_date=now().date())
-#         sales_entry.sales_total += new_current_payment
-#         sales_entry.save()
-
-#         # Redirect to the patient detail page
-#         messages.success(request, "Payment updated successfully.")
-#         return redirect('patient_detail', patient_id=purchased_item.patient_id.patient_id)
-
-#     # Fetch all items for the dropdown
-#     items = Item.objects.all()
-#     return render(request, 'clinic/Patient/edit_purchased_item.html', {
-#         'purchased_item': purchased_item,
-#         'items': items,
-#         'payment': purchased_item.payment_id,
-#     })
-
-#working ni sa sales pero ang pag update kay tinibouk dili increment
-# def edit_purchased_item(request, purchase_id):
-#     # Fetch the purchased item
-#     purchased_item = get_object_or_404(Purchased_Item, pk=purchase_id)
-
-#     if request.method == 'POST':
-#         # Get the associated payment and validate it exists
-#         payment = purchased_item.payment_id
-#         if not payment:
-#             messages.error(request, "No payment record found for this purchase.")
-#             return redirect('edit_purchased_item', purchase_id=purchase_id)
-
-#         # Store the old current payment value
-#         old_current_payment = payment.current_payment or 0
-#         print(f"Old Current Payment: {old_current_payment}")  # Debugging
-
-#         # Get form data
-#         item_id = request.POST.get('item_code')
-#         pur_stat = request.POST.get('pur_stat')
-#         new_current_payment = float(request.POST.get('current_payment', 0))  # New payment entered
-#         print(f"New Current Payment: {new_current_payment}")  # Debugging
-#         item_date_out = request.POST.get('item_date_out')
-
-#         # Validate the new payment does not exceed the remaining balance
-#         remaining_balance = payment.payment_to_be_payed or 0
-#         print(f"Remaining Balance Before Update: {remaining_balance}")  # Debugging
-#         if new_current_payment > remaining_balance:
-#             messages.error(
-#                 request,
-#                 f"Cannot pay more than the remaining balance of ₱{remaining_balance}.",
-#             )
-#             return redirect('edit_purchased_item', purchase_id=purchase_id)
-
-#         # Update Purchased_Item fields
-#         if item_id:
-#             purchased_item.item_code = Item.objects.get(pk=item_id)
-#         purchased_item.pur_stat = pur_stat
-#         if item_date_out:
-#             purchased_item.item_date_out = item_date_out
-
-#         # Calculate the payment difference
-#         payment_difference = new_current_payment - old_current_payment
-#         print(f"Payment Difference: {payment_difference}")  # Debugging
-
-#         # Update payment fields
-#         payment.payment_payed += payment_difference  # Adjust total paid
-#         payment.payment_to_be_payed = max(remaining_balance - payment_difference, 0)  # Update remaining balance
-#         payment.current_payment = new_current_payment  # Update current payment
-#         payment.current_payment_date = localtime(now()).date()  # Ensure correct date
-#         payment.save()
-#         print(f"Updated Payment Payed: {payment.payment_payed}")  # Debugging
-#         print(f"Updated Payment To Be Payed: {payment.payment_to_be_payed}")  # Debugging
 
 #         # Save Purchased_Item changes
 #         purchased_item.save()
@@ -958,10 +1000,9 @@ def item_price(request):
 #         today = localtime(now()).date()  # Ensure the correct date
 #         sales_entry, created = Sales.objects.get_or_create(sales_date=today)
 
-#         # Adjust the sales total: Remove the old payment and add the new payment
-#         sales_entry.sales_total += payment_difference
+#         # Increment the sales total for today
+#         sales_entry.sales_total += new_payment
 #         sales_entry.save()
-#         print(f"Updated Sales Total: {sales_entry.sales_total}")  # Debugging
 
 #         # Redirect to the patient detail page
 #         messages.success(request, "Payment updated successfully.")
@@ -992,12 +1033,14 @@ def edit_purchased_item(request, purchase_id):
         new_payment = float(request.POST.get('current_payment', 0))  # New payment entered
         item_date_out = request.POST.get('item_date_out')
 
-        # Validate the new payment does not exceed the remaining balance
+        # Ensure payment_to_be_payed is not None
         remaining_balance = payment.payment_to_be_payed or 0
+
+        # Validate the new payment does not exceed the remaining balance
         if new_payment > remaining_balance:
             messages.error(
                 request,
-                f"Cannot pay more than the remaining balance of ₱{remaining_balance}.",
+                f"Cannot pay more than the remaining balance of ₱{remaining_balance:.2f}.",
             )
             return redirect('edit_purchased_item', purchase_id=purchase_id)
 
@@ -1039,6 +1082,8 @@ def edit_purchased_item(request, purchase_id):
     })
 
 
+
+
 # def delete_purchased_item(request, pur_id):
 #     # Retrieve the purchased item by pur_id
 #     purchased_item = get_object_or_404(Purchased_Item, pur_id=pur_id)
@@ -1068,6 +1113,34 @@ def edit_purchased_item(request, purchase_id):
 
 #     # Redirect to the patient details page or purchased items list
 #     return redirect('patient_detail', patient_id=purchased_item.patient_id.patient_id)
+
+#mao ni ang mo work
+# def delete_purchased_item(request, pur_id):
+#     # Retrieve the purchased item by pur_id
+#     purchased_item = get_object_or_404(Purchased_Item, pur_id=pur_id)
+
+#     # Get the payment associated with the purchased item
+#     payment = purchased_item.payment_id
+#     if payment:
+#         # Subtract the `current_payment` from the total earnings of the day
+#         sales_entry, created = Sales.objects.get_or_create(sales_date=now().date())
+#         sales_entry.sales_total -= payment.current_payment or 0  # Deduct current_payment
+#         sales_entry.number_products_sold = max(0, sales_entry.number_products_sold - 1)  # Decrement products sold
+#         sales_entry.save()
+
+#         # Reset or remove the `current_payment` from the payment
+#         payment.current_payment = 0  # Reset the current payment
+#         payment.save()
+
+#     # Delete the purchased item
+#     purchased_item.delete()
+
+#     # Display a success message
+#     messages.success(request, "Purchased item deleted successfully.")
+
+#     # Redirect to the patient details page or purchased items list
+#     return redirect('patient_detail', patient_id=purchased_item.patient_id.patient_id)
+
 def delete_purchased_item(request, pur_id):
     # Retrieve the purchased item by pur_id
     purchased_item = get_object_or_404(Purchased_Item, pur_id=pur_id)
@@ -1075,14 +1148,16 @@ def delete_purchased_item(request, pur_id):
     # Get the payment associated with the purchased item
     payment = purchased_item.payment_id
     if payment:
-        # Subtract the `current_payment` from the total earnings of the day
+        # Subtract the `current_payment` and `payment_payed` from the total earnings of the day
         sales_entry, created = Sales.objects.get_or_create(sales_date=now().date())
-        sales_entry.sales_total -= payment.current_payment or 0  # Deduct current_payment
+        sales_entry.sales_total -= payment.current_payment or 0  # Deduct current payment
+        sales_entry.sales_total -= payment.payment_payed or 0  # Deduct total payment payed
         sales_entry.number_products_sold = max(0, sales_entry.number_products_sold - 1)  # Decrement products sold
         sales_entry.save()
 
-        # Reset or remove the `current_payment` from the payment
+        # Reset or remove the `current_payment` and `payment_payed` from the payment
         payment.current_payment = 0  # Reset the current payment
+        payment.payment_payed = max(payment.payment_payed - payment.current_payment, 0)  # Adjust payment payed
         payment.save()
 
     # Delete the purchased item
@@ -1095,50 +1170,8 @@ def delete_purchased_item(request, pur_id):
     return redirect('patient_detail', patient_id=purchased_item.patient_id.patient_id)
 
 
+
 #_____________________________________SALES__________________________________________________________
-# def get_sales_data(date=None):
-#     """ Fetches sales data for a given date, including payments made """
-#     if not date:
-#         date = now().date()
-
-#     # Get or create the Sales record for today
-#     sales_entry, created = Sales.objects.get_or_create(sales_date=date)
-
-#     # Get payments made today (current_payment)
-#     payments_today = Payment.objects.filter(current_payment_date=date)
-
-#     # Sum of all current payments made today
-#     total_earnings = sum(payment.current_payment or 0 for payment in payments_today)
-
-#     # Get all purchased items for today
-#     purchased_items_today = Purchased_Item.objects.filter(pur_date_purchased=date)
-
-#     # Count of products sold today
-#     number_products_sold = purchased_items_today.count()
-
-#     # Update the Sales entry
-#     sales_entry.sales_total = total_earnings
-#     sales_entry.number_products_sold = number_products_sold
-#     sales_entry.save()
-
-#     # Get the product details sold today
-#     products_sold = [
-#         {
-#             "name": item.item_code.item_name,
-#             "category": item.item_code.item_category_id.item_category_name,
-#             "brand": item.item_code.item_brand,
-#             "qty": 1,  # Assuming each Purchased_Item entry represents one product sold
-#             "price": item.item_code.item_price
-#         }
-#         for item in purchased_items_today
-#     ]
-
-#     return {
-#         "sales_id": sales_entry.sales_id,
-#         "sales_total": sales_entry.sales_total,
-#         "products_sold_count": sales_entry.number_products_sold,
-#         "products_sold": products_sold
-#     }
 def get_sales_data(date=None):
     """Fetches sales data for a given date, including all payments made."""
     if not date:

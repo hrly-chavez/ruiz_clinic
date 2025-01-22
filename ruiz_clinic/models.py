@@ -53,7 +53,6 @@ class Purchased_Item(models.Model):
     ]
     pur_id = models.AutoField(primary_key=True)
     pur_date_purchased = models.DateField(default=get_today_date)
-    #pur_date_purchased = models.DateField(default=now)
     pur_stat = models.CharField(max_length=20, choices= pur_stat_choices,db_default='For Release')
     item_code =  models.ForeignKey(Item,null=True, blank=True, on_delete=models.SET_NULL)
     patient_id = models.ForeignKey('Patient', null=True, blank=True, on_delete=models.CASCADE)
@@ -129,7 +128,6 @@ class Patient(models.Model):
     patient_birthdate = models.DateField()
     patient_contact = models.CharField(max_length=13)
     patient_diag = models.TextField(null=True, blank=True)
-    patient_money = models.FloatField(null=True,blank=True)
     pur_id = models.ForeignKey(Purchased_Item, null=True, blank=True, on_delete=models.SET_NULL)
     payment_id = models.ForeignKey(Payment, null=True, blank=True, on_delete=models.SET_NULL)
 
@@ -166,7 +164,6 @@ class Account(models.Model):
     
 class Sales(models.Model):
     sales_id = models.AutoField(primary_key=True)
-    #sales_date = models.DateField(default=now, unique=True)  # Unique per day
     sales_date = models.DateField(default=get_today_date, unique=True)
     sales_total = models.FloatField(default=0.0)  # Total earnings of the day
     number_products_sold = models.IntegerField(default=0)  # Total product count

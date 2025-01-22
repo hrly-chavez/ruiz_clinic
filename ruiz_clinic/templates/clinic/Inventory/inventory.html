@@ -1,21 +1,21 @@
 {% extends 'clinic/nav.html' %}
 
 {% block content %}
-<div style="padding: 25px; background-color: #2db9fae8; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px; height: 125px; display: flex; justify-content: space-between; align-items: center; position: relative;">
-    <!-- Left Section -->
-   <div style="display: flex; flex-direction: column; align-items: flex-start;">
-    <h1 style="color: #fff; font-size: 37px; font-family: 'Istok Web', sans-serif; font-weight: normal; margin: 0;">INVENTORY</h1>
-    <a href="{% url 'add_item' %}" style=" display: inline-block;width: 120px; /* Fixed width for the button */padding: 5px 0; /* Adjust padding to reduce height */background-color: #007bff;color: white;text-decoration: none;border-radius: 5px;font-family: 'Istok Web', sans-serif;font-size: 16px; font-weight: bold;text-align: center;margin-top: 10px;border: 1px solid #007bff;transition: background-color 0.3s, color 0.3s;
-    " onmouseover="this.style.backgroundColor='#0056b3';this.style.color='white';" 
-       onmouseout="this.style.backgroundColor='#007bff';this.style.color='white';">
-        Add Item
-    </a>
-</div>
+<div style="padding: 25px; background-color: #2db9fae8; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px; height: 150px; display: flex; align-items: center; position: relative;">
+    <!-- Title -->
+    <h1 style="color: #fff; font-size: 37px; font-family: 'Istok Web', sans-serif; font-weight: normal;">INVENTORY</h1>
 
-    <!-- Right Section: Search Bar -->
+    <!-- Button -->
+    <a href="{% url 'add_item' %}" 
+       class="btn btn-light" 
+       style="position: absolute; bottom: 15px; left: 25px; padding: 8px 18px; font-size: 16px; background-color: #ffffff; color: #2db9fa; border: none; border-radius: 6px; text-decoration: none; transition: all 0.3s ease; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <i class="fas fa-plus-circle"></i> Add Item
+    </a>
+    
+    <!-- Search Bar -->
     <div style="position: absolute; bottom: 15px; right: 25px;">
         <form method="get" action="{% url 'search_items' %}">
-            <input type="text" name="q" placeholder="Search..." value="{{ query }}" style="padding: 7px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px; width: 200px;">
+            <input type="text" name="q" placeholder="Search..." value="{{ query }}" style="padding: 7px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px; width: 250px;">
             <button type="submit" style="display: none;"></button>
         </form>
     </div>
