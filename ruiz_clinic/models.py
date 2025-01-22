@@ -1,8 +1,11 @@
 from django.db import models
-from django.utils.timezone import now
+from django.utils.timezone import now,localtime
 from datetime import date
 # Create your models here.
 
+
+def get_today_date():
+    return localtime(now()).date()
 
 class Item_Category(models.Model):
     item_category_id = models.AutoField(primary_key=True)
@@ -49,7 +52,8 @@ class Purchased_Item(models.Model):
         ('Done', 'Done'), #paid transaction done
     ]
     pur_id = models.AutoField(primary_key=True)
-    pur_date_purchased = models.DateField(default=now)
+    pur_date_purchased = models.DateField(default=get_today_date)
+    #pur_date_purchased = models.DateField(default=now)
     pur_stat = models.CharField(max_length=20, choices= pur_stat_choices,db_default='For Release')
     item_code =  models.ForeignKey(Item,null=True, blank=True, on_delete=models.SET_NULL)
     patient_id = models.ForeignKey('Patient', null=True, blank=True, on_delete=models.CASCADE)
@@ -85,6 +89,20 @@ class Payment(models.Model):
 
     def __str__(self):
         return f" {self.payment_payed}, {self.payment_to_be_payed}"
+        
+    def update_payment(self, amount):
+        if amount > self.payment_to_be_payed:
+            raise ValueError("Payment exceeds the remaining balance.")
+        self.current_payment = amount
+        self.current_payment_date = localtime(now()).date()
+        self.payment_payed += amount
+        self.payment_to_be_payed = max(self.payment_to_be_payed - amount, 0)
+        self.save()
+
+        # Update the Sales record
+        sales_entry, created = Sales.objects.get_or_create(sales_date=self.current_payment_date)
+        sales_entry.sales_total += amount
+        sales_entry.save()
 
 class Payment_Duration(models.Model):
     duration_choices = [
@@ -95,9 +113,9 @@ class Payment_Duration(models.Model):
     ]
 
     payment_duration_id = models.AutoField(primary_key=True)
-    payment_duration_span = models.CharField(max_length=50,choices=duration_choices)
-    payment_duration_start = models.DateField(default=now)
-    payment_duration_end = models.DateField()
+    payment_duration_span = models.CharField(max_length=50,choices=duration_choices,null=True,blank=True)
+    payment_duration_start = models.DateField(default=now,null=True,blank=True)
+    payment_duration_end = models.DateField(null=True,blank=True)
 
 
 class Patient(models.Model):
@@ -148,7 +166,8 @@ class Account(models.Model):
     
 class Sales(models.Model):
     sales_id = models.AutoField(primary_key=True)
-    sales_date = models.DateField(default=now, unique=True)  # Unique per day
+    #sales_date = models.DateField(default=now, unique=True)  # Unique per day
+    sales_date = models.DateField(default=get_today_date, unique=True)
     sales_total = models.FloatField(default=0.0)  # Total earnings of the day
     number_products_sold = models.IntegerField(default=0)  # Total product count
 

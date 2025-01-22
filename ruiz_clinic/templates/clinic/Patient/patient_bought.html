@@ -57,28 +57,25 @@
                             <label for="id_payment_method">Payment Method:</label>
                             {{ payment_form.payment_method }}
                         </div>
+
+                        <!-- payment duration details -->
                         <div id="payment-duration-fields" style="display: none;">
                             <h4 class="mb-3">Payment Duration Details</h4>
                             <div class="form-group">
                                 <label for="id_payment_duration_span">Duration:</label>
-                                <select id="id_payment_duration_span" class="form-control">
-                                    <option value="">Select Duration</option>
-                                    <option value="3 Months">3 Months</option>
-                                    <option value="6 Months">6 Months</option>
-                                    <option value="9 Months">9 Months</option>
-                                    <option value="12 Months">12 Months</option>
-                                </select>
+                                {{ payment_duration_form.payment_duration_span }}
                             </div>
                             <div class="form-group">
                                 <label for="id_payment_duration_start">Start Date:</label>
-                                <input type="date" id="id_payment_duration_start" class="form-control">
+                                {{ payment_duration_form.payment_duration_start }}
                             </div>
                             <div class="form-group">
                                 <label for="id_payment_duration_end">End Date:</label>
-                                <input type="date" id="id_payment_duration_end" class="form-control" readonly>
+                                {{ payment_duration_form.payment_duration_end }}
                             </div>
                         </div>
-
+                        
+                        <!-- buttons -->
                         <div class="d-flex justify-content-between">
                             <button type="submit" class="btn btn-primary btn-lg w-48">
                                 Add Item
@@ -173,50 +170,52 @@
     });
     
     $(document).ready(function () {
-    // Show or hide payment duration fields
-    $('#id_payment_terms').on('change', function () {
-        const selectedTerm = $(this).val();
-        if (selectedTerm === 'Installment') {
-            $('#payment-duration-fields').slideDown();
-        } else {
-            $('#payment-duration-fields').slideUp();
-            $('#id_payment_duration_end').val(''); // Clear end date
-        }
-    });
-
-    // Calculate end date based on duration and start date
-    function calculateEndDate() {
-        const duration = $('#id_payment_duration_span').val();
-        const startDate = $('#id_payment_duration_start').val();
-
-        if (duration && startDate) {
-            let monthsToAdd = 0;
-            switch (duration) {
-                case '3 Months':
-                    monthsToAdd = 3;
-                    break;
-                case '6 Months':
-                    monthsToAdd = 6;
-                    break;
-                case '9 Months':
-                    monthsToAdd = 9;
-                    break;
-                case '12 Months':
-                    monthsToAdd = 12;
-                    break;
+        $('#id_payment_terms').on('change', function () {
+            const selectedTerm = $(this).val();
+            if (selectedTerm === 'Installment') {
+                $('#payment-duration-fields').slideDown();
+            } else {
+                $('#payment-duration-fields').slideUp();
+                $('#id_payment_duration_span').val('');
+                $('#id_payment_duration_start').val('');
+                $('#id_payment_duration_end').val('');
             }
-
-            const startDateObj = new Date(startDate);
-            startDateObj.setMonth(startDateObj.getMonth() + monthsToAdd);
-
-            const endDate = startDateObj.toISOString().split('T')[0]; // Format as YYYY-MM-DD
-            $('#id_payment_duration_end').val(endDate); // Set end date
+        });
+    
+        // Calculate end date based on duration and start date
+        function calculateEndDate() {
+            const duration = $('#id_payment_duration_span').val();
+            const startDate = $('#id_payment_duration_start').val();
+    
+            if (duration && startDate) {
+                let monthsToAdd = 0;
+                switch (duration) {
+                    case '3 Months':
+                        monthsToAdd = 3;
+                        break;
+                    case '6 Months':
+                        monthsToAdd = 6;
+                        break;
+                    case '9 Months':
+                        monthsToAdd = 9;
+                        break;
+                    case '12 Months':
+                        monthsToAdd = 12;
+                        break;
+                }
+    
+                const startDateObj = new Date(startDate);
+                startDateObj.setMonth(startDateObj.getMonth() + monthsToAdd);
+    
+                const endDate = startDateObj.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+                $('#id_payment_duration_end').val(endDate); // Set end date
+            }
         }
-    }
-
-    // Attach event listeners
-    $('#id_payment_duration_span, #id_payment_duration_start').on('change', calculateEndDate);
-});
+    
+        // Attach event listeners
+        $('#id_payment_duration_span, #id_payment_duration_start').on('change', calculateEndDate);
+    });
+    
 
 </script>
 
