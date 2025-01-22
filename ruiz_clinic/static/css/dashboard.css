@@ -73,10 +73,11 @@ html, body {
     padding: 10px;
 }
 
-
 /* Appointments Widget Specific */
 .appointments-widget .scrollable-content {
-    max-height: calc(400px - 60px); /* Subtract header height for the remaining area */
+    max-height: 250px; /* Set a maximum height for the scrollable area */
+    overflow-y: auto; /* Enable vertical scrolling */
+    padding: 10px; /* Add padding for spacing */
 }
 
 .appointments-widget, .profile-widget {
@@ -303,7 +304,7 @@ html, body {
 
 /* Notice Widget Specific Scrollbar */
 .notice-widget .low-stock-container {
-    max-height: 300px; /* Adjust based on design */
+    max-height: 350px; /* Adjust based on design */
     overflow-y: auto; /* Enable vertical scrolling */
     padding: 10px;
 }
