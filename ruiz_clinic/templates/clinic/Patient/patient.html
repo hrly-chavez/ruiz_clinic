@@ -3,12 +3,39 @@
 {% block title %}Patient Page{% endblock %}
 
 {% block content %}
-<div style="padding: 25px; background-color: #2db9fae8; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px; height: 125px; display: flex; align-items: center">
+<div style="padding: 25px; background-color: #2db9fae8; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px; height: 150px; display: flex; align-items: center; position: relative;">
+    <!-- Title -->
     <h1 style="color: #fff; font-size: 37px; font-family: 'Istok Web', sans-serif; font-weight: normal;">PATIENTS RECORD</h1>
-    <a href="{% url 'add_patient' %}" class="btn btn-light" style="padding: 12px 24px; font-size: 18px; background-color: #ffffff; color: #2db9fa; border: none; border-radius: 6px; text-decoration: none; transition: all 0.3s ease; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        <i class="fas fa-plus-circle"></i> Add New Patient
+
+    <!-- Button -->
+    <a href="{% url 'add_patient' %}" 
+       class="btn btn-light" 
+       style="position: absolute; bottom: 15px; left: 25px; padding: 8px 18px; font-size: 16px; background-color: #ffffff; color: #2db9fa; border: none; border-radius: 6px; text-decoration: none; transition: all 0.3s ease; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <i class="fas fa-plus-circle"></i> Add Patient
     </a>
+
+    
+    <!-- Filter and Search -->
+    <div style="position: absolute; bottom: 15px; right: 25px; display: flex; align-items: center; gap: 10px;">
+        <!-- Filter Dropdown -->
+        <form method="get" action="{% url 'patient' %}" style="margin-right: 10px;">
+            <select name="pur_stat" onchange="this.form.submit()" style="padding: 7px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px;">
+                <option value="">Filter by Status</option>
+                <option value="For Release" {% if pur_stat_filter == "For Release" %}selected{% endif %}>For Release</option>
+                <option value="For follow up" {% if pur_stat_filter == "For follow up" %}selected{% endif %}>For Follow Up</option>
+                <option value="Done" {% if pur_stat_filter == "Done" %}selected{% endif %}>Done</option>
+            </select>
+        </form>
+
+        <!-- Search Bar -->
+        <form method="get" action="{% url 'search_patients' %}">
+            <input type="text" name="query" placeholder="Search..." value="{{ query }}" style="padding: 7px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px; width: 250px;">
+            <button type="submit" style="display: none;">Search</button>
+        </form>
+    </div>
 </div>
+
+
 
 <!-- Display Patient Data in a Table -->
 <div class="container mt-3" style="max-width: 100%; padding: 0;">

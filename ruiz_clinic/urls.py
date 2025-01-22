@@ -39,7 +39,7 @@ urlpatterns = [
     path('edit-purchased-item/<int:purchase_id>/', views.edit_purchased_item, name='edit_purchased_item'),
     path('delete_purchased_item/<int:pur_id>/', views.delete_purchased_item, name='delete_purchased_item'),
     path('edit_patient/<int:patient_id>/', views.edit_patient, name='edit_patient'),
-
+    path('search-patients/', views.search_patients, name='search_patients'),
 #______________________________SALES_______________________________    
 
     path("sales/", views.sales_page, name='sales_page'),
