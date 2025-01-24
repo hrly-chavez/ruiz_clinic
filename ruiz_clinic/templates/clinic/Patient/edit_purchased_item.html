@@ -4,7 +4,7 @@
 {% block content %}
 <!-- Header Section -->
 <div style="padding: 20px; background-color: #2db9fae8; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px; height: 125px; display: flex; align-items: center; margin: 0; justify-content: space-between;">
-     <h1 style="color: #fff; font-size: 37px; font-family: 'Istok Web', sans-serif; font-weight: normal;">EDIT PURCHASED ORDER</h1>   <!--update -->
+     <h1 style="color: #fff; font-size: 40px;  font-family: 'Montserrat', sans-serif;  font-weight: normal;">EDIT PURCHASED ORDER</h1>   <!--update -->
 </div>
 
 <br>
@@ -27,24 +27,33 @@
 
     <div class="form-inputs">
         <label for="payment_terms">Payment Terms:</label>
-        <p id="payment_terms">
-                 {{ purchased_item.payment_id.payment_terms|default:"N/A" }}
-        </p>
+        <div class="input-container">
+            <p id="payment_terms">
+                {{ purchased_item.payment_id.payment_terms|default:"N/A" }}
+            </p>
+        </div>
     </div>
 
-        <!-- Installment Duration (Initially Hidden) -->
+        
+        <!-- Installment Duration Section -->
         <div id="installment_duration_section" style="display: none;">
             <div class="form-inputs">
-                <label>Installment Duration:</label>
-                <p>{{ payment.payment_duration.payment_duration_span|default:"N/A" }}</p>
+                <label for="installment_duration">Installment Duration:</label>
+                <div class="input-container">
+                    <p>{{ payment.payment_duration.payment_duration_span|default:"N/A" }}</p>
+                </div>
             </div>
             <div class="form-inputs">
-                <label>Start Date:</label>
-                <p>{{ payment.payment_duration.payment_duration_start|date:'Y-m-d'|default:"N/A" }}</p>
+                <label for="start_date">Start Date:</label>
+                <div class="input-container">
+                    <p>{{ payment.payment_duration.payment_duration_start|date:'Y-m-d'|default:"N/A" }}</p>
+                </div>
             </div>
             <div class="form-inputs">
-                <label>End Date:</label>
-                <p>{{ payment.payment_duration.payment_duration_end|date:'Y-m-d'|default:"N/A" }}</p>
+                <label for="end_date">End Date:</label>
+                <div class="input-container">
+                    <p>{{ payment.payment_duration.payment_duration_end|date:'Y-m-d'|default:"N/A" }}</p>
+                </div>
             </div>
         </div>
 
@@ -83,11 +92,15 @@
         </div>
         
 
-        <!-- Form Buttons -->
-        <div class="form-buttons">
+        
+        <!-- <div class="form-buttons">
             <button type="submit" class="btn btn-primary">Save Changes</button>
             <a href="{% url 'patient' %}" class="btn btn-secondary">Cancel</a>
-            
+        </div> -->
+        <!-- Form Buttons -->
+        <div class="form-buttons">
+            <button type="submit" class="btn btn-primary" onclick="return confirmAction()">Save Changes</button>
+            <a href="{% url 'patient' %}" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
 </div>
@@ -173,6 +186,13 @@
     .btn-secondary:hover {
         background-color: #5a6268;
     }
+    .input-container {
+        background-color: #f9f9f9;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
 </style>
 <script>
     window.onload = function() {
@@ -191,5 +211,18 @@
             installmentDurationSection.style.display = "none";
         }
     };
+    function confirmAction() {
+        // Show a confirmation dialog
+        return confirm("Are you sure you want to update this?");
+    }
+</script>
+<script>
+    {% if messages %}
+        let allMessages = "";
+        {% for message in messages %}
+            allMessages += "{{ message|escapejs }}\n";
+        {% endfor %}
+        alert(allMessages);
+    {% endif %}
 </script>
 {% endblock %}

@@ -5,12 +5,12 @@
 {% block content %}
 <div style="padding: 25px; background-color: #2db9fae8; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px; height: 150px; display: flex; align-items: center; position: relative;">
     <!-- Title -->
-    <h1 style="color: #fff; font-size: 37px; font-family: 'Istok Web', sans-serif; font-weight: normal;">PATIENTS RECORD</h1>
+    <h1 style="color: #fff; font-size: 40px;font-family: 'Montserrat', sans-serif;  font-weight: normal;">PATIENTS RECORD</h1>
 
     <!-- Button -->
     <a href="{% url 'add_patient' %}" 
        class="btn btn-light" 
-       style="position: absolute; bottom: 15px; left: 25px; padding: 8px 18px; font-size: 16px; background-color: #ffffff; color: #2db9fa; border: none; border-radius: 6px; text-decoration: none; transition: all 0.3s ease; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+       style="position: absolute; bottom: 15px; left: 25px; padding: 6px 12px; font-size: 16px; background-color: #ffffff; color: #2db9fa; border: none; border-radius: 6px; text-decoration: none; transition: all 0.3s ease; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
         <i class="fas fa-plus-circle"></i> Add Patient
     </a>
 
@@ -39,9 +39,9 @@
 
 <!-- Display Patient Data in a Table -->
 <div class="container mt-3" style="max-width: 100%; padding: 0;">
-    <div class="table-responsive">
-        <table class="table table-striped table-bordered shadow-sm rounded" style="width: 100%; table-layout: fixed; background-color: #fff; border-radius: 10px;">
-            <thead class="thead-light" style="background-color: #f0f8ff; color: #333; text-align: center; font-size: 18px;">
+    <div class="table-responsive shadow-lg rounded" style="background-color: #fff; border-radius: 10px; overflow: hidden;">
+        <table class="table table-hover table-striped table-bordered" style="margin-bottom: 0;">
+            <thead class="thead-light" style="background-color: #2db9fa; color: white; text-align: center; font-size: 18px;">
                 <tr>
                     <th>Last Name <i class="fa fa-sort-alpha-down"></i></th>
                     <th>First Name <i class="fa fa-sort-alpha-down"></i></th>
@@ -65,17 +65,14 @@
                     <td>{{ patient.patient_date_checked_up|date:"Y-m-d" }}</td>
                     <td>{{ patient.patient_contact }}</td>
                     <td>
-                        <a href="{% url 'patient_detail' patient_id=patient.patient_id %}" class="btn btn-info btn-sm" style="border-radius: 5px;">
-                            <i class="fa fa-eye"></i> View Details
+                        <a href="{% url 'patient_detail' patient_id=patient.patient_id %}" class="btn btn-info btn-sm text-white" style="border-radius: 5px;">
+                            <i class="fa fa-eye"></i> View
                         </a>
                     </td>
                     <td>
-                        <!-- Edit button -->
                         <a href="{% url 'edit_patient' patient_id=patient.patient_id %}" class="btn btn-warning btn-sm" style="border-radius: 5px; margin-right: 5px;">
                             <i class="fa fa-edit"></i> Edit
                         </a>
-                       
-                        <!-- Delete button -->
                         <form method="POST" action="{% url 'delete_patient' patient_id=patient.patient_id %}" style="display: inline;">
                             {% csrf_token %}
                             <input type="hidden" name="patient_id" value="{{ patient.patient_id }}">
@@ -85,10 +82,13 @@
                         </form>
                     </td>
                 </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" style="padding: 20px; text-align: center; font-size: 18px; color: #666;">No patient records available</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
-
 {% endblock %}
