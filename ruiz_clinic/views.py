@@ -1081,7 +1081,8 @@ def item_search(request):  #for select2
         Q(item_category_id__item_category_name__icontains=query) |  # Search in the Item Category name
         Q(item_brand__icontains=query) |  # Search in the Item brand
         Q(item_model__icontains=query) |  # Search in the Item model
-        Q(item_frame_type_id__item_frame_type_name__icontains=query)  # Search in the Item Frame Type name
+        Q(item_frame_type_id__item_frame_type_name__icontains=query),
+        item_quantity__gt=0    # Search in the Item Frame Type name
     )[:10]  # Limit the number of items returned
 
     results = [
