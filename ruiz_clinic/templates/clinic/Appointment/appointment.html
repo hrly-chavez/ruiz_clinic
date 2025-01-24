@@ -6,7 +6,7 @@
 {% block content %}
 <!-- Main Page Header -->
 <div style="padding: 20px; background-color: #2db9fae8; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px; height: 90px; display: flex; align-items: center; margin: 0; justify-content: space-between;">
-    <h1 style="color: #fff; font-size: 40px;  font-family: 'Montserrat', sans-serif; font-weight: normal;">Appointments</h1>
+    <h1 style="color: #fff; font-size: 40px;  font-family: 'Montserrat', sans-serif;; font-weight: normal;">Appointments</h1>
     <!-- Search Bar -->
     <div style="padding: 10px 20px; margin: 20px 0;">
         <div style="display: flex; align-items: center; justify-content: flex-end;">
@@ -209,15 +209,15 @@
         box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
     }
 
-    /* FullCalendar Day Borders */
-    .fc-daygrid-day {
-        border: 1px solid black !important; /* Black border for each day cell */
-    }
+/* FullCalendar Day Borders */
+.fc-daygrid-day {
+    border: 1px solid rgb(230, 230, 230) !important; /* Light gray border for each day cell */
+}
 
-    /* FullCalendar Event Border */
-    .fc-daygrid-event {
-        border: 1px solid black !important; /* Black border for each event */
-    }
+/* FullCalendar Event Border */
+.fc-daygrid-event {
+    border: 1px solid rgb(230, 230, 230) !important; /* Light gray border for each event */
+}
 </style>
 
 {% endblock %}

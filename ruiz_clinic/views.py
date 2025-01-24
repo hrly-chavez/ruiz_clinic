@@ -1108,7 +1108,7 @@ def edit_purchased_item(request, purchase_id):
         sales_entry.save()
 
         # Redirect to the patient detail page
-        messages.success(request, "Payment updated successfully.")
+        
         return redirect('patient_detail', patient_id=purchased_item.patient_id.patient_id)
 
     # Fetch all items for the dropdown

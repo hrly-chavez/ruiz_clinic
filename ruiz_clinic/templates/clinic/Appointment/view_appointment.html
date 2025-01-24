@@ -48,15 +48,15 @@
                         <td>
                             <!-- View button to show appointment details -->
                             <button class="view" 
-                                    data-id="{{ appointment.app_id }}"
-                                    data-fname="{{ appointment.app_fname }}"
-                                    data-lname="{{ appointment.app_lname }}"
-                                    data-contact="{{ appointment.app_contact }}"
-                                    data-time="{{ appointment.app_time }}"
-                                    data-status="{{ appointment.app_status }}"
-                                    {% if is_sunday %}disabled style="background-color: #dcdcdc; color: #7f8c8d;"{% endif %}>
-                                View
-                            </button>
+                                data-id="{{ appointment.app_id }}"
+                                data-fname="{{ appointment.app_fname }}"
+                                data-lname="{{ appointment.app_lname }}"
+                                data-contact="{{ appointment.app_contact }}"
+                                data-time="{{ appointment.app_time }}"
+                                data-status="{{ appointment.app_status }}"
+                                {% if is_sunday %}disabled style="background-color: #dcdcdc; color: #7f8c8d;"{% endif %}>
+                            <i class="fas fa-eye"></i> View
+                        </button>
                         </td>
                     </tr>
                 {% endfor %}    
