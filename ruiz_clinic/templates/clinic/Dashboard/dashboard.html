@@ -4,13 +4,6 @@
 
     {% block content %}
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-    {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-                <li>{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
     <div class="dashboard-container">
         <!-- Row containing Date and Time above Appointments -->
         <div>
