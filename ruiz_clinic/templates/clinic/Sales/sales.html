@@ -4,8 +4,7 @@
 
 {% block content %}
 <div class="sales-container">
-  
-
+    <!-- Header -->
     <div class="header" style="position: relative; height: 125px; padding: 0 20px; background-color: #2db9fa; display: flex; align-items: center;">
         <h3 style="color: #fff; font-size: 40px; font-family: 'Montserrat', sans-serif; font-weight: normal; margin: 0;">SALES</h3>
         <div class="filter-section" style="position: absolute; bottom: 10px; right: 20px;">
@@ -13,33 +12,57 @@
         </div>
     </div>
 
-    <div class="stats-container"> <!-- Cards-like format -->
-        <div class="card">
-            <h4 class="section-header">Total Earnings</h4>
-            <p id="total-earnings">₱ {{ sales_total }}</p>
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Left Column -->
+        <div class="left-column">
+            <div class="card">
+                <h4 class="section-header">Total Earnings</h4>
+                <p id="total-earnings">₱ {{ sales_total }}</p>
+            </div>
+            <div class="card">
+                <h4 class="section-header">Number of Products Sold</h4>
+                <p id="products-sold">{{ products_sold_count }}</p>
+            </div>
         </div>
-        <div class="card">
-            <h4 class="section-header">Number of Products Sold</h4>
-            <p id="products-sold">{{ products_sold_count }}</p>
-        </div>
-        <div class="card">
-            <h4 class="section-header">Patient Balance</h4>
-            <div id="patient-balance-list" class="patient-balance-container">
-                <!-- Dynamic content will be loaded here -->
-                <p>No patient balance.</p>
+
+        <!-- Right Column -->
+        <div class="right-column">
+            <div class="card">
+                <h4 class="section-header">Patient Balance</h4>
+                <div id="patient-balance-list" class="patient-balance-container">
+                    <!-- Dynamic content will be loaded here -->
+                    <p>No patient balance.</p>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="products-sold-section"> <!-- Products Sold -->
-        <h4 class="section-header">Products Sold</h4>
-        <div class="product-list">
-            <!-- Dynamic content will be inserted here -->
-            <p>No products sold today.</p>
+    <div class="products-sold-section">
+        <div class="card">
+            <h4 class="section-header">Products Sold</h4>
+            <div class="product-list">
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Brand</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-table-body">
+                        <!-- Dynamic content will be inserted here -->
+                    </tbody>
+                </table>
+                <p id="no-products-message" style="text-align: center; display: none;">No products sold today.</p>
+            </div>
         </div>
     </div>
     
+    
 </div>
+
 
 <link rel="stylesheet" href="{% static 'css/sales.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />

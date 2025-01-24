@@ -84,7 +84,7 @@ class Payment(models.Model):
     payment_method = models.CharField(max_length=50,choices=payment_method_choices,default='Cash')
     payment_terms = models.CharField(max_length=20, choices=pay_terms_choices,default='Fully Paid')
     payment_duration = models.ForeignKey('Payment_Duration', on_delete=models.SET_NULL, null=True, blank=True,
-        help_text="Applicable only if payment terms are 'Installment'.")
+            help_text="Applicable only if payment terms are 'Installment'.")
 
     def __str__(self):
         return f" {self.payment_payed}, {self.payment_to_be_payed}"

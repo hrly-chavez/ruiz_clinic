@@ -2,7 +2,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const filterDate = document.getElementById("filter-date");
     const earnings = document.getElementById("total-earnings");
     const productsSold = document.getElementById("products-sold");
-    const productList = document.querySelector(".product-list"); // Updated selector for product list
+    const tableBody = document.getElementById("products-table-body"); // Table body for product sold
+    const noProductsMessage = document.getElementById("no-products-message"); // Message for no products
     const patientBalanceList = document.getElementById("patient-balance-list");
 
     function fetchSalesData(date) {
@@ -13,30 +14,25 @@ document.addEventListener("DOMContentLoaded", () => {
                 earnings.textContent = `₱ ${data.sales_total}`;
                 productsSold.textContent = data.products_sold_count;
 
-                // Clear previous product items
-                productList.innerHTML = "";
+                // Clear previous product rows
+                tableBody.innerHTML = "";
 
                 if (data.products_sold.length === 0) {
-                    productList.innerHTML = "<p>No products sold today.</p>";
+                    // Show fallback message if no products sold
+                    noProductsMessage.style.display = "block";
                 } else {
-                    data.products_sold.forEach(product => {
-                        const name = product.name || null; // Set null if value is missing
-                        const category = product.category || null;
-                        const brand = product.brand || null;
-                        const qty = product.qty || 0; // Replace null with 0
-                        const price = product.price || 0; // Replace null with 0
+                    // Hide fallback message and populate table rows
+                    noProductsMessage.style.display = "none";
 
-                        // Dynamically hide columns with null or "N/A"
-                        const item = document.createElement("div");
-                        item.classList.add("product-item");
-                        item.innerHTML = `
-                            ${name ? `<span>${name}</span>` : ""}
-                            ${category ? `<span>${category}</span>` : ""}
-                            ${brand ? `<span>${brand}</span>` : ""}
-                            ${qty > 0 ? `<span>Qty: ${qty}</span>` : ""}
-                            ${price > 0 ? `<span>₱ ${price}</span>` : ""}
+                    data.products_sold.forEach(product => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${product.category || "N/A"}</td>
+                            <td>${product.brand || "N/A"}</td>
+                            <td>${product.qty || 0}</td>
+                            <td>₱ ${product.price || 0}</td>
                         `;
-                        productList.appendChild(item);
+                        tableBody.appendChild(row);
                     });
                 }
             })

@@ -864,11 +864,111 @@ def search_patients(request):
 # @login_required
 
 #Working correctly
+# def add_purchased_item(request, patient_id):
+#     patient = get_object_or_404(Patient, patient_id=patient_id)
+#     purchased_item_form = PurchasedItemForm(request.POST or None, patient=patient)
+#     payment_form = ItemPaymentForm(request.POST or None)
+#     payment_duration_form = PaymentDurationForm(request.POST or None)  # Add PaymentDurationForm
+
+#     if request.method == 'POST':
+#         if purchased_item_form.is_valid() and payment_form.is_valid():
+#             purchased_item = purchased_item_form.save(commit=False)
+#             payment = payment_form.save(commit=False)
+
+#             # Get the selected item
+#             item = purchased_item.item_code
+
+#             item_price = item.item_price
+
+#             # Ensure payment_to_be_payed is initialized
+#             if payment.payment_to_be_payed is None:
+#                 payment.payment_to_be_payed = item_price
+            
+#             # Set current payment
+#             payment.current_payment = payment_form.cleaned_data['current_payment']
+
+#             # Validate current payment
+#             if payment.current_payment > payment.payment_to_be_payed:
+#                 messages.error(request, "Current payment exceeds the remaining balance.")
+#                 return render(request, 'clinic/Patient/patient_bought.html', {
+#                     'purchased_item_form': purchased_item_form,
+#                     'payment_form': payment_form,
+#                     'payment_duration_form': payment_duration_form,
+#                     'patient': patient,
+#                 })
+
+#             # Error trapping for item quantity (only check after payment validation)
+#             if item.item_quantity <= 0:
+#                 messages.error(request, f"The item is out of stock.")
+#                 return render(request, 'clinic/Patient/patient_bought.html', {
+#                     'purchased_item_form': purchased_item_form,
+#                     'payment_form': payment_form,
+#                     'payment_duration_form': payment_duration_form,
+#                     'patient': patient,
+#                 })
+
+#             # Deduct item quantity and ensure no negative stock
+#             item.item_quantity -= 1
+#             if item.item_quantity < 0:
+#                 messages.error(request, f"Not enough stock for '{item.item_name}'.")
+#                 return render(request, 'clinic/Patient/patient_bought.html', {
+#                     'purchased_item_form': purchased_item_form,
+#                     'payment_form': payment_form,
+#                     'payment_duration_form': payment_duration_form,
+#                     'patient': patient,
+#                 })
+
+#             # Save the updated item quantity
+#             item.save()
+
+#             # Calculate payment details
+#             payment.payment_payed = payment.current_payment if not payment.pk else payment.payment_payed + payment.current_payment
+#             payment.payment_to_be_payed = item_price - payment.payment_payed
+
+#             # Handle payment duration for installment terms
+#             if payment.payment_terms == 'Installment':
+#                 if payment_duration_form.is_valid():
+#                     payment_duration = payment_duration_form.save()
+#                     payment.payment_duration = payment_duration
+#                     purchased_item.pur_stat = 'For follow up'
+#                 else:
+#                     messages.error(request, "Please fill out the payment duration details correctly.")
+#                     return render(request, 'clinic/Patient/patient_bought.html', {
+#                         'purchased_item_form': purchased_item_form,
+#                         'payment_form': payment_form,
+#                         'payment_duration_form': payment_duration_form,
+#                         'patient': patient,
+#                     })
+#             else:
+#                 purchased_item.pur_stat = 'For Release'
+
+#             # Save payment and associate it with the purchased item
+#             payment.save()
+#             purchased_item.payment_id = payment
+#             purchased_item.patient_id = patient
+
+#             # Explicitly set the purchase date for the purchased item
+#             purchased_item.pur_date_purchased = now().date()
+
+#             purchased_item.save()
+
+#             # messages.success(request, "Item and payment added successfully!")
+#             return redirect('patient_detail', patient_id=patient_id)
+#         else:
+#             messages.error(request, "There was an error adding the item or payment.")
+    
+#     return render(request, 'clinic/Patient/patient_bought.html', {
+#         'purchased_item_form': purchased_item_form,
+#         'payment_form': payment_form,
+#         'payment_duration_form': PaymentDurationForm(),  # Pass a new instance
+#         'patient': patient,
+#     })
+
 def add_purchased_item(request, patient_id):
     patient = get_object_or_404(Patient, patient_id=patient_id)
     purchased_item_form = PurchasedItemForm(request.POST or None, patient=patient)
     payment_form = ItemPaymentForm(request.POST or None)
-    payment_duration_form = PaymentDurationForm(request.POST or None)  # Add PaymentDurationForm
+    payment_duration_form = PaymentDurationForm(request.POST or None)
 
     if request.method == 'POST':
         if purchased_item_form.is_valid() and payment_form.is_valid():
@@ -877,17 +977,27 @@ def add_purchased_item(request, patient_id):
 
             # Get the selected item
             item = purchased_item.item_code
-
             item_price = item.item_price
 
             # Ensure payment_to_be_payed is initialized
             if payment.payment_to_be_payed is None:
                 payment.payment_to_be_payed = item_price
-            
+
             # Set current payment
             payment.current_payment = payment_form.cleaned_data['current_payment']
 
-            # Validate current payment
+            # Validate "Fully Paid" condition
+            if payment.payment_terms == "Fully Paid":
+                if payment.current_payment != item_price:
+                    messages.error(request, "For 'Fully Paid' terms, the current payment must match the total item price.")
+                    return render(request, 'clinic/Patient/patient_bought.html', {
+                        'purchased_item_form': purchased_item_form,
+                        'payment_form': payment_form,
+                        'payment_duration_form': payment_duration_form,
+                        'patient': patient,
+                    })
+
+            # Validate current payment against the balance
             if payment.current_payment > payment.payment_to_be_payed:
                 messages.error(request, "Current payment exceeds the remaining balance.")
                 return render(request, 'clinic/Patient/patient_bought.html', {
@@ -952,7 +1062,7 @@ def add_purchased_item(request, patient_id):
 
             purchased_item.save()
 
-            messages.success(request, "Item and payment added successfully!")
+            # messages.success(request, "Item and payment added successfully!")
             return redirect('patient_detail', patient_id=patient_id)
         else:
             messages.error(request, "There was an error adding the item or payment.")
@@ -960,12 +1070,12 @@ def add_purchased_item(request, patient_id):
     return render(request, 'clinic/Patient/patient_bought.html', {
         'purchased_item_form': purchased_item_form,
         'payment_form': payment_form,
-        'payment_duration_form': PaymentDurationForm(),  # Pass a new instance
+        'payment_duration_form': PaymentDurationForm(),
         'patient': patient,
     })
 
 # @login_required
-def item_search(request):
+def item_search(request):  #for select2
     query = request.GET.get('q', '').strip()  # Retrieve and strip the search query
     items = Item.objects.filter(
         Q(item_category_id__item_category_name__icontains=query) |  # Search in the Item Category name

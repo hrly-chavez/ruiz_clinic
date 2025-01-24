@@ -14,23 +14,46 @@
         flex-direction: column;
         gap: 20px;
     }
-    .stats-container {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        grid-gap: 40px;
-        margin: 20px;
+    /* General Layout */
+    .sales-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        padding: 20px;
     }
 
+    /* Header Section */
     .header {
-        grid-column: span 2;
-        background-color: #29B6F6;
-        color: white;
-        text-align: left;
-        padding: 30px;
-        border-radius: 6px;
-        font-size: 25px;
-        font-weight: bold;
+        height: 125px;
+        padding: 0 20px;
+        background-color: #2db9fa;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-radius: 8px;
     }
+
+    /* Main Layout: Two Columns */
+    .main-layout {
+        display: grid;
+        grid-template-columns: 1fr 2fr; /* Left Column: 1fr, Right Column: 2fr */
+        gap: 20px;
+    }
+
+    /* Left Column (Stacked Widgets) */
+    .left-column {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* Right Column (Patient Balance) */
+    .right-column {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
 
     /* Calendar Section */
     .filter-section {
@@ -53,6 +76,7 @@
         margin: 20px 0;
     }
 
+    /* Card Styling */
     .card {
         background: white;
         padding: 20px;
@@ -64,6 +88,7 @@
     .card h4.section-header {
         background-color: #29B6F6;
         color: white;
+        /*padding: 30px 20px 10px 20px;  Top 30px, Right 20px, Bottom 20px, Left 20px */
         padding: 10px;
         font-size: 16px;
         font-weight: bold;
@@ -77,29 +102,38 @@
         font-weight: bold;
         color: #29B6F6;
     }
+/* Products Sold Section */
+.products-sold-section {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+}
 
-    /* Products Sold Section */
-    .products-sold-section {
-        margin-top: 60px;
-        padding: 0;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        text-align: center;
-        grid-column: span 3;
-    }
+/* Products Sold Section */
+.products-sold-section .card {
+    max-height: 250px; /* Set maximum height for the widget */
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+    padding: 0; /* Adjust padding for alignment */
+    box-sizing: border-box; /* Ensure padding doesn't affect layout */
+}
 
-    .products-sold-section .section-header {
-        background-color: #29B6F6;
-        color: white;
-        padding: 15px;
-        font-size: 18px;
-        font-weight: bold;
-        border-radius: 8px 8px 0 0;
-        margin: 0; 
-        text-align: center;
-        border-bottom: 2px solid white; 
-    }
+/* Products Sold Section Header */
+.products-sold-section .section-header {
+    background-color: #29B6F6;
+    color: white;
+    padding: 20px; /* Increased padding for proper visibility */
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 8px 8px 0 0;
+    margin: 0; /* Removed additional margin */
+    text-align: center;
+    border-bottom: 2px solid white;
+    position: sticky; /* Ensure the header stays visible at the top */
+    top: 0; /* Position it at the top of the scrolling container */
+    z-index: 1; /* Prevent overlapping issues */
+}
+
 
     .product-list {
         display: flex;
@@ -129,7 +163,7 @@
         flex-direction: column;
         gap: 10px;
         padding: 10px;
-        max-height: 300px;
+        max-height: 225px;
         overflow-y: auto;
         border: 1px solid #ddd;
         border-radius: 8px;
@@ -177,6 +211,7 @@
     .patient-balance-container::-webkit-scrollbar-thumb:hover {
         background-color: #ccc;
     }
+
 .date-picker {
     padding: 8px 12px;
     font-size: 16px;
@@ -218,4 +253,61 @@
     font-size: 16px;
     font-weight: bold;
     color: white;
+}
+
+/* Products Table Styling */
+.products-table {
+    width: 100%; /* Ensure the table takes full width of the container */
+    border-collapse: collapse;
+    table-layout: fixed; /* Prevents table overflow */
+}
+
+.products-table th, .products-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+    word-wrap: break-word; /* Wrap text to avoid overflow */
+}
+
+.products-table th {
+    background-color: #29B6F6;
+    color: white;
+    font-weight: bold;
+}
+
+.products-table td {
+    font-size: 14px;
+    color: #333;
+}
+
+.products-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.products-table tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Custom Scrollbar Styling */
+.products-sold-section .card::-webkit-scrollbar {
+    width: 8px; /* Width of the scrollbar */
+}
+
+.products-sold-section .card::-webkit-scrollbar-thumb {
+    background-color: #29B6F6; /* Color of the scrollbar */
+    border-radius: 4px; /* Rounded edges */
+}
+
+.products-sold-section .card::-webkit-scrollbar-thumb:hover {
+    background-color: #217db6; /* Darker blue on hover */
+}
+
+.products-sold-section .card::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Track color */
+}
+
+#no-products-message {
+    margin-top: 10px;
+    color: #888;
+    font-size: 14px;
 }
