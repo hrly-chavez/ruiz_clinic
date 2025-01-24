@@ -165,16 +165,35 @@ def login(request):
         try:
             user = Account.objects.get(account_username=username, account_password=password)
             
-            # ✅ Store user ID in session
+            # Store user ID in session
             request.session['user_id'] = user.account_id  # Store primary key
             request.session['username'] = user.account_username  # Store username (optional)
 
-            messages.success(request, "Login successful!")
-            return redirect('dashboard')  # ✅ Now it will redirect properly
+            # Return success response
+            return JsonResponse({'success': True, 'message': 'Login successful!', 'redirect_url': '/dashboard/'})
         except Account.DoesNotExist:
-            messages.error(request, 'Invalid username or password. Please try again.')
-
+            # Return error response
+            return JsonResponse({'success': False, 'message': 'Invalid username or password. Please try again.'})
+    
     return render(request, "clinic/Login/login.html")
+# def login(request):
+#     if request.method == 'POST':
+#         username = request.POST.get('username')
+#         password = request.POST.get('password')
+
+#         try:
+#             user = Account.objects.get(account_username=username, account_password=password)
+            
+#             # ✅ Store user ID in session
+#             request.session['user_id'] = user.account_id  # Store primary key
+#             request.session['username'] = user.account_username  # Store username (optional)
+
+#             messages.success(request, "Login successful!")
+#             return redirect('dashboard')  # ✅ Now it will redirect properly
+#         except Account.DoesNotExist:
+#             messages.error(request, 'Invalid username or password. Please try again.')
+
+#     return render(request, "clinic/Login/login.html")
 
 #_____________________________________DASHBOARD__________________________________________________________
 # @login_required

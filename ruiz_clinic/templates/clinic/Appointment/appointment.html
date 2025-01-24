@@ -43,15 +43,6 @@
     document.addEventListener('DOMContentLoaded', function () {
         const calendarEl = document.getElementById('calendar');
         const monthHeader = document.getElementById('monthHeader');
-<<<<<<< HEAD
-
-        // Get the dates with appointments passed from Django
-        const appointmentDates = {{ appointment_dates|safe }};
-
-        // Deduplicate dates to ensure "View Appointment" appears only once per date
-        const uniqueDates = [...new Set(appointmentDates)];
-
-=======
     
         // Get the appointment dates passed from Django
         const appointmentDates = {{ appointment_dates|safe }}; // Example format: ["2025-01-23", "2025-01-23", "2025-01-24", ...]
@@ -71,7 +62,6 @@
             borderColor: 'transparent', // Remove border
         }));
     
->>>>>>> error_trap
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
             headerToolbar: {
@@ -85,17 +75,7 @@
                 const [month, year] = info.view.title.split(' ');
                 monthHeader.textContent = `${month} ${year}`;
             },
-<<<<<<< HEAD
-            events: uniqueDates.map(date => ({
-                title: 'View Appointment',
-                start: date,
-                textColor: '#1565c0', // Set text color to a matching blue
-                backgroundColor: 'transparent', // Remove background color
-                borderColor: 'transparent', // Remove border
-            })),
-=======
             events: events, // Pass the grouped events to the calendar
->>>>>>> error_trap
             dayCellDidMount: function (info) {
                 const date = new Date(info.date);
     
