@@ -13,58 +13,33 @@
 
     <div class="stats-container"> <!-- Cards-like format -->
         <div class="card">
-            <h4>Total Earnings</h4>
-            <p id="total-earnings">₱ {{ sales_total }}</p> <!-- Dynamically updates -->
+            <h4 class="section-header">Total Earnings</h4>
+            <p id="total-earnings">₱ {{ sales_total }}</p>
         </div>
         <div class="card">
-            <h4>Number of Products Sold</h4>
-            <p id="products-sold">{{ products_sold_count }}</p> <!-- Dynamically updates -->
+            <h4 class="section-header">Number of Products Sold</h4>
+            <p id="products-sold">{{ products_sold_count }}</p>
         </div>
         <div class="card">
-            <h4>Products Sold</h4>
-            <div id="product-list"> <!-- This will be updated dynamically -->
-                {% for product in products_sold %}
-                <div class="product-item">
-                    <span>{{ product.name }}</span>
-                    <span>{{ product.category }}</span>
-                    <span>{{ product.brand }}</span>
-                    <span>Qty: {{ product.qty }}</span>
-                    <span>₱ {{ product.price }}</span>
-                </div>
-                {% empty %}
-                <p>No products sold today.</p>
-                {% endfor %}
+            <h4 class="section-header">Patient Balance</h4>
+            <div id="patient-balance-list" class="patient-balance-container">
+                <!-- Dynamic content will be loaded here -->
+                <p>No patient balance.</p>
             </div>
         </div>
-        <div class="card">
-            <h4>Patient Balance</h4>
-            <button id="view-patient-balance" class="view-report-btn">View Report</button>
+    </div>
+
+    <div class="products-sold-section"> <!-- Products Sold -->
+        <h4 class="section-header">Products Sold</h4>
+        <div class="product-list">
+            <!-- Dynamic content will be inserted here -->
+            <p>No products sold today.</p>
         </div>
     </div>
-</div>
-
-<!-- Patient Balance Modal -->
-<div class="modal" id="patient-modal">
-    <div class="modal-content">
-        <span class="close-btn">&times;</span>
-        <h4>Patient Balance Report</h4>
-        <table>
-            <thead>
-                <tr>
-                    <th>Patient Name</th>
-                    <th>Previous Balance</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="patient-balance-list">
-                <tr>
-                    <td colspan="3" id="no-balance-message">No patient balance.</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+    
 </div>
 
 <link rel="stylesheet" href="{% static 'css/sales.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <script src="{% static 'js/sales.js' %}"></script>
 {% endblock %}

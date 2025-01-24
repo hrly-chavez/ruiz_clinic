@@ -392,8 +392,60 @@ html, body {
     transform: none; /* No zoom effect */
 }
 
+/* Additional Widget */
 .additional-widget {
-    width: 700px;
-    flex: 1; /* Larger share of space */
+    background-color: #ffffff; /* White background */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    display: flex;
+    flex-direction: column; /* Stack header and content vertically */
+    overflow: hidden; /* Prevent content overflow outside the widget */
+    flex: 1; /* Equal height with other widgets */
+    min-height: 300px; /* Minimum height for visual consistency */
+    max-height: 100%; /* Ensures it doesn't exceed the container's height */
 }
 
+/* Scrollable Content Inside Additional Widget */
+.additional-widget .scrollable-content {
+    flex: 1; /* Takes up remaining space within the widget */
+    overflow-y: auto; /* Enable scrolling if content overflows */
+    max-height: 300px; /* Limit the scrollable area's height */
+    padding: 10px; /* Add padding for readability */
+    box-sizing: border-box; /* Include padding in height calculation */
+}
+
+/* Scrollbar Styling for Additional Widget */
+.additional-widget .scrollable-content::-webkit-scrollbar {
+    width: 8px; /* Set scrollbar width */
+}
+
+.additional-widget .scrollable-content::-webkit-scrollbar-thumb {
+    background-color: #c0c0c0; /* Scrollbar thumb color */
+    border-radius: 4px; /* Rounded corners for scrollbar thumb */
+}
+
+.additional-widget .scrollable-content::-webkit-scrollbar-track {
+    background-color: #f4f4f9; /* Scrollbar track color */
+}
+
+/* Table Styling for Follow-Up Patients */
+.follow-up-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.follow-up-table th,
+.follow-up-table td {
+    text-align: left;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.follow-up-table th {
+    background-color: #f4f4f9;
+    font-weight: bold;
+}
+
+.follow-up-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}

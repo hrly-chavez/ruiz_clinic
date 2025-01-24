@@ -64,8 +64,8 @@
                             <td>
                                 <!-- Edit Button -->
                                 <a href="{% url 'edit_purchased_item' purchase.pur_id %}" class="btn btn-warning btn-sm">Update</a>
-                               <!-- Delete Button -->
-                                <a href="{% url 'delete_purchased_item' pur_id=purchase.pur_id %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this purchased item?');">Delete</a>
+                               <!-- Delete Button
+                                <a href="{% url 'delete_purchased_item' pur_id=purchase.pur_id %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this purchased item?');">Delete</a> -->
                             </td>
                         </tr>
                         {% endfor %}
