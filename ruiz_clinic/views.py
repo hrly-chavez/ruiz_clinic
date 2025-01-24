@@ -21,9 +21,9 @@ from pytz import timezone
 import smtplib
 from email.mime.text import MIMEText
 from django.contrib.auth import logout
+from django.db.models import F
 matplotlib.use('Agg')
 PH_TZ = timezone("Asia/Manila")
-from django.utils.timezone import now
 
 def login_required(view_func):
     @wraps(view_func)  # ✅ Keeps function metadata
@@ -178,6 +178,79 @@ def login(request):
 
 #_____________________________________DASHBOARD__________________________________________________________
 # @login_required
+# def dashboard(request):
+#     auto_cancel_appointments(request)
+#     # Get the selected date from the request or default to today
+#     selected_date_str = request.GET.get('selected_date')
+    
+#     if selected_date_str:
+#         try:
+#             # ✅ Correctly parse the date string
+#             selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
+#         except ValueError:
+#             selected_date = localdate()  # ✅ Ensure timezone-aware date
+#     else:
+#         selected_date = localdate()  # ✅ Ensure timezone-aware date
+
+#     # Filter appointments for the selected date (adjust timezone if needed)
+#     appointments = Appointment.objects.filter(app_date=selected_date).order_by('app_time')
+
+#     # Query for items with low stock
+#     low_stock_items = Item.objects.filter(item_quantity__lt=3)
+
+#     return render(request, 'clinic/Dashboard/dashboard.html', {
+#         'appointments': appointments,
+#         'selected_date': selected_date,  # Ensure it's timezone-aware
+#         'low_stock_items': low_stock_items,  # Pass low stock items
+#     })
+
+def get_follow_up_patients():
+    """
+    Get patients on installment plans with remaining balance, sorted by closest due date.
+    """
+    from datetime import timedelta, datetime
+
+    today = datetime.now().date()
+    
+    # Mapping the payment duration choices to their numeric values (in months)
+    duration_mapping = {
+        "3 Months": 3,
+        "6 Months": 6,
+        "9 Months": 9,
+        "12 Months": 12,
+    }
+    
+    # Fetch payments with remaining balances
+    payments_with_balances = Payment.objects.filter(payment_to_be_payed__gt=0, payment_terms="Installment")
+
+    follow_up_patients = []
+    for payment in payments_with_balances:
+        # Find the purchased item associated with this payment
+        purchased_item = Purchased_Item.objects.filter(payment_id=payment).first()
+        if purchased_item and purchased_item.patient_id:
+            patient = purchased_item.patient_id
+            # Get the patient's name
+            patient_name = f"{patient.patient_fname} {patient.patient_lname}"
+        else:
+            patient_name = "Unknown"
+
+        # Calculate due date based on payment duration
+        if payment.payment_duration and payment.payment_duration.payment_duration_span in duration_mapping:
+            months = duration_mapping[payment.payment_duration.payment_duration_span]
+            due_date = payment.current_payment_date + timedelta(days=months * 30)  # Approximate each month as 30 days
+            if due_date >= today:
+                follow_up_patients.append({
+                    "patient": patient_name,
+                    "due_date": due_date,
+                    "remaining_balance": payment.payment_to_be_payed,
+                })
+
+    # Sort the list by the closest due date
+    follow_up_patients.sort(key=lambda x: x["due_date"])
+    
+    return follow_up_patients
+
+
 def dashboard(request):
     auto_cancel_appointments(request)
     # Get the selected date from the request or default to today
@@ -188,9 +261,9 @@ def dashboard(request):
             # ✅ Correctly parse the date string
             selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
         except ValueError:
-            selected_date = localdate()  # ✅ Ensure timezone-aware date
+            selected_date = datetime.now().date()  # ✅ Ensure timezone-aware date
     else:
-        selected_date = localdate()  # ✅ Ensure timezone-aware date
+        selected_date = datetime.now().date()  # ✅ Ensure timezone-aware date
 
     # Filter appointments for the selected date (adjust timezone if needed)
     appointments = Appointment.objects.filter(app_date=selected_date).order_by('app_time')
@@ -198,11 +271,16 @@ def dashboard(request):
     # Query for items with low stock
     low_stock_items = Item.objects.filter(item_quantity__lt=3)
 
+    # Query for follow-up patients
+    follow_up_patients = get_follow_up_patients()
+
     return render(request, 'clinic/Dashboard/dashboard.html', {
         'appointments': appointments,
         'selected_date': selected_date,  # Ensure it's timezone-aware
         'low_stock_items': low_stock_items,  # Pass low stock items
+        'follow_up_patients': follow_up_patients,  # Pass follow-up patients
     })
+
 
 # @login_required
 @csrf_exempt
@@ -249,7 +327,7 @@ def update_appointment_status(request):
             return JsonResponse({'success': False, 'error': 'Appointment not found'})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
-    else:
+    else:   
         return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 # @login_required
@@ -1081,64 +1159,6 @@ def edit_purchased_item(request, purchase_id):
         'payment': purchased_item.payment_id,
     })
 
-
-
-
-# def delete_purchased_item(request, pur_id):
-#     # Retrieve the purchased item by pur_id
-#     purchased_item = get_object_or_404(Purchased_Item, pur_id=pur_id)
-
-#     # Get the payment associated with the purchased item
-#     payment = purchased_item.payment_id
-#     if payment:
-#         # Deduct the `current_payment` from the day's total
-#         payment.current_payment = (payment.current_payment or 0) - (purchased_item.item_code.item_price or 0)
-
-#         # Save the updated payment
-#         payment.save()
-
-#     # Retrieve today's sales record
-#     sales_entry, created = Sales.objects.get_or_create(sales_date=now().date())
-
-#     # Update the sales record (recalculate total earnings and number of products sold)
-#     sales_entry.sales_total -= purchased_item.item_code.item_price or 0
-#     sales_entry.number_products_sold -= 1
-#     sales_entry.save()
-
-#     # Delete the purchased item
-#     purchased_item.delete()
-
-#     # Display a success message
-#     messages.success(request, "Purchased item deleted successfully.")
-
-#     # Redirect to the patient details page or purchased items list
-#     return redirect('patient_detail', patient_id=purchased_item.patient_id.patient_id)
-
-#mao ni ang mo work
-# def delete_purchased_item(request, pur_id):
-#     # Retrieve the purchased item by pur_id
-#     purchased_item = get_object_or_404(Purchased_Item, pur_id=pur_id)
-
-#     # Get the payment associated with the purchased item
-#     payment = purchased_item.payment_id
-#     if payment:
-#         # Subtract the `current_payment` from the total earnings of the day
-#         sales_entry, created = Sales.objects.get_or_create(sales_date=now().date())
-#         sales_entry.sales_total -= payment.current_payment or 0  # Deduct current_payment
-#         sales_entry.number_products_sold = max(0, sales_entry.number_products_sold - 1)  # Decrement products sold
-#         sales_entry.save()
-
-#         # Reset or remove the `current_payment` from the payment
-#         payment.current_payment = 0  # Reset the current payment
-#         payment.save()
-
-#     # Delete the purchased item
-#     purchased_item.delete()
-
-#     # Display a success message
-#     messages.success(request, "Purchased item deleted successfully.")
-
-#     # Redirect to the patient details page or purchased items list
 #     return redirect('patient_detail', patient_id=purchased_item.patient_id.patient_id)
 
 def delete_purchased_item(request, pur_id):
@@ -1228,17 +1248,25 @@ def sales_api(request):
     return JsonResponse(sales_data)
 
 def patient_balances_api(request):
-    """ Fetches patients who have a remaining balance """
-    patients_with_balances = Payment.objects.filter(payment_to_be_payed__gt=0)
+    """
+    Fetches patients who have a remaining balance and returns them in JSON format.
+    """
+    # Fetch payments with a remaining balance greater than 0
+    payments_with_balances = Payment.objects.filter(payment_to_be_payed__gt=0)
 
-    balances = [
-        {
-            "patient_name": f"{payment.patient_id.patient_fname} {payment.patient_id.patient_lname}",
-            "previous_balance": payment.payment_to_be_payed
-        }
-        for payment in patients_with_balances
-    ]
+    # Prepare the data to return
+    balances = []
+    for payment in payments_with_balances:
+        # Find the patient associated with this payment via Purchased_Item
+        purchased_item = Purchased_Item.objects.filter(payment_id=payment).first()
+        if purchased_item and purchased_item.patient_id:
+            patient = purchased_item.patient_id
+            balances.append({
+                "patient_name": f"{patient.patient_fname} {patient.patient_lname}",
+                "previous_balance": f"{payment.payment_to_be_payed:.2f}",  # Format balance as currency
+            })
 
+    # Return the data in JSON format
     return JsonResponse({"balances": balances})
 
 #_________________________________________LOGOUT_______________________________________________________

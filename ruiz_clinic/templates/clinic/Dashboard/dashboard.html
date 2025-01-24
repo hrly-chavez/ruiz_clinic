@@ -1,234 +1,255 @@
-{% extends 'clinic/nav.html' %}
-{% load static %}
-{% block title %}Dashboard Page{% endblock %}
+    {% extends 'clinic/nav.html' %}
+    {% load static %}
+    {% block title %}Dashboard Page{% endblock %}
 
-{% block content %}
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-{% if messages %}
-    <ul class="messages">
-        {% for message in messages %}
-            <li>{{ message }}</li>
-        {% endfor %}
-    </ul>
-{% endif %}
-<div class="dashboard-container">
-    <!-- Row containing Date and Time above Appointments -->
-    <div>
-        <div class="date-time-row">
-            <span id="current-date"></span>
-            <span id="current-time"></span>
-        </div><br>
-        <div class="widgets-row">
-            <!-- Appointments Widget -->
-            <div class="appointments-widget widget">
-                <div class="widget-header">
-                    <label for="appointment-date-picker">Select Date:</label>
-                    <input type="date" id="appointment-date-picker" value="{{ selected_date|date:'Y-m-d' }}">
-                    <span id="appointment-date-header">Appointments for: {{ current_date }}</span>
-                </div>
-                <div class="scrollable-content">
-                    <table class="appointments-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Contact No.</th>
-                                <th>Time</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for appointment in appointments %}
-                            <tr>
-                                <td>{{ appointment.app_fname }} {{ appointment.app_lname }}</td>
-                                <td>{{ appointment.app_contact }}</td>
-                                <td>{{ appointment.app_time }}</td>
-                                <td>{{ appointment.app_status }}</td>
-                                <td>
-                                    {% with appointment.app_status as current_status %}
-                                        {% if current_status == "Waiting" %}
-                                            <button class="status-button" data-id="{{ appointment.app_id }}" data-next-status="Ongoing">Ongoing</button>
-                                        {% elif current_status == "Ongoing" %}
-                                            <button class="status-button" data-id="{{ appointment.app_id }}" data-next-status="Done">Done</button>
-                                        {% elif current_status == "Cancelled" %}
-                                            <span>Cancelled</span>
-                                        {% else %}
-                                            <span>Completed</span>
+    {% block content %}
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <div class="dashboard-container">
+        <!-- Row containing Date and Time above Appointments -->
+        <div>
+            <div class="date-time-row">
+                <span id="current-date"></span>
+                <span id="current-time"></span>
+            </div><br>
+            <div class="widgets-row">
+                <!-- Appointments Widget -->
+                <div class="appointments-widget widget">
+                    <div class="widget-header">
+                        <label for="appointment-date-picker">Select Date:</label>
+                        <input type="date" id="appointment-date-picker" value="{{ selected_date|date:'Y-m-d' }}">
+                        <span id="appointment-date-header">Appointments for: {{ current_date }}</span>
+                    </div>
+                    <div class="scrollable-content">
+                        <table class="appointments-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Contact No.</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appointment in appointments %}
+                                <tr>
+                                    <td>{{ appointment.app_fname }} {{ appointment.app_lname }}</td>
+                                    <td>{{ appointment.app_contact }}</td>
+                                    <td>{{ appointment.app_time }}</td>
+                                    <td>{{ appointment.app_status }}</td>
+                                    <td>
+                                        {% with appointment.app_status as current_status %}
+                                            {% if current_status == "Waiting" %}
+                                                <button class="status-button" data-id="{{ appointment.app_id }}" data-next-status="Ongoing">Ongoing</button>
+                                            {% elif current_status == "Ongoing" %}
+                                                <button class="status-button" data-id="{{ appointment.app_id }}" data-next-status="Done">Done</button>
+                                            {% elif current_status == "Cancelled" %}
+                                                <span>Cancelled</span>
+                                            {% else %}
+                                                <span>Completed</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    
+                                        {% if appointment.app_status != "Done" and appointment.app_status != "Cancelled" %}
+                                            <button class="cancel-button" data-id="{{ appointment.app_id }}">Cancel</button>
                                         {% endif %}
-                                    {% endwith %}
-                                
-                                    {% if appointment.app_status != "Done" and appointment.app_status != "Cancelled" %}
-                                        <button class="cancel-button" data-id="{{ appointment.app_id }}">Cancel</button>
-                                    {% endif %}
-                                </td>
-                                
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Profile Widget -->
-            <div class="profile-widget widget">
-                <div class="profile-content">
-                    <div class="profile-image">
-                        <img src="{% static 'istockphoto-1061001352-612x612.jpg' %}" alt="LIZALIE R. MAQUILAN O.D">
-                    </div>
-                    <div class="profile-details">
-                        <h3>LIZALIE R. MAQUILAN O.D</h3>
-                        <p>Optometrist</p>
-                        <p>Lapu-Lapu City, Cebu</p>
+                                    </td>
+                                    
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                <div class="additional-info">
-                    <p><strong>Date of Birth:</strong> November 8, 1973</p>
-                    <p><strong>Blood Type:</strong> A-</p>
-                    <p><strong>Gender:</strong> Female</p>
-                </div>
-            </div>
 
-        </div>
-    </div>
- 
-    <div class="widgets-row">
-        <!-- Graph Widget -->
-        <div class="graph-widget widget">
-            <div class="widget-header">WORD CLOUD</div>
-            <div class="graph-placeholder">
-                <img src="{% url 'wordcloud' %}" alt="Word Cloud" style="width: 100%; height: auto;">
-            </div>
-        </div>
-    
-        <!-- Notice Widget -->
-        <div class="notice-widget widget">
-            <div class="widget-header">NOTICE</div>
-            <div class="low-stock-container">
-                {% if low_stock_items.exists %}
-                    {% for item in low_stock_items %}
-                        <div class="low-stock-widget">
-                            <p><strong>🔔 Low Stock Alert:</strong></p>
-                            <p>Category: {{ item.item_category_id.item_category_name }}</p>
-                            <p>Brand: {{ item.item_brand }}</p>
-                            <p>Model: {{ item.item_model }}</p>
-                            <p>Quantity Left: {{ item.item_quantity }}</p>
+                <!-- Profile Widget -->
+                <div class="profile-widget widget">
+                    <div class="profile-content">
+                        <div class="profile-image">
+                            <img src="{% static 'istockphoto-1061001352-612x612.jpg' %}" alt="LIZALIE R. MAQUILAN O.D">
                         </div>
-                    {% endfor %}
-                {% else %}
-                    <p>No low-stock items.</p>
-                {% endif %}
+                        <div class="profile-details">
+                            <h3>LIZALIE R. MAQUILAN O.D</h3>
+                            <p>Optometrist</p>
+                            <p>Lapu-Lapu City, Cebu</p>
+                        </div>
+                    </div>
+                    <div class="additional-info">
+                        <p><strong>Date of Birth:</strong> November 8, 1973</p>
+                        <p><strong>Blood Type:</strong> A-</p>
+                        <p><strong>Gender:</strong> Female</p>
+                    </div>
+                </div>
+
             </div>
         </div>
     
-        <!-- Additional Widget -->
-        <div class="additional-widget widget">
-            <div class="widget-header">FOLLOW UP PATIENT</div>
-            <div class="additional-content">
-                <p>Placeholder for additional information or content.</p>
+        <div class="widgets-row">
+            <!-- Graph Widget -->
+            <div class="graph-widget widget">
+                <div class="widget-header">WORD CLOUD</div>
+                <div class="graph-placeholder">
+                    <img src="{% url 'wordcloud' %}" alt="Word Cloud" style="width: 100%; height: auto;">
+                </div>
             </div>
-        </div>
-    </div>    
-</div>
+        
+            <!-- Notice Widget -->
+            <div class="notice-widget widget">
+                <div class="widget-header">NOTICE</div>
+                <div class="low-stock-container">
+                    {% if low_stock_items.exists %}
+                        {% for item in low_stock_items %}
+                            <div class="low-stock-widget">
+                                <p><strong>🔔 Low Stock Alert:</strong></p>
+                                <p>Category: {{ item.item_category_id.item_category_name }}</p>
+                                <p>Brand: {{ item.item_brand }}</p>
+                                <p>Model: {{ item.item_model }}</p>
+                                <p>Quantity Left: {{ item.item_quantity }}</p>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>No low-stock items.</p>
+                    {% endif %}
+                </div>
+            </div>
+        
+            <!-- Additional Widget -->
+            <div class="additional-widget">
+                <div class="widget-header">FOLLOW UP PATIENT</div>
+                <div class="scrollable-content">
+                    {% if follow_up_patients %}
+                        <table class="follow-up-table">
+                            <thead>
+                                <tr>
+                                    <th>Patient Name</th>
+                                    <th>Remaining Balance</th>
+                                    <th>Due Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for patient in follow_up_patients %}
+                                    <tr>
+                                        <td>{{ patient.patient }}</td>
+                                        <td>{{ patient.remaining_balance }}</td>
+                                        <td>{{ patient.due_date|date:'F j, Y' }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>No follow-up patients found.</p>
+                    {% endif %}
+                </div>
+            </div>                                  
+        </div>    
+    </div>
 
-<script>
-    document.getElementById('appointment-date-picker').addEventListener('change', function () {
-        const selectedDate = this.value; // Get the selected date
-        window.location.href = `?selected_date=${selectedDate}`; // Redirect to the updated URL
-    });
+    <script>
+        document.getElementById('appointment-date-picker').addEventListener('change', function () {
+            const selectedDate = this.value; // Get the selected date
+            window.location.href = `?selected_date=${selectedDate}`; // Redirect to the updated URL
+        });
 
-    // Update the header dynamically based on today's date
-    function updateDateHeader(selectedDate) {
-        const today = new Date().toISOString().split('T')[0]; // Format today's date as YYYY-MM-DD
-        const header = document.getElementById('appointment-date-header');
-        if (selectedDate === today) {
-            header.textContent = `Appointments TODAY`;
-        } else {
-            header.textContent = `Appointments for: ${selectedDate}`;
+        // Update the header dynamically based on today's date
+        function updateDateHeader(selectedDate) {
+            const today = new Date().toISOString().split('T')[0]; // Format today's date as YYYY-MM-DD
+            const header = document.getElementById('appointment-date-header');
+            if (selectedDate === today) {
+                header.textContent = `Appointments TODAY`;
+            } else {
+                header.textContent = `Appointments for: ${selectedDate}`;
+            }
         }
-    }
 
-    // Initialize header on page load
-    updateDateHeader(document.getElementById('appointment-date-picker').value);
+        // Initialize header on page load
+        updateDateHeader(document.getElementById('appointment-date-picker').value);
 
-    function updateDateTime() {
-        const now = new Date();
-        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        function updateDateTime() {
+            const now = new Date();
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-        const day = days[now.getDay()];
-        const date = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-        const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const day = days[now.getDay()];
+            const date = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+            const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-        document.getElementById('current-date').textContent = `${day}, ${date}`;
-        document.getElementById('current-time').textContent = time;
-    }
+            document.getElementById('current-date').textContent = `${day}, ${date}`;
+            document.getElementById('current-time').textContent = time;
+        }
 
-    setInterval(updateDateTime, 1000);
-    updateDateTime();
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
 
 
-    // JavaScript for updating appointment status
-    document.querySelectorAll('.status-button').forEach(button => {
-        button.addEventListener('click', function () {
-            const appointmentId = this.dataset.id;
-            const nextStatus = this.dataset.nextStatus;
+        // JavaScript for updating appointment status
+        document.querySelectorAll('.status-button').forEach(button => {
+            button.addEventListener('click', function () {
+                const appointmentId = this.dataset.id;
+                const nextStatus = this.dataset.nextStatus;
 
-            if (confirm(`Are you sure you want to update the status to ${nextStatus}?`)) {
-                fetch('/update-appointment-status/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}',
-                    },
-                    body: JSON.stringify({
-                        appointment_id: appointmentId,
-                        next_status: nextStatus
-                    }),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert('Failed to update status: ' + data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while updating the status.');
-                });
-            }
+                if (confirm(`Are you sure you want to update the status to ${nextStatus}?`)) {
+                    fetch('/update-appointment-status/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}',
+                        },
+                        body: JSON.stringify({
+                            appointment_id: appointmentId,
+                            next_status: nextStatus
+                        }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert('Failed to update status: ' + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while updating the status.');
+                    });
+                }
+            });
         });
-    });
 
-    // JavaScript for canceling an appointment
-    document.querySelectorAll('.cancel-button').forEach(button => {
-        button.addEventListener('click', function () {
-            const appointmentId = this.dataset.id;
+        // JavaScript for canceling an appointment
+        document.querySelectorAll('.cancel-button').forEach(button => {
+            button.addEventListener('click', function () {
+                const appointmentId = this.dataset.id;
 
-            if (confirm('Are you sure you want to cancel this appointment?')) {
-                fetch('/cancel_appointment/', { // Call the new function instead
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}',
-                    },
-                    body: JSON.stringify({ appointment_id: appointmentId }),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload(); // Refresh page to reflect status change
-                    } else {
-                        alert('Failed to cancel appointment: ' + data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while canceling the appointment.');
-                });
-            }
+                if (confirm('Are you sure you want to cancel this appointment?')) {
+                    fetch('/cancel_appointment/', { // Call the new function instead
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}',
+                        },
+                        body: JSON.stringify({ appointment_id: appointmentId }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload(); // Refresh page to reflect status change
+                        } else {
+                            alert('Failed to cancel appointment: ' + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while canceling the appointment.');
+                    });
+                }
+            });
         });
-    });
 
-</script>
-{% endblock %}
+    </script>
+    {% endblock %}

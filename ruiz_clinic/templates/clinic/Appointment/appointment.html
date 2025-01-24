@@ -43,6 +43,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         const calendarEl = document.getElementById('calendar');
         const monthHeader = document.getElementById('monthHeader');
+<<<<<<< HEAD
 
         // Get the dates with appointments passed from Django
         const appointmentDates = {{ appointment_dates|safe }};
@@ -50,6 +51,27 @@
         // Deduplicate dates to ensure "View Appointment" appears only once per date
         const uniqueDates = [...new Set(appointmentDates)];
 
+=======
+    
+        // Get the appointment dates passed from Django
+        const appointmentDates = {{ appointment_dates|safe }}; // Example format: ["2025-01-23", "2025-01-23", "2025-01-24", ...]
+    
+        // Group appointments by date and count them
+        const groupedAppointments = appointmentDates.reduce((acc, date) => {
+            acc[date] = (acc[date] || 0) + 1;
+            return acc;
+        }, {});
+    
+        // Prepare events for FullCalendar
+        const events = Object.entries(groupedAppointments).map(([date, count]) => ({
+            title: count > 1 ? `View ${count} Appointments` : 'View Appointment',
+            start: date,
+            textColor: '#1565c0', // Set text color to a matching blue
+            backgroundColor: 'transparent', // Remove background color
+            borderColor: 'transparent', // Remove border
+        }));
+    
+>>>>>>> error_trap
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
             headerToolbar: {
@@ -63,6 +85,7 @@
                 const [month, year] = info.view.title.split(' ');
                 monthHeader.textContent = `${month} ${year}`;
             },
+<<<<<<< HEAD
             events: uniqueDates.map(date => ({
                 title: 'View Appointment',
                 start: date,
@@ -70,15 +93,18 @@
                 backgroundColor: 'transparent', // Remove background color
                 borderColor: 'transparent', // Remove border
             })),
+=======
+            events: events, // Pass the grouped events to the calendar
+>>>>>>> error_trap
             dayCellDidMount: function (info) {
                 const date = new Date(info.date);
-
+    
                 // Highlight Sundays
                 if (date.getDay() === 0) { // Sunday
                     info.el.style.backgroundColor = 'lightgray'; // Background color for Sundays
                     info.el.style.color = '#333'; // Text color
                     info.el.style.position = 'relative';
-
+    
                     // Add "Day Off" label
                     const label = document.createElement('span');
                     label.textContent = 'Day Off';
@@ -93,7 +119,7 @@
             },
             dateClick: function (info) {
                 const clickedDate = new Date(info.date);
-
+    
                 // Check if the clicked date is a Sunday
                 if (clickedDate.getDay() === 0) { // Sunday
                     alert('Day Off! Appointments cannot be scheduled on Sundays.');
@@ -104,9 +130,9 @@
                 }
             },
         });
-
+    
         calendar.render();
-
+    
         // Search Bar Logic
         document.getElementById("searchButton").addEventListener("click", function () {
             const selectedDate = document.getElementById("searchDate").value;
@@ -114,10 +140,11 @@
                 alert("Please select a valid date.");
                 return;
             }
-
+    
             window.location.href = `/view_appointment/?date=${selectedDate}`;
         });
     });
+     
 </script>
 
 <style>

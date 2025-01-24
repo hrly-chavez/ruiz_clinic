@@ -2,32 +2,39 @@ document.addEventListener("DOMContentLoaded", () => {
     const filterDate = document.getElementById("filter-date");
     const earnings = document.getElementById("total-earnings");
     const productsSold = document.getElementById("products-sold");
-    const productList = document.getElementById("product-list");
-    const viewBalanceBtn = document.getElementById("view-patient-balance");
-    const modal = document.getElementById("patient-modal");
-    const closeModal = document.querySelector(".close-btn");
+    const productList = document.querySelector(".product-list"); // Updated selector for product list
     const patientBalanceList = document.getElementById("patient-balance-list");
 
     function fetchSalesData(date) {
         fetch(`/api/sales/?date=${date}`)
             .then(response => response.json())
             .then(data => {
+                // Update total earnings and number of products sold
                 earnings.textContent = `₱ ${data.sales_total}`;
                 productsSold.textContent = data.products_sold_count;
 
-                productList.innerHTML = ""; // Clear previous items
+                // Clear previous product items
+                productList.innerHTML = "";
+
                 if (data.products_sold.length === 0) {
-                    productList.innerHTML = "<p>No products sold.</p>";
+                    productList.innerHTML = "<p>No products sold today.</p>";
                 } else {
                     data.products_sold.forEach(product => {
+                        const name = product.name || null; // Set null if value is missing
+                        const category = product.category || null;
+                        const brand = product.brand || null;
+                        const qty = product.qty || 0; // Replace null with 0
+                        const price = product.price || 0; // Replace null with 0
+
+                        // Dynamically hide columns with null or "N/A"
                         const item = document.createElement("div");
                         item.classList.add("product-item");
                         item.innerHTML = `
-                            <span>${product.name}</span>
-                            <span>${product.category}</span>
-                            <span>${product.brand}</span>
-                            <span>Qty: ${product.qty}</span>
-                            <span>₱ ${product.price}</span>
+                            ${name ? `<span>${name}</span>` : ""}
+                            ${category ? `<span>${category}</span>` : ""}
+                            ${brand ? `<span>${brand}</span>` : ""}
+                            ${qty > 0 ? `<span>Qty: ${qty}</span>` : ""}
+                            ${price > 0 ? `<span>₱ ${price}</span>` : ""}
                         `;
                         productList.appendChild(item);
                     });
@@ -41,39 +48,25 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(response => response.json())
             .then(data => {
                 patientBalanceList.innerHTML = ""; // Clear previous entries
-
+    
                 if (data.balances.length === 0) {
-                    patientBalanceList.innerHTML = `<tr><td colspan="3">No patient balance.</td></tr>`;
+                    patientBalanceList.innerHTML = `<p style="text-align: center;">No patient balance.</p>`;
                 } else {
                     data.balances.forEach(balance => {
-                        const row = document.createElement("tr");
-                        row.innerHTML = `
-                            <td>${balance.patient_name}</td>
-                            <td>₱ ${balance.previous_balance}</td>
-                            <td><button class="add-balance-btn">Add</button></td>
+                        const item = document.createElement("div");
+                        item.classList.add("balance-item");
+                        item.innerHTML = `
+                            <div class="patient-name">${balance.patient_name}</div>
+                            <div class="balance-amount">₱ ${balance.previous_balance}</div>
                         `;
-                        patientBalanceList.appendChild(row);
+                        patientBalanceList.appendChild(item);
                     });
                 }
             })
             .catch(error => console.error("Error fetching patient balances:", error));
     }
 
-    viewBalanceBtn.addEventListener("click", () => {
-        fetchPatientBalances();
-        modal.style.display = "flex";
-    });
-
-    closeModal.addEventListener("click", () => {
-        modal.style.display = "none";
-    });
-
-    window.addEventListener("click", (event) => {
-        if (event.target === modal) {
-            modal.style.display = "none";
-        }
-    });
-
+    // Event listener for date filter
     filterDate.addEventListener("change", () => {
         const selectedDate = filterDate.value;
         fetchSalesData(selectedDate);
@@ -82,5 +75,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // Load today's data on page load
     const today = new Date().toISOString().split("T")[0];
     filterDate.value = today;
-    fetchSalesData(today);
+    fetchSalesData(today); // Fetch sales data
+    fetchPatientBalances(); // Fetch patient balances
 });
