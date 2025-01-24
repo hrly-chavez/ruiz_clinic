@@ -844,66 +844,7 @@ def search_patients(request):
     return render(request, 'clinic/Patient/patient.html', {'patients': patients, 'query': query})
 # @login_required
 
-# working correctly
-# def add_purchased_item(request, patient_id):
-#     patient = get_object_or_404(Patient, patient_id=patient_id)
-#     purchased_item_form = PurchasedItemForm(request.POST or None, patient=patient)
-#     payment_form = ItemPaymentForm(request.POST or None)
-#     payment_duration_form = PaymentDurationForm(request.POST or None)  # Add PaymentDurationForm
-
-#     if request.method == 'POST':
-#         if purchased_item_form.is_valid() and payment_form.is_valid():
-#             purchased_item = purchased_item_form.save(commit=False)
-#             payment = payment_form.save(commit=False)
-
-#             item = purchased_item.item_code
-#             item_price = item.item_price
-
-#             # Set current payment
-#             payment.current_payment = payment_form.cleaned_data['current_payment']
-#             payment.payment_payed = payment.current_payment if not payment.pk else payment.payment_payed + payment.current_payment
-#             payment.payment_to_be_payed = item_price - payment.payment_payed
-
-#             # Handle payment duration for installment terms
-#             if payment.payment_terms == 'Installment':
-#                 if payment_duration_form.is_valid():
-#                     payment_duration = payment_duration_form.save()
-#                     payment.payment_duration = payment_duration
-#                     purchased_item.pur_stat = 'For follow up'
-#                 else:
-#                     messages.error(request, "Please fill out the payment duration details correctly.")
-#                     return render(request, 'clinic/Patient/patient_bought.html', {
-#                         'purchased_item_form': purchased_item_form,
-#                         'payment_form': payment_form,
-#                         'payment_duration_form': payment_duration_form,
-#                         'patient': patient,
-#                     })
-#             else:
-#                 purchased_item.pur_stat = 'For Release'
-
-#             # Save payment and associate it with the purchased item
-#             payment.save()
-#             purchased_item.payment_id = payment
-#             purchased_item.patient_id = patient
-
-#             # Explicitly set the purchase date for the purchased item
-#             purchased_item.pur_date_purchased = now().date()
-
-#             purchased_item.save()
-
-#             messages.success(request, "Item and payment added successfully!")
-#             return redirect('patient_detail', patient_id=patient_id)
-#         else:
-#             messages.error(request, "There was an error adding the item or payment.")
-
-#     return render(request, 'clinic/Patient/patient_bought.html', {
-#         'purchased_item_form': purchased_item_form,
-#         'payment_form': payment_form,
-#         'payment_duration_form': PaymentDurationForm(),  # Pass a new instance
-#         'patient': patient,
-#     })
-
-
+#Working correctly
 def add_purchased_item(request, patient_id):
     patient = get_object_or_404(Patient, patient_id=patient_id)
     purchased_item_form = PurchasedItemForm(request.POST or None, patient=patient)
@@ -923,7 +864,7 @@ def add_purchased_item(request, patient_id):
             # Ensure payment_to_be_payed is initialized
             if payment.payment_to_be_payed is None:
                 payment.payment_to_be_payed = item_price
-
+            
             # Set current payment
             payment.current_payment = payment_form.cleaned_data['current_payment']
 
@@ -996,7 +937,7 @@ def add_purchased_item(request, patient_id):
             return redirect('patient_detail', patient_id=patient_id)
         else:
             messages.error(request, "There was an error adding the item or payment.")
-
+    
     return render(request, 'clinic/Patient/patient_bought.html', {
         'purchased_item_form': purchased_item_form,
         'payment_form': payment_form,
