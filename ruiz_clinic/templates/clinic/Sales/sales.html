@@ -4,77 +4,65 @@
 
 {% block content %}
 <div class="sales-container">
-    <div class="header">
-        <h3>SALES</h3>
-    </div>
-    <div class="filter-section"> <!-- Filter: Calendar -->
-        <input type="date" id="filter-date" class="date-picker">
+    <!-- Header -->
+    <div class="header" style="position: relative; height: 125px; padding: 0 20px; background-color: #2db9fa; display: flex; align-items: center;">
+        <h3 style="color: #fff; font-size: 40px; font-family: 'Montserrat', sans-serif; font-weight: normal; margin: 0;">SALES</h3>
+        <div class="filter-section" style="position: absolute; bottom: 10px; right: 20px;">
+            <input type="date" id="filter-date" class="date-picker" style="padding: 5px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc;">
+        </div>
     </div>
 
-    <div class="stats-container"> <!-- Cards-like format -->
-        <div class="card">
-            <h4>Total Earnings</h4>
-            <p id="total-earnings">₱ 8,200</p>
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Left Column -->
+        <div class="left-column">
+            <div class="card">
+                <h4 class="section-header">Total Earnings</h4>
+                <p id="total-earnings">₱ {{ sales_total }}</p>
+            </div>
+            <div class="card">
+                <h4 class="section-header">Number of Products Sold</h4>
+                <p id="products-sold">{{ products_sold_count }}</p>
+            </div>
         </div>
-        <div class="card">
-            <h4>Number of Products Sold</h4>
-            <p id="products-sold">3</p>
-        </div>
-        <div class="card">
-            <h4>Products Sold</h4>
-            <div class="product-list">
-                <div class="product-item">
-                    <img src="{% static 'eyeglasses.png' %}" alt="Eyeglasses">
-                    <span>Eyeglasses</span> 
-                    <span>Frames</span> 
-                    <span>Skechers</span>
-                    <span>Qty: 2</span>
-                    <span>₱ 7,000</span>
-                </div>
-                <div class="product-item">
-                    <img src="{% static 'contact-lenses.png' %}" alt="Contact Lenses">
-                    <span>Contact Lenses</span> 
-                    <span>Soft Contact Lenses</span> 
-                    <span>Acuvue</span>
-                    <span>Qty: 1</span>
-                    <span>₱ 1,200</span>
+
+        <!-- Right Column -->
+        <div class="right-column">
+            <div class="card">
+                <h4 class="section-header">Patient Balance</h4>
+                <div id="patient-balance-list" class="patient-balance-container">
+                    <!-- Dynamic content will be loaded here -->
+                    <p>No patient balance.</p>
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="products-sold-section">
         <div class="card">
-            <h4>Patient Balance</h4>
-            <button id="view-patient-balance" class="view-report-btn">View Report</button>
+            <h4 class="section-header">Products Sold</h4>
+            <div class="product-list">
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Brand</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-table-body">
+                        <!-- Dynamic content will be inserted here -->
+                    </tbody>
+                </table>
+                <p id="no-products-message" style="text-align: center; display: none;">No products sold today.</p>
+            </div>
         </div>
     </div>
+    
+    
 </div>
 
-<div class="modal" id="patient-modal"> <!-- Overlay: Patient Balance Report -->
-    <div class="modal-content">
-        <span class="close-btn">&times;</span>
-        <h4>Patient Balance Report</h4>
-        <table>
-            <thead>
-                <tr>
-                    <th>Patient Name</th>
-                    <th>Previous Balance</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>John Doe</td>
-                    <td>₱ 2,500</td>
-                    <td><button class="add-balance-btn">Add</button></td>
-                </tr>
-                <tr>
-                    <td>Jane Smith</td>
-                    <td>₱ 1,000</td>
-                    <td><button class="add-balance-btn">Add</button></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
 
 <link rel="stylesheet" href="{% static 'css/sales.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />

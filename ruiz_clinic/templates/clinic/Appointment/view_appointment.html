@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="{% static 'css/appointment.css' %}">
 
 <div class="appointment-header">
-    <h1>
+    <h1 style="color: #fff; font-size: 40px;  font-family: 'Montserrat', sans-serif; font-weight: normal;">
         Appointment(s) at {{ formatted_date }}
     </h1>
 </div><br>
@@ -18,12 +18,32 @@
 </button>
 
 {% if messages %}
-    <div class="messages">
-        {% for message in messages %}
-            <p class="message {{ message.tags }}">{{ message }}</p>
-        {% endfor %}
+    <div id="popupMessage" class="modal" style="display: block;">
+        <div class="modal-content">
+            <span class="close-btn" id="closePopupBtn">&times;</span>
+            {% for message in messages %}
+                <p class="popup-message {{ message.tags }}">{{ message }}</p>
+            {% endfor %}
+        </div>
     </div>
+    <script>
+        // Hide the popup after 3 seconds (3000ms)
+        setTimeout(() => {
+            const popup = document.getElementById("popupMessage");
+            if (popup) {
+                popup.classList.add("fade-out");
+                setTimeout(() => {
+                    popup.style.display = "none";
+                }, 500); // Wait for the fade-out animation to complete
+            }
+        }, 3000);
+        
+
+        
+    </script>
 {% endif %}
+
+
 
 <!-- Appointments Table -->
 <div class="appointment-widget-container">
@@ -48,15 +68,15 @@
                         <td>
                             <!-- View button to show appointment details -->
                             <button class="view" 
-                                    data-id="{{ appointment.app_id }}"
-                                    data-fname="{{ appointment.app_fname }}"
-                                    data-lname="{{ appointment.app_lname }}"
-                                    data-contact="{{ appointment.app_contact }}"
-                                    data-time="{{ appointment.app_time }}"
-                                    data-status="{{ appointment.app_status }}"
-                                    {% if is_sunday %}disabled style="background-color: #dcdcdc; color: #7f8c8d;"{% endif %}>
-                                View
-                            </button>
+                                data-id="{{ appointment.app_id }}"
+                                data-fname="{{ appointment.app_fname }}"
+                                data-lname="{{ appointment.app_lname }}"
+                                data-contact="{{ appointment.app_contact }}"
+                                data-time="{{ appointment.app_time }}"
+                                data-status="{{ appointment.app_status }}"
+                                {% if is_sunday %}disabled style="background-color: #dcdcdc; color: #7f8c8d;"{% endif %}>
+                            <i class="fas fa-eye"></i> View
+                        </button>
                         </td>
                     </tr>
                 {% endfor %}    
@@ -257,5 +277,19 @@ viewButtons.forEach(button => {
             .catch(error => console.error("Error updating appointments:", error));
     }, 60000);  // Runs every 60 seconds (1 minute)
 
+    const popup = document.getElementById("popupMessage");
+    const closePopupBtn = document.getElementById("closePopupBtn");
+
+    // Close the popup when the close button is clicked
+    closePopupBtn.onclick = function() {
+        popup.style.display = "none";
+    };
+
+    // Close the popup when clicking outside of it
+    window.onclick = function(event) {
+        if (event.target == popup) {
+            popup.style.display = "none";
+        }
+    };
 </script>
 {% endblock %}

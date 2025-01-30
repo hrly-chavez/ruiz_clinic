@@ -1,15 +1,30 @@
 {% extends 'clinic/nav.html' %}
 
 {% block content %}
-<div style="padding: 25px; background-color: #2db9fae8; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px; height: 125px; display: flex; align-items: center">
-    <h1 style="color: #fff; font-size: 37px; font-family: 'Istok Web', sans-serif; font-weight: normal;">INVENTORY</h1>
-    <a href="{% url 'add_item' %}" style="padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; font-family: 'Istok Web', sans-serif; font-size: 16px; font-weight: bold;">Add Item</a>
+<div style="padding: 25px; background-color: #2db9fae8; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px; height: 150px; display: flex; align-items: center; position: relative;">
+    <!-- Title -->
+    <h1 style="color: #fff; font-size: 40px; font-family: 'Montserrat', sans-serif;  font-weight: normal;">INVENTORY</h1>
+
+    <!-- Button -->
+    <a href="{% url 'add_item' %}" 
+       class="btn btn-light" 
+       style="position: absolute; bottom: 15px; left: 25px; padding: 6px 12px; font-size: 16px; background-color: #ffffff; color: #2db9fa; border: none; border-radius: 6px; text-decoration: none; transition: all 0.3s ease; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <i class="fas fa-plus-circle"></i> Add Item
+    </a>
+    
+    <!-- Search Bar -->
+    <div style="position: absolute; bottom: 15px; right: 25px;">
+        <form method="get" action="{% url 'search_items' %}">
+            <input type="text" name="q" placeholder="Search..." value="{{ query }}" style="padding: 7px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px; width: 250px;">
+            <button type="submit" style="display: none;"></button>
+        </form>
+    </div>
 </div>
 
 <div class="container mt-3" style="max-width: 100%; padding: 0;">
-    <div class="table-responsive">
-        <table class="table table-striped table-bordered shadow-sm rounded" style="width: 100%; table-layout: fixed; background-color: #fff; border-radius: 10px;">
-            <thead class="thead-light" style="background-color: #f0f8ff; color: #333; text-align: center; font-size: 18px;">
+    <div class="table-responsive shadow-lg rounded" style="background-color: #fff; border-radius: 10px; overflow: hidden;">
+        <table class="table table-hover table-striped table-bordered" style="margin-bottom: 0;">
+            <thead class="thead-light" style="background-color: #47bbf1; color: white; text-align: center; font-size: 16px; font-family: 'Roboto', sans-serif;">
                 <tr>
                     <th>Item Code</th>
                     <th>Brand</th>
@@ -29,21 +44,24 @@
                     <td>{{ item.item_brand }}</td>
                     <td>{{ item.item_model }}</td>
                     <td>₱{{ item.item_price }}</td>
-                    <td>{{ item.item_quantity }}</td>
+                    <td>
+                        {% if item.item_quantity <= 0 %}
+                            <span class="badge bg-danger">Out of Stock</span>
+                        {% else %}
+                            {{ item.item_quantity }}
+                        {% endif %}
+                    </td>
                     <td>{{ item.item_category_id.item_category_name }}</td>
                     <td>{{ item.item_frame_type_id.item_frame_type_name }}</td>
                     <td>
-                        <a href="{% url 'view_item' item_id=item.item_code %}" class="btn btn-info btn-sm" style="border-radius: 5px;">
-                            <i class="fa fa-eye"></i> View Details
+                        <a href="{% url 'view_item' item_id=item.item_code %}" class="btn btn-info btn-sm text-white" style="border-radius: 5px;">
+                            <i class="fa fa-eye"></i> View
                         </a>
                     </td>
-
                     <td>
-                        <!-- Edit button -->
                         <a href="{% url 'edit_item' item_id=item.item_code %}" class="btn btn-warning btn-sm" style="border-radius: 5px; margin-right: 5px;">
                             <i class="fa fa-edit"></i> Edit
                         </a>
-                        <!-- Delete button -->
                         <form action="{% url 'delete_item' item_id=item.item_code %}" method="post" style="display:inline;">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this item?')" style="border-radius: 5px;">
@@ -54,7 +72,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="8" style="padding: 10px; border: 1px solid #ddd; text-align: center;">No items available</td>
+                    <td colspan="9" style="padding: 20px; text-align: center; font-size: 18px; color: #666;">No items available</td>
                 </tr>
                 {% endfor %}
             </tbody>

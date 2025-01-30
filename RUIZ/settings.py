@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-*w=n3whm*_#4wi!5ju6uc6^c6@9v14=xbad%-mv@edag#uezf7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.101.77', '127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -82,15 +82,13 @@ DATABASES = {
     
         'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'RuizClinic2',
+        'NAME': 'RuizClinic5',
         'USER': 'postgres',
         'PASSWORD': '123456',
         'HOST': 'localhost',
         'PORT': '5432',
     }
     }
-
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -143,3 +141,4 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'carataojoegie@gmail.com '  # Replace with your Gmail
 EMAIL_HOST_PASSWORD = 'svdd pqan vcbh tagf'  # Replace with your Gmail App Password
+

@@ -5,8 +5,10 @@
 {% block content %}
 <!-- Page Header -->
 <div style="padding: 25px; background-color: #2db9fae8; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px; height: 125px; display: flex; align-items: center;">
-    <h1 style="color: #fff; font-size: 37px; font-family: 'Istok Web', sans-serif; font-weight: normal;">ITEM(s) BOUGHT</h1>
+    <h1 style="color: #fff; font-size: 40px;  font-family: 'Montserrat', sans-serif;  font-weight: normal;">ITEM(s) BOUGHT</h1>
 </div>
+
+
 
 <!-- Include Select2 CSS & JS -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
@@ -43,10 +45,12 @@
                             <label for="id_payment_terms">Payment Terms:</label>
                             {{ payment_form.payment_terms }}
                         </div>
-                        <div class="form-group">
-                            <label for="id_payment_payed">Amount Paid:</label>
-                            {{ payment_form.payment_payed }}
+
+                       <div class="form-group">
+                            <label for="id_current_payment">Current Payment:</label>
+                            {{ payment_form.current_payment }}
                         </div>
+
                         <div class="form-group">
                             <label for="id_payment_to_be_payed">Total Amount to Pay:</label>
                             <input type="text" id="id_payment_to_be_payed" class="form-control" readonly>
@@ -55,16 +59,29 @@
                             <label for="id_payment_method">Payment Method:</label>
                             {{ payment_form.payment_method }}
                         </div>
-                        
 
+                        <!-- payment duration details -->
+                        <div id="payment-duration-fields" style="display: none;">
+                            <h4 class="mb-3">Payment Duration Details</h4>
+                            <div class="form-group">
+                                <label for="id_payment_duration_span">Duration:</label>
+                                {{ payment_duration_form.payment_duration_span }}
+                            </div>
+                            <div class="form-group">
+                                <label for="id_payment_duration_start">Start Date:</label>
+                                {{ payment_duration_form.payment_duration_start }}
+                            </div>
+                            <div class="form-group">
+                                <label for="id_payment_duration_end">End Date:</label>
+                                {{ payment_duration_form.payment_duration_end }}
+                            </div>
+                        </div>
+                        
                         <div class="d-flex justify-content-between">
-                            <button type="submit" class="btn btn-primary btn-lg w-48">
-                                Add Item
-                            </button>
+                            <button type="submit" class="btn btn-primary btn-lg w-48" onclick="return confirmAction()">Add Item</button>
                             <a href="{% url 'patient' %}" class="btn btn-secondary btn-lg w-48">
                                 <i class="fa fa-arrow-left"></i> Back to Patient List
                             </a>
-                           
                         </div>
                     </form>
                 </div>
@@ -72,6 +89,8 @@
         </div>
     </div>
 </div>
+
+
 
 <style>
     .form-group {
@@ -94,11 +113,12 @@
         font-size: 32px;
         font-weight: 600;
     }
+
 </style>
 
 <!-- JavaScript for Dynamic Price Update and Payment Calculation -->
 <script>
-    $(document).ready(function() {
+      $(document).ready(function() {
         // Initialize Select2 for item_code
         $('#id_item_code').select2({
             placeholder: 'Select Item',
@@ -138,17 +158,78 @@
         });
 
         // Update the total amount to pay after the user finishes input (on blur)
-        $('#id_payment_payed').on('blur', function() {
-            const amountPaid = parseFloat($(this).val()) || 0;  // Get the amount paid, default to 0 if not a number
+        $('#id_current_payment').on('blur', function() {
+            const currentPayment = parseFloat($(this).val()) || 0;  // Get the current payment, default to 0 if not a number
             const totalAmount = parseFloat($('#id_payment_to_be_payed').val()) || 0;  // Get the total amount to pay
 
-            // Subtract the amount paid from the total amount
-            const remainingAmount = totalAmount - amountPaid;
+            // Subtract the current payment from the total amount
+            const remainingAmount = totalAmount - currentPayment;
 
             // Update the Total Amount to Pay field
             $('#id_payment_to_be_payed').val(remainingAmount.toFixed(2));
         });
     });
+    
+    $(document).ready(function () {
+        $('#id_payment_terms').on('change', function () {
+            const selectedTerm = $(this).val();
+            if (selectedTerm === 'Installment') {
+                $('#payment-duration-fields').slideDown();
+            } else {
+                $('#payment-duration-fields').slideUp();
+                $('#id_payment_duration_span').val('');
+                $('#id_payment_duration_start').val('');
+                $('#id_payment_duration_end').val('');
+            }
+        });
+    
+        // Calculate end date based on duration and start date
+        function calculateEndDate() {
+            const duration = $('#id_payment_duration_span').val();
+            const startDate = $('#id_payment_duration_start').val();
+    
+            if (duration && startDate) {
+                let monthsToAdd = 0;
+                switch (duration) {
+                    case '3 Months':
+                        monthsToAdd = 3;
+                        break;
+                    case '6 Months':
+                        monthsToAdd = 6;
+                        break;
+                    case '9 Months':
+                        monthsToAdd = 9;
+                        break;
+                    case '12 Months':
+                        monthsToAdd = 12;
+                        break;
+                }
+    
+                const startDateObj = new Date(startDate);
+                startDateObj.setMonth(startDateObj.getMonth() + monthsToAdd);
+    
+                const endDate = startDateObj.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+                $('#id_payment_duration_end').val(endDate); // Set end date
+            }
+        }
+    
+        // Attach event listeners
+        $('#id_payment_duration_span, #id_payment_duration_start').on('change', calculateEndDate);
+        
+    });
+    function confirmAction() {
+        return confirm("Are you sure you want to add this item?");
+    }
+
+    
+</script>
+
+<script>
+    {% if messages %}
+        {% for message in messages %}
+            alert("{{ message|escapejs }}");
+        {% endfor %}
+    {% endif %}
 </script>
 
 {% endblock %}

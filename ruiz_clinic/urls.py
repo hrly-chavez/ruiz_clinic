@@ -38,10 +38,13 @@ urlpatterns = [
     path('item-price/', views.item_price, name='item_price'),
     path('edit-purchased-item/<int:purchase_id>/', views.edit_purchased_item, name='edit_purchased_item'),
     path('delete_purchased_item/<int:pur_id>/', views.delete_purchased_item, name='delete_purchased_item'),
-    
+    path('edit_patient/<int:patient_id>/', views.edit_patient, name='edit_patient'),
+    path('search-patients/', views.search_patients, name='search_patients'),
 #______________________________SALES_______________________________    
 
-    path("sales/", views.sales, name='sales'),
+    path("sales/", views.sales_page, name='sales_page'),
+    path('api/sales/', views.sales_api, name='sales_api'),
+    path("api/patient-balances/", views.patient_balances_api, name="patient_balances_api"),  # New API
     
 #______________________________Inventory_______________________________
 
@@ -57,10 +60,9 @@ urlpatterns = [
      path('delete_item/<int:item_id>/', views.delete_item, name='delete_item'),
      path('view_item/<int:item_id>/', views.view_item, name='view_item'),
      path('edit_item/<int:item_id>/', views.edit_item, name='edit_item'),
-
+     path('inventory/search/', views.search_items, name='search_items'),
 #______________________________LOGOUT____________________________________
     path('logout/', views.user_logout, name='logout'),
     
-
 ]
 

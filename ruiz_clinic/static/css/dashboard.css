@@ -5,15 +5,25 @@
     box-sizing: border-box;
 }
 
-body {
+html, body {
+    height: 100%; /* Full height for the viewport */
+    margin: 0;
+    overflow: hidden; /* Remove main scrollbars */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f4f4f9;
 }
+
 
 /* Dashboard Container */
 .dashboard-container {
     padding: 20px;
     color: #333;
+    max-width: 100%;
+    height: 100%; /* Full height without overflow */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-sizing: border-box;
 }
 
 /* Date and Time */
@@ -24,13 +34,25 @@ body {
     color: #333;
 }
 
+.date-time-row {
+    display: flex;
+    gap: 10px; /* Add some spacing between date and time */
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    align-items: center;
+    justify-content: start; /* Align items to the left */
+}
+
+
 /* Widgets Row */
 .widgets-row {
     display: flex;
     justify-content: space-between;
     gap: 20px;
-    flex-wrap: wrap; /* Ensure widgets wrap in small screens */
-    margin-bottom: 20px;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    flex-grow: 1; /* Fill available space */
+    height: auto;
 }
 
 /* General Widget Container */
@@ -38,23 +60,31 @@ body {
     background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    overflow: hidden; /* Ensures header aligns perfectly with rounded corners */
-    height: 300px; /* Fixed height */
+    flex: 1; /* Allow equal space distribution */
     display: flex;
-    flex-direction: column; /* Ensures content stacks vertically */
+    flex-direction: column;
+    overflow: hidden; /* Prevent scrolling on widgets unless explicitly set */
 }
 
-/* Scrollable Content Area */
+/* Scrollable Content for Widgets (if needed) */
 .widget .scrollable-content {
-    flex: 1; /* Ensures this section takes up remaining space */
-    overflow-y: auto; /* Adds a vertical scrollbar when content overflows */
-    padding: 10px; /* Optional: Add padding for better aesthetics */
+    flex: 1;
+    overflow-y: auto; /* Enable vertical scrolling */
+    padding: 10px;
 }
 
 /* Appointments Widget Specific */
 .appointments-widget .scrollable-content {
-    max-height: calc(400px - 60px); /* Subtract header height for the remaining area */
+    max-height: 250px; /* Set a maximum height for the scrollable area */
+    overflow-y: auto; /* Enable vertical scrolling */
+    padding: 10px; /* Add padding for spacing */
 }
+
+.appointments-widget, .profile-widget {
+    width: 100%; /* Full width on small screens */
+    flex: 1; /* Distribute available space equally */
+}
+
 
 /* 📅 Date Picker Styling */
 #appointment-date-picker {
@@ -89,21 +119,21 @@ body {
     cursor: pointer;
 }
 
-/* Reusable Widget Header */
+/* Widget Header */
 .widget-header {
-    background: linear-gradient(145deg, #29B6F6, #1a8ebc);
-    color: #ffffff;
+    padding: 10px;
     font-size: 18px;
-    font-weight: bold;
     text-align: center;
-    padding: 12px 0;
-    border-radius: 8px 8px 0 0; /* Rounded Top Corners */
+    border-radius: 8px 8px 0 0;
+    background: linear-gradient(145deg, #29B6F6, #1a8ebc);
+    color: white;
 }
 
 /* Appointments Widget */
 .appointments-widget {
-    width: 700px;
+    width: 100%; /* Full width on smaller screens */
     flex: 2; /* Larger share of space */
+    margin-bottom: 20px; /* Add space below the widget */
 }
 
 .appointments-table {
@@ -128,35 +158,72 @@ body {
 
 /* Profile Widget */
 .profile-widget {
-    width: 300px;
-    flex: 1; /* Smaller share of space */
-    text-align: center;
+    width: 400px; /* Wider widget for more space */
+    background-color: #ffffff; /* White background */
+    border: 2px solid #1a8ebc; /* Blue border for highlighting */
+    border-radius: 12px; /* Rounded corners */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* Soft shadow */
+    padding: 20px; /* Padding for content */
+    margin: 20px auto; /* Center the widget */
+    text-align: center; /* Align text */
 }
 
+/* Hover Effect */
+.profile-widget:hover {
+    background-color: #f7f7f7; /* Slightly darker shade on hover */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Deeper shadow on hover */
+}
+
+/* Profile Content */
 .profile-content {
-    padding: 20px;
+    display: flex; /* Flex layout for row alignment */
+    align-items: center; /* Vertically align image and text */
+    gap: 20px; /* Space between image and details */
+    margin-bottom: 15px; /* Space between content and additional info */
 }
 
 .profile-image img {
-    width: 100px;
+    width: 100px; /* Larger profile image */
     height: 100px;
-    border-radius: 50%;
-    margin: 10px 0;
+    border-radius: 50%; /* Circular image */
+    border: 3px solid #1a8ebc; /* Blue border around image */
+    object-fit: cover; /* Keep image well-cropped */
 }
 
 .profile-details h3 {
-    font-size: 20px;
-    color: #333;
+    font-size: 20px; /* Larger name font */
+    color: #1a8ebc; /* Match border color */
+    margin: 0 0 8px; /* Space below name */
 }
 
 .profile-details p {
+    font-size: 16px; /* Larger font for details */
     color: #555;
-    margin: 5px 0;
+    margin: 0;
+}
+
+/* Profile Widget on Hover */
+.profile-widget:hover .widget-header {
+    background: linear-gradient(145deg, #29B6F6, #1a8ebc);
+}
+
+/* Additional Info */
+.additional-info {
+    background-color: #f9f9f9; /* Light gray background for contrast */
+    border-radius: 10px; /* Rounded corners */
+    padding: 15px; /* More padding for readability */
+    text-align: left; /* Left-align text */
+    font-size: 15px; /* Larger font size for readability */
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle inset shadow */
 }
 
 .additional-info p {
-    margin: 5px 0;
-    font-size: 14px;
+    margin: 8px 0; /* More spacing between items */
+    color: #333; /* Darker text for readability */
+}
+
+.additional-info strong {
+    color: #1a8ebc; /* Highlighted label text */
 }
 
 /* Graph Widget */
@@ -175,19 +242,21 @@ body {
 /* Notice Widget */
 .notice-widget {
     width: 300px;
-    flex: 1; /* Ensures smaller share of space compared to larger widgets */
-    background-color: #fff8e1;
+    flex: 1; /* Ensure it distributes space equally */
+    background-color: #b5e5fc;
     border-radius: 8px; /* Add rounded corners for consistency */
-    overflow: hidden; /* Ensure header stays within the widget */
+    overflow: hidden; /* Prevent unnecessary scrollbars */
     display: flex;
     flex-direction: column; /* Stack header and content vertically */
 }
 
-/* Ensure the header covers the full width of the widget */
+/* Notice Widget Header */
 .notice-widget .widget-header {
     margin: 0; /* Remove extra spacing */
     width: 100%; /* Span full width */
     border-radius: 0; /* Reset rounded corners for the header */
+    flex-shrink: 0; /* Prevent the header from shrinking */
+    padding: 10px; /* Add padding for spacing */
 }
 
 .notice-widget p {
@@ -196,20 +265,68 @@ body {
     margin: 10px 0;
 }
 
-/* Responsive Design */
+/* Low Stock Container */
+.low-stock-container {
+    flex: 1; /* Fill the remaining height of the widget */
+    overflow-y: auto; /* Enable vertical scrolling for content */
+    padding: 10px; /* Add padding for spacing */
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Add space between low-stock items */
+    box-sizing: border-box;
+    max-height: 100%; /* Allow the container to take up full available height */
+}
+
+/* Individual Low Stock Widget */
+.low-stock-widget {
+    background-color: #e3f2fd; /* Light blue background */
+    border: 1px solid #90caf9; /* Border for the widget */
+    border-radius: 8px; /* Rounded corners */
+    padding: 10px; /* Inner padding */
+    font-size: 14px; /* Adjust font size */
+    color: #333; /* Text color */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Soft shadow */
+}
+
+/* Scrollbar Style for Low Stock Container */
+.low-stock-container::-webkit-scrollbar {
+    width: 8px; /* Width of the scrollbar */
+}
+
+.low-stock-container::-webkit-scrollbar-thumb {
+    background-color: #90caf9; /* Scrollbar thumb color */
+    border-radius: 4px; /* Rounded corners for the scrollbar thumb */
+}
+
+.low-stock-container::-webkit-scrollbar-track {
+    background-color: #e3f2fd; /* Scrollbar track color */
+}
+
+/* Notice Widget Specific Scrollbar */
+.notice-widget .low-stock-container {
+    max-height: 350px; /* Adjust based on design */
+    overflow-y: auto; /* Enable vertical scrolling */
+    padding: 10px;
+}
+
+/* Bottom Widgets (Graph, Notice, Additional Widget) */
+.graph-widget, .notice-widget, .additional-widget {
+    flex: 1; /* Equal size distribution */
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* Responsive Adjustments */
 @media (max-width: 1200px) {
     .appointments-widget,
-    .graph-widget {
-        width: 100%; /* Full-width on smaller screens */
-    }
-
     .profile-widget,
     .notice-widget {
-        width: 100%; /* Full-width on smaller screens */
+        width: 100%; /* Stack widgets in smaller screens */
     }
 
     .widgets-row {
-        flex-direction: column; /* Stack widgets vertically */
+        flex-direction: column; /* Stack rows vertically */
     }
 }
 
@@ -276,7 +393,60 @@ body {
     transform: none; /* No zoom effect */
 }
 
+/* Additional Widget */
 .additional-widget {
-    width: 700px;
-    flex: 1; /* Larger share of space */
+    background-color: #ffffff; /* White background */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    display: flex;
+    flex-direction: column; /* Stack header and content vertically */
+    overflow: hidden; /* Prevent content overflow outside the widget */
+    flex: 1; /* Equal height with other widgets */
+    min-height: 300px; /* Minimum height for visual consistency */
+    max-height: 100%; /* Ensures it doesn't exceed the container's height */
+}
+
+/* Scrollable Content Inside Additional Widget */
+.additional-widget .scrollable-content {
+    flex: 1; /* Takes up remaining space within the widget */
+    overflow-y: auto; /* Enable scrolling if content overflows */
+    max-height: 300px; /* Limit the scrollable area's height */
+    padding: 10px; /* Add padding for readability */
+    box-sizing: border-box; /* Include padding in height calculation */
+}
+
+/* Scrollbar Styling for Additional Widget */
+.additional-widget .scrollable-content::-webkit-scrollbar {
+    width: 8px; /* Set scrollbar width */
+}
+
+.additional-widget .scrollable-content::-webkit-scrollbar-thumb {
+    background-color: #c0c0c0; /* Scrollbar thumb color */
+    border-radius: 4px; /* Rounded corners for scrollbar thumb */
+}
+
+.additional-widget .scrollable-content::-webkit-scrollbar-track {
+    background-color: #f4f4f9; /* Scrollbar track color */
+}
+
+/* Table Styling for Follow-Up Patients */
+.follow-up-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.follow-up-table th,
+.follow-up-table td {
+    text-align: left;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.follow-up-table th {
+    background-color: #f4f4f9;
+    font-weight: bold;
+}
+
+.follow-up-table tr:nth-child(even) {
+    background-color: #f9f9f9;
 }

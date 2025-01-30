@@ -5,7 +5,7 @@
 {% block content %}
 <!-- Header Section -->
 <div style="padding: 20px; background-color: #2db9fae8; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px; height: 125px; display: flex; align-items: center; margin: 0; justify-content: space-between;">
-    <h1 style="color: #fff; font-size: 37px; font-family: 'Istok Web', sans-serif; font-weight: normal;">PATIENT DETAIL</h1>
+    <h1 style="color: #fff; font-size: 40px;font-family: 'Montserrat', sans-serif;  font-weight: normal;">PATIENT DETAIL</h1>
 </div>
 
 <!-- Patient Details Card -->
@@ -34,7 +34,9 @@
                 <h5><strong>Diagnosis:</strong></h5>
                 <p style="font-size: 16px;">{{ patient.patient_diag }}</p>
             </div>
-
+<hr>
+        </br>
+    </br>
             <!-- Purchased Items Section -->
             <div class="mb-4">
                 <h4><strong>Purchased Items:</strong></h4>
@@ -58,19 +60,15 @@
                             <td>{{ purchase.item_code.item_brand }}</td>
                             <td>{{ purchase.item_code.item_model }}</td>
                             <td>{{ purchase.pur_stat }}</td>
-                            <td>{{ purchase.payment_id.payment_payed }}</td>
-                            <td>{{ purchase.payment_id.payment_to_be_payed }}</td>
+                            <td>₱{{ purchase.payment_id.payment_payed }}</td>
+                            <td>₱{{ purchase.payment_id.payment_to_be_payed }}</td>
                             <td>{{ purchase.item_date_out|default:"None"|date:"M. d, Y" }}</td>
                             <td>
                                 <!-- Edit Button -->
-                                <a href="{% url 'edit_purchased_item' purchase.pur_id %}" class="btn btn-warning btn-sm">Edit</a>
-                               <!-- Delete Button -->
-                                <a href="{% url 'delete_purchased_item' pur_id=purchase.pur_id %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this purchased item?');">Delete</a>
+                                <a href="{% url 'edit_purchased_item' purchase.pur_id %}" class="btn btn-warning btn-sm">Update</a>
+                               <!-- Delete Button
+                                <a href="{% url 'delete_purchased_item' pur_id=purchase.pur_id %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this purchased item?');">Delete</a> -->
                             </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center">No purchased items found.</td>
                         </tr>
                         {% endfor %}
                     </tbody>

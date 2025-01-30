@@ -71,6 +71,7 @@ class PatientForm(forms.ModelForm):
             'patient_birthdate': 'Birthdate',
             'patient_contact': 'Contact',
             'patient_diag': 'Diagnosed',  
+            
         }
 
     def clean_patient_date_checked_up(self):
@@ -94,7 +95,7 @@ class PurchasedItemForm(forms.ModelForm):
             'patient_id': forms.HiddenInput(),
             'item_date_out': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
-        labels = {
+        labels = { 
             'item_code': 'Item',
             'item_date_out': 'Date Out',
         }
@@ -109,32 +110,51 @@ class PurchasedItemForm(forms.ModelForm):
 class ItemPaymentForm(forms.ModelForm):
     class Meta:
         model = Payment
-        fields = ['payment_payed', 'payment_to_be_payed', 'payment_method', 'payment_terms']
+        fields = ['payment_to_be_payed', 'payment_method', 'payment_terms','current_payment']
 
         widgets = {
-            'payment_payed': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Amount Paid'}),
             'payment_to_be_payed': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Total Amount'}),
             'payment_method': forms.Select(attrs={'class': 'form-control'}),
             'payment_terms': forms.Select(attrs={'class': 'form-control'}),
+            'current_payment': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Current Payment'}),
         }
 
         labels = {
-            'payment_payed': 'Amount Paid',
             'payment_to_be_payed': 'Total Amount to Pay',
             'payment_method': 'Payment Method',
             'payment_terms': 'Payment Terms',
+            'current_payment': 'Current Payment',
         }
 
     def clean(self):
         cleaned_data = super().clean()
-        payment_payed = cleaned_data.get('payment_payed')
+        current_payment = cleaned_data.get('current_payment')
         payment_to_be_payed = cleaned_data.get('payment_to_be_payed')
 
-        if payment_payed is not None and payment_to_be_payed is not None:
-            if payment_payed > payment_to_be_payed:
+        if current_payment is not None and payment_to_be_payed is not None:
+            if current_payment > payment_to_be_payed:
                 raise ValidationError("Paid amount cannot exceed the total amount to be paid.")
         
         return cleaned_data
+
+class PaymentDurationForm(forms.ModelForm):
+    class Meta:
+        model = Payment_Duration
+        fields = ['payment_duration_span', 'payment_duration_start', 'payment_duration_end']
+
+        widgets = {
+            'payment_duration_span': forms.Select(attrs={'class': 'form-control'}),
+            'payment_duration_start': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'payment_duration_end': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        }
+
+        labels = {
+            'payment_duration_span': 'Duration',
+            'payment_duration_start': 'Start Date',
+            'payment_duration_end': 'End Date',
+        }
+
+
 
 #_________________________________APPOINTMENT___________________________________________________
 

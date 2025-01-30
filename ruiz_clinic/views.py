@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.db.models import Q, Prefetch
 import matplotlib
-matplotlib.use('Agg')
+from functools import wraps
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import io
@@ -15,16 +15,15 @@ import json
 import random
 import requests
 from django.conf import settings
-
+from django.utils import timezone
 from django.utils.timezone import localtime, now, make_aware, is_aware, localdate
 from pytz import timezone
 import smtplib
 from email.mime.text import MIMEText
 from django.contrib.auth import logout
-
+from django.db.models import F
+matplotlib.use('Agg')
 PH_TZ = timezone("Asia/Manila")
-
-from functools import wraps
 
 def login_required(view_func):
     @wraps(view_func)  # ✅ Keeps function metadata
@@ -84,7 +83,6 @@ def forgot_password(request):
 
     return render(request, 'clinic/Login/forgot_password.html')
 
-
 def verify_reset_otp(request):
     if request.method == 'POST':
         username = request.session.get('reset_username')  # Retrieve stored username
@@ -119,7 +117,6 @@ def reset_password(request):
             messages.error(request, "Error resetting password. Please try again.")
 
     return render(request, 'clinic/Login/reset_password.html')
-
 
 def signup(request):
     if request.method == 'POST':
@@ -194,9 +191,9 @@ def dashboard(request):
             # ✅ Correctly parse the date string
             selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
         except ValueError:
-            selected_date = localdate()  # ✅ Ensure timezone-aware date
+            selected_date = datetime.now().date()  # ✅ Ensure timezone-aware date
     else:
-        selected_date = localdate()  # ✅ Ensure timezone-aware date
+        selected_date = datetime.now().date()  # ✅ Ensure timezone-aware date
 
     # Filter appointments for the selected date (adjust timezone if needed)
     appointments = Appointment.objects.filter(app_date=selected_date).order_by('app_time')
@@ -204,10 +201,14 @@ def dashboard(request):
     # Query for items with low stock
     low_stock_items = Item.objects.filter(item_quantity__lt=3)
 
+    # Query for follow-up patients
+    follow_up_patients = get_follow_up_patients()
+
     return render(request, 'clinic/Dashboard/dashboard.html', {
         'appointments': appointments,
         'selected_date': selected_date,  # Ensure it's timezone-aware
         'low_stock_items': low_stock_items,  # Pass low stock items
+        'follow_up_patients': follow_up_patients,  # Pass follow-up patients
     })
 
 
@@ -256,7 +257,7 @@ def update_appointment_status(request):
             return JsonResponse({'success': False, 'error': 'Appointment not found'})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
-    else:
+    else:   
         return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 # @login_required
@@ -536,7 +537,6 @@ def auto_cancel_appointments(request):
     count = overdue_appointments.update(app_status='Cancelled')
     return count  # Optionally return the number of updated appointments
 
-# Add this function in any relevant view so it runs when the page is accessed
 # @login_required
 def check_and_update_appointments(request):
     """
@@ -545,11 +545,10 @@ def check_and_update_appointments(request):
     auto_cancel_appointments(request)
     return JsonResponse({'success': True, 'message': 'Overdue appointments have been updated.'})
 
-
 #_____________________________________INVENTORY__________________________________________________________
 # @login_required
 def inventory(request):
-    items = Item.objects.all()  # Fetch all items from the database
+    items = Item.objects.all().order_by('-item_code')
     return render(request, 'clinic/Inventory/inventory.html', {'items': items})
 
 # @login_required
@@ -557,8 +556,35 @@ def add_item(request):
     if request.method == 'POST':
         form = ItemForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('inventory')  
+            # Extract data from the form
+            item_name = form.cleaned_data.get('item_name')
+            item_brand = form.cleaned_data.get('item_brand')
+            item_model = form.cleaned_data.get('item_model')
+            item_price = form.cleaned_data.get('item_price')
+            item_color = form.cleaned_data.get('item_color')
+            item_measurement = form.cleaned_data.get('item_measurement')
+            item_frame_type = form.cleaned_data.get('item_frame_type_id')
+            item_quantity = form.cleaned_data.get('item_quantity')
+
+            # Check if an item with the same attributes already exists
+            existing_item = Item.objects.filter(
+                item_name=item_name,
+                item_brand=item_brand,
+                item_model=item_model,
+                item_price=item_price,
+                item_color=item_color,
+                item_measurement=item_measurement,
+                item_frame_type_id=item_frame_type
+            ).first()
+
+            if existing_item:
+                # Increment the quantity of the existing item
+                existing_item.item_quantity += item_quantity
+                existing_item.save()
+            else:
+                # Create a new item if no match is found
+                form.save()
+            return redirect('inventory')
     else:
         form = ItemForm()
     return render(request, 'clinic/Inventory/add_item.html', {'form': form})
@@ -593,11 +619,14 @@ def view_item(request, item_id):
     # Prepare patient details
     patient_details = []
     for purchased_item in purchased_items:
-        patient_name = f"{purchased_item.patient_id.patient_fname} {purchased_item.patient_id.patient_lname}"
-        item_date_out = purchased_item.item_date_out  # Correctly fetch `item_date_out`
+        if purchased_item.patient_id:  # Check if patient_id is not None
+            patient_name = f"{purchased_item.patient_id.patient_fname} {purchased_item.patient_id.patient_lname}"
+        else:
+            patient_name = "Unknown"  # Fallback if no patient is associated
+
         patient_details.append({
             'patient_name': patient_name,
-            'item_date_out': item_date_out,  # Use the correct key
+            'item_date_out': purchased_item.item_date_out,
             'pur_date_purchased': purchased_item.pur_date_purchased,
         })
 
@@ -609,12 +638,47 @@ def view_item(request, item_id):
 
     return render(request, 'clinic/Inventory/view_item.html', context)
 
+def search_items(request):
+    query = request.GET.get('q', '')  # Get the search query from the request
+    items = Item.objects.filter(
+        Q(item_name__icontains=query) |
+        Q(item_brand__icontains=query) |
+        Q(item_model__icontains=query) |
+        Q(item_color__icontains=query) |
+        Q(item_measurement__icontains=query) |
+        Q(item_category_id__item_category_name__icontains=query) |
+        Q(item_frame_type_id__item_frame_type_name__icontains=query)
+    ).distinct()  # Use distinct to avoid duplicate results if relations are joined
+    
+    return render(request, 'clinic/Inventory/inventory.html', {'items': items, 'query': query})
 
 #_________________________________________PATIENT________________________________________________________
 # @login_required
+
 def patient(request):
-    patients = Patient.objects.all().order_by('patient_lname', 'patient_fname')
-    return render(request, 'clinic/Patient/patient.html', {'patients': patients})
+    # Get the filter value from the request
+    pur_stat_filter = request.GET.get('pur_stat', '')
+
+    # Debugging: Check the filter value received
+    print(f"Selected Filter: {pur_stat_filter}")
+
+    if pur_stat_filter:
+        # Filter patients based on the related Purchased_Item's pur_stat
+        patients = Patient.objects.filter(
+            purchased_item__pur_stat=pur_stat_filter
+        ).distinct().order_by('patient_lname', 'patient_fname')
+
+        print(f"Filtered Patients: {patients}")
+    else:
+        # Return all patients if no filter is applied
+        patients = Patient.objects.all().order_by('patient_lname', 'patient_fname')
+        print(f"All Patients: {patients}")
+
+    # Render the patient page
+    return render(request, 'clinic/Patient/patient.html', {
+        'patients': patients,
+        'pur_stat_filter': pur_stat_filter
+    })
 
 # @login_required
 def patient_detail(request, patient_id):
@@ -644,6 +708,22 @@ def patient_detail(request, patient_id):
         'patient': patient,
         'form': form
     })
+
+def edit_patient(request, patient_id):
+    # Fetch the patient object or return 404 if not found
+    patient = get_object_or_404(Patient, pk=patient_id)
+    
+    if request.method == 'POST':
+        # Bind data from the form to the patient instance
+        form = PatientForm(request.POST, instance=patient)
+        if form.is_valid():
+            form.save()
+            return redirect('patient')  # Redirect to the patient list page
+    else:
+        # Prepopulate the form with the patient's current data
+        form = PatientForm(instance=patient)
+
+    return render(request, 'clinic/Patient/edit_patient.html', {'form': form})
 
 # @login_required
 def add_patient(request):
@@ -676,53 +756,244 @@ def delete_patient(request, patient_id):
         return redirect('patient')  # Redirect to the patient list after deletion
     return HttpResponse(status=400)
 
+def search_patients(request):
+    query = request.GET.get('query', '')  # Get the search query from the URL
+    if query:
+        # Filter patients based on the search query
+        patients = Patient.objects.filter(
+            patient_fname__icontains=query
+        ) | Patient.objects.filter(
+            patient_lname__icontains=query
+        ) | Patient.objects.filter(
+            patient_address__icontains=query
+        )
+    else:
+        # If no query, return all patients
+        patients = Patient.objects.all()
+
+    return render(request, 'clinic/Patient/patient.html', {'patients': patients, 'query': query})
 # @login_required
+
+#Working correctly
+# def add_purchased_item(request, patient_id):
+#     patient = get_object_or_404(Patient, patient_id=patient_id)
+#     purchased_item_form = PurchasedItemForm(request.POST or None, patient=patient)
+#     payment_form = ItemPaymentForm(request.POST or None)
+#     payment_duration_form = PaymentDurationForm(request.POST or None)  # Add PaymentDurationForm
+
+#     if request.method == 'POST':
+#         if purchased_item_form.is_valid() and payment_form.is_valid():
+#             purchased_item = purchased_item_form.save(commit=False)
+#             payment = payment_form.save(commit=False)
+
+#             # Get the selected item
+#             item = purchased_item.item_code
+
+#             item_price = item.item_price
+
+#             # Ensure payment_to_be_payed is initialized
+#             if payment.payment_to_be_payed is None:
+#                 payment.payment_to_be_payed = item_price
+            
+#             # Set current payment
+#             payment.current_payment = payment_form.cleaned_data['current_payment']
+
+#             # Validate current payment
+#             if payment.current_payment > payment.payment_to_be_payed:
+#                 messages.error(request, "Current payment exceeds the remaining balance.")
+#                 return render(request, 'clinic/Patient/patient_bought.html', {
+#                     'purchased_item_form': purchased_item_form,
+#                     'payment_form': payment_form,
+#                     'payment_duration_form': payment_duration_form,
+#                     'patient': patient,
+#                 })
+
+#             # Error trapping for item quantity (only check after payment validation)
+#             if item.item_quantity <= 0:
+#                 messages.error(request, f"The item is out of stock.")
+#                 return render(request, 'clinic/Patient/patient_bought.html', {
+#                     'purchased_item_form': purchased_item_form,
+#                     'payment_form': payment_form,
+#                     'payment_duration_form': payment_duration_form,
+#                     'patient': patient,
+#                 })
+
+#             # Deduct item quantity and ensure no negative stock
+#             item.item_quantity -= 1
+#             if item.item_quantity < 0:
+#                 messages.error(request, f"Not enough stock for '{item.item_name}'.")
+#                 return render(request, 'clinic/Patient/patient_bought.html', {
+#                     'purchased_item_form': purchased_item_form,
+#                     'payment_form': payment_form,
+#                     'payment_duration_form': payment_duration_form,
+#                     'patient': patient,
+#                 })
+
+#             # Save the updated item quantity
+#             item.save()
+
+#             # Calculate payment details
+#             payment.payment_payed = payment.current_payment if not payment.pk else payment.payment_payed + payment.current_payment
+#             payment.payment_to_be_payed = item_price - payment.payment_payed
+
+#             # Handle payment duration for installment terms
+#             if payment.payment_terms == 'Installment':
+#                 if payment_duration_form.is_valid():
+#                     payment_duration = payment_duration_form.save()
+#                     payment.payment_duration = payment_duration
+#                     purchased_item.pur_stat = 'For follow up'
+#                 else:
+#                     messages.error(request, "Please fill out the payment duration details correctly.")
+#                     return render(request, 'clinic/Patient/patient_bought.html', {
+#                         'purchased_item_form': purchased_item_form,
+#                         'payment_form': payment_form,
+#                         'payment_duration_form': payment_duration_form,
+#                         'patient': patient,
+#                     })
+#             else:
+#                 purchased_item.pur_stat = 'For Release'
+
+#             # Save payment and associate it with the purchased item
+#             payment.save()
+#             purchased_item.payment_id = payment
+#             purchased_item.patient_id = patient
+
+#             # Explicitly set the purchase date for the purchased item
+#             purchased_item.pur_date_purchased = now().date()
+
+#             purchased_item.save()
+
+#             # messages.success(request, "Item and payment added successfully!")
+#             return redirect('patient_detail', patient_id=patient_id)
+#         else:
+#             messages.error(request, "There was an error adding the item or payment.")
+    
+#     return render(request, 'clinic/Patient/patient_bought.html', {
+#         'purchased_item_form': purchased_item_form,
+#         'payment_form': payment_form,
+#         'payment_duration_form': PaymentDurationForm(),  # Pass a new instance
+#         'patient': patient,
+#     })
+
 def add_purchased_item(request, patient_id):
     patient = get_object_or_404(Patient, patient_id=patient_id)
     purchased_item_form = PurchasedItemForm(request.POST or None, patient=patient)
     payment_form = ItemPaymentForm(request.POST or None)
+    payment_duration_form = PaymentDurationForm(request.POST or None)
 
     if request.method == 'POST':
         if purchased_item_form.is_valid() and payment_form.is_valid():
             purchased_item = purchased_item_form.save(commit=False)
-            item = purchased_item.item_code  # Get the item selected for purchase
-            
-            # Retrieve the item price and set the payment amount
-            item_price = item.item_price
             payment = payment_form.save(commit=False)
-            payment.payment_to_be_payed = item_price  # Assign the item price as total amount to pay
 
-            # Save payment and purchased item
+            # Get the selected item
+            item = purchased_item.item_code
+            item_price = item.item_price
+
+            # Ensure payment_to_be_payed is initialized
+            if payment.payment_to_be_payed is None:
+                payment.payment_to_be_payed = item_price
+
+            # Set current payment
+            payment.current_payment = payment_form.cleaned_data['current_payment']
+
+            # Validate "Fully Paid" condition
+            if payment.payment_terms == "Fully Paid":
+                if payment.current_payment != item_price:
+                    messages.error(request, "For 'Fully Paid' terms, the current payment must match the total item price.")
+                    return render(request, 'clinic/Patient/patient_bought.html', {
+                        'purchased_item_form': purchased_item_form,
+                        'payment_form': payment_form,
+                        'payment_duration_form': payment_duration_form,
+                        'patient': patient,
+                    })
+
+            # Validate current payment against the balance
+            if payment.current_payment > payment.payment_to_be_payed:
+                messages.error(request, "Current payment exceeds the remaining balance.")
+                return render(request, 'clinic/Patient/patient_bought.html', {
+                    'purchased_item_form': purchased_item_form,
+                    'payment_form': payment_form,
+                    'payment_duration_form': payment_duration_form,
+                    'patient': patient,
+                })
+
+            # Error trapping for item quantity (only check after payment validation)
+            if item.item_quantity <= 0:
+                messages.error(request, f"The item is out of stock.")
+                return render(request, 'clinic/Patient/patient_bought.html', {
+                    'purchased_item_form': purchased_item_form,
+                    'payment_form': payment_form,
+                    'payment_duration_form': payment_duration_form,
+                    'patient': patient,
+                })
+
+            # Deduct item quantity and ensure no negative stock
+            item.item_quantity -= 1
+            if item.item_quantity < 0:
+                messages.error(request, f"Not enough stock for '{item.item_name}'.")
+                return render(request, 'clinic/Patient/patient_bought.html', {
+                    'purchased_item_form': purchased_item_form,
+                    'payment_form': payment_form,
+                    'payment_duration_form': payment_duration_form,
+                    'patient': patient,
+                })
+
+            # Save the updated item quantity
+            item.save()
+
+            # Calculate payment details
+            payment.payment_payed = payment.current_payment if not payment.pk else payment.payment_payed + payment.current_payment
+            payment.payment_to_be_payed = item_price - payment.payment_payed
+
+            # Handle payment duration for installment terms
+            if payment.payment_terms == 'Installment':
+                if payment_duration_form.is_valid():
+                    payment_duration = payment_duration_form.save()
+                    payment.payment_duration = payment_duration
+                    purchased_item.pur_stat = 'For follow up'
+                else:
+                    messages.error(request, "Please fill out the payment duration details correctly.")
+                    return render(request, 'clinic/Patient/patient_bought.html', {
+                        'purchased_item_form': purchased_item_form,
+                        'payment_form': payment_form,
+                        'payment_duration_form': payment_duration_form,
+                        'patient': patient,
+                    })
+            else:
+                purchased_item.pur_stat = 'For Release'
+
+            # Save payment and associate it with the purchased item
             payment.save()
             purchased_item.payment_id = payment
             purchased_item.patient_id = patient
+
+            # Explicitly set the purchase date for the purchased item
+            purchased_item.pur_date_purchased = now().date()
+
             purchased_item.save()
 
-            # Check payment terms and update purchase status (pur_stat)
-            if payment.payment_terms in ['Deposit', 'Fully Paid']:
-                purchased_item.pur_stat = 'For Release'
-            elif payment.payment_terms == 'Installment':
-                purchased_item.pur_stat = 'For follow up'
-
-            messages.success(request, "Item and payment added successfully!")
+            # messages.success(request, "Item and payment added successfully!")
             return redirect('patient_detail', patient_id=patient_id)
         else:
             messages.error(request, "There was an error adding the item or payment.")
-
+    
     return render(request, 'clinic/Patient/patient_bought.html', {
         'purchased_item_form': purchased_item_form,
         'payment_form': payment_form,
+        'payment_duration_form': PaymentDurationForm(),
         'patient': patient,
     })
 
 # @login_required
-def item_search(request):
+def item_search(request):  #for select2
     query = request.GET.get('q', '').strip()  # Retrieve and strip the search query
     items = Item.objects.filter(
         Q(item_category_id__item_category_name__icontains=query) |  # Search in the Item Category name
         Q(item_brand__icontains=query) |  # Search in the Item brand
         Q(item_model__icontains=query) |  # Search in the Item model
-        Q(item_frame_type_id__item_frame_type_name__icontains=query)  # Search in the Item Frame Type name
+        Q(item_frame_type_id__item_frame_type_name__icontains=query),
+        item_quantity__gt=0    # Search in the Item Frame Type name
     )[:10]  # Limit the number of items returned
 
     results = [
@@ -742,38 +1013,126 @@ def item_price(request):
     except Item.DoesNotExist:
         return JsonResponse({'error': 'Item not found'}, status=404)
 
+# def edit_purchased_item(request, purchase_id):
+#     # Fetch the purchased item
+#     purchased_item = get_object_or_404(Purchased_Item, pk=purchase_id)
+
+#     if request.method == 'POST':
+#         # Get the associated payment and validate it exists
+#         payment = purchased_item.payment_id
+#         if not payment:
+#             messages.error(request, "No payment record found for this purchase.")
+#             return redirect('edit_purchased_item', purchase_id=purchase_id)
+
+#         # Get form data
+#         item_id = request.POST.get('item_code')
+#         pur_stat = request.POST.get('pur_stat')
+#         new_payment = float(request.POST.get('current_payment', 0))  # New payment entered
+#         item_date_out = request.POST.get('item_date_out')
+
+#         # Validate the new payment does not exceed the remaining balance
+#         remaining_balance = payment.payment_to_be_payed or 0
+#         if new_payment > remaining_balance:
+#             messages.error(
+#                 request,
+#                 f"Cannot pay more than the remaining balance of ₱{remaining_balance}.",
+#             )
+#             return redirect('edit_purchased_item', purchase_id=purchase_id)
+
+#         # Update Purchased_Item fields
+#         if item_id:
+#             purchased_item.item_code = Item.objects.get(pk=item_id)
+#         purchased_item.pur_stat = pur_stat
+#         if item_date_out:
+#             purchased_item.item_date_out = item_date_out
+
+#         # Update payment fields
+#         payment.payment_payed += new_payment  # Increment total paid
+#         payment.payment_to_be_payed = max(remaining_balance - new_payment, 0)  # Update remaining balance
+#         payment.current_payment = new_payment  # Set current payment to the new value
+#         payment.current_payment_date = localtime(now()).date()  # Set the date to today
+#         payment.save()
+
+#         # Save Purchased_Item changes
+#         purchased_item.save()
+
+#         # Update the sales record for today
+#         today = localtime(now()).date()  # Ensure the correct date
+#         sales_entry, created = Sales.objects.get_or_create(sales_date=today)
+
+#         # Increment the sales total for today
+#         sales_entry.sales_total += new_payment
+#         sales_entry.save()
+
+#         # Redirect to the patient detail page
+#         messages.success(request, "Payment updated successfully.")
+#         return redirect('patient_detail', patient_id=purchased_item.patient_id.patient_id)
+
+#     # Fetch all items for the dropdown
+#     items = Item.objects.all()
+#     return render(request, 'clinic/Patient/edit_purchased_item.html', {
+#         'purchased_item': purchased_item,
+#         'items': items,
+#         'payment': purchased_item.payment_id,
+#     })
+
 def edit_purchased_item(request, purchase_id):
     # Fetch the purchased item
     purchased_item = get_object_or_404(Purchased_Item, pk=purchase_id)
-    
+
     if request.method == 'POST':
-        # Update fields based on POST data
+        # Get the associated payment and validate it exists
+        payment = purchased_item.payment_id
+        if not payment:
+            messages.error(request, "No payment record found for this purchase.")
+            return redirect('edit_purchased_item', purchase_id=purchase_id)
+
+        # Get form data
         item_id = request.POST.get('item_code')
         pur_stat = request.POST.get('pur_stat')
-        payment_payed = request.POST.get('payment_payed')
-        payment_to_be_payed = request.POST.get('payment_to_be_payed')
-        item_date_out = request.POST.get('item_date_out') 
-        
+        new_payment = float(request.POST.get('current_payment', 0))  # New payment entered
+        item_date_out = request.POST.get('item_date_out')
+
+        # Ensure payment_to_be_payed is not None
+        remaining_balance = payment.payment_to_be_payed or 0
+
+        # Validate the new payment does not exceed the remaining balance
+        if new_payment > remaining_balance:
+            messages.error(
+                request,
+                f"Cannot pay more than the remaining balance of ₱{remaining_balance:.2f}.",
+            )
+            return redirect('edit_purchased_item', purchase_id=purchase_id)
+
         # Update Purchased_Item fields
-        purchased_item.item_code = Item.objects.get(pk=item_id) if item_id else None
+        if item_id:
+            purchased_item.item_code = Item.objects.get(pk=item_id)
         purchased_item.pur_stat = pur_stat
-        
-        # Handle the 'item_date_out' field if provided
         if item_date_out:
             purchased_item.item_date_out = item_date_out
 
-        # Update Payment fields
-        payment = purchased_item.payment_id
-        if payment:
-            payment.payment_payed = payment_payed
-            payment.payment_to_be_payed = payment_to_be_payed
-            payment.save()
-        
+        # Update payment fields
+        payment.payment_payed += new_payment  # Increment total paid
+        payment.payment_to_be_payed = max(remaining_balance - new_payment, 0)  # Update remaining balance
+        payment.current_payment = new_payment  # Set current payment to the new value
+        payment.current_payment_date = localtime(now()).date()  # Set the date to today
+        payment.save()
+
         # Save Purchased_Item changes
         purchased_item.save()
+
+        # Update the sales record for today
+        today = localtime(now()).date()  # Ensure the correct date
+        sales_entry, created = Sales.objects.get_or_create(sales_date=today)
+
+        # Increment the sales total for today
+        sales_entry.sales_total += new_payment
+        sales_entry.save()
+
+        # Redirect to the patient detail page
         
         return redirect('patient_detail', patient_id=purchased_item.patient_id.patient_id)
-    
+
     # Fetch all items for the dropdown
     items = Item.objects.all()
     return render(request, 'clinic/Patient/edit_purchased_item.html', {
@@ -782,10 +1141,26 @@ def edit_purchased_item(request, purchase_id):
         'payment': purchased_item.payment_id,
     })
 
+#     return redirect('patient_detail', patient_id=purchased_item.patient_id.patient_id)
 
 def delete_purchased_item(request, pur_id):
     # Retrieve the purchased item by pur_id
     purchased_item = get_object_or_404(Purchased_Item, pur_id=pur_id)
+
+    # Get the payment associated with the purchased item
+    payment = purchased_item.payment_id
+    if payment:
+        # Subtract the `current_payment` and `payment_payed` from the total earnings of the day
+        sales_entry, created = Sales.objects.get_or_create(sales_date=now().date())
+        sales_entry.sales_total -= payment.current_payment or 0  # Deduct current payment
+        sales_entry.sales_total -= payment.payment_payed or 0  # Deduct total payment payed
+        sales_entry.number_products_sold = max(0, sales_entry.number_products_sold - 1)  # Decrement products sold
+        sales_entry.save()
+
+        # Reset or remove the `current_payment` and `payment_payed` from the payment
+        payment.current_payment = 0  # Reset the current payment
+        payment.payment_payed = max(payment.payment_payed - payment.current_payment, 0)  # Adjust payment payed
+        payment.save()
 
     # Delete the purchased item
     purchased_item.delete()
@@ -797,11 +1172,84 @@ def delete_purchased_item(request, pur_id):
     return redirect('patient_detail', patient_id=purchased_item.patient_id.patient_id)
 
 
-#_____________________________________SALES__________________________________________________________
-# @login_required
-def sales(request):
-    return render(request, 'clinic/Sales/sales.html')
 
+#_____________________________________SALES__________________________________________________________
+def get_sales_data(date=None):
+    """Fetches sales data for a given date, including all payments made."""
+    if not date:
+        date = localtime(now()).date()
+
+    # Get or create the Sales record for the specified date
+    sales_entry, created = Sales.objects.get_or_create(sales_date=date)
+
+    # Get all payments made on the given date
+    payments_today = Payment.objects.filter(current_payment_date=date)
+
+    # Sum of all payments made today (cumulative)
+    total_earnings = sum(payment.payment_payed for payment in payments_today)
+
+    # Get all purchased items for today
+    purchased_items_today = Purchased_Item.objects.filter(pur_date_purchased=date)
+
+    # Count of products sold today
+    number_products_sold = purchased_items_today.count()
+
+    # Update the Sales entry
+    sales_entry.sales_total = total_earnings
+    sales_entry.number_products_sold = number_products_sold
+    sales_entry.save()
+
+    # Get the product details sold today
+    products_sold = [
+        {
+            "name": item.item_code.item_name,
+            "category": item.item_code.item_category_id.item_category_name,
+            "brand": item.item_code.item_brand,
+            "qty": 1,  # Assuming each Purchased_Item entry represents one product sold
+            "price": item.item_code.item_price,
+        }
+        for item in purchased_items_today
+    ]
+
+    return {
+        "sales_id": sales_entry.sales_id,
+        "sales_total": sales_entry.sales_total,
+        "products_sold_count": sales_entry.number_products_sold,
+        "products_sold": products_sold,
+    }
+
+def sales_page(request):
+    """Render the sales page with today's sales data"""
+    today_sales = get_sales_data()
+    return render(request, "clinic/Sales/sales.html", today_sales)
+
+def sales_api(request):
+    """API to fetch sales data for a given date"""
+    date = request.GET.get("date", now().date())  # Get date from request, default to today
+    sales_data = get_sales_data(date)
+    return JsonResponse(sales_data)
+
+def patient_balances_api(request):
+    """
+    Fetches patients who have a remaining balance and returns them in JSON format.
+    """
+    # Fetch payments with a remaining balance greater than 0
+    payments_with_balances = Payment.objects.filter(payment_to_be_payed__gt=0)
+
+    # Prepare the data to return
+    balances = []
+    for payment in payments_with_balances:
+        # Find the patient associated with this payment via Purchased_Item
+        purchased_item = Purchased_Item.objects.filter(payment_id=payment).first()
+        if purchased_item and purchased_item.patient_id:
+            patient = purchased_item.patient_id
+            balances.append({
+                "patient_name": f"{patient.patient_fname} {patient.patient_lname}",
+                "previous_balance": f"{payment.payment_to_be_payed:.2f}",  # Format balance as currency
+            })
+
+    # Return the data in JSON format
+    return JsonResponse({"balances": balances})
 
 #_________________________________________LOGOUT_______________________________________________________
 # @login_required
@@ -816,3 +1264,5 @@ def user_logout(request):
     messages.success(request, "You have been logged out successfully.")
     
     return redirect('login')
+
+
