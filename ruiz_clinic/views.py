@@ -1203,7 +1203,6 @@ def get_sales_data(date=None):
         "products_sold": products_sold,
     }
 
-
 def sales_page(request):
     """Render the sales page with today's sales data"""
     today_sales = get_sales_data()
@@ -1236,6 +1235,12 @@ def patient_balances_api(request):
 
     # Return the data in JSON format
     return JsonResponse({"balances": balances})
+
+def weekly_sales(request):
+    return render(request, "clinic/Sales/weekly_sales.html")
+
+def monthly_sales(request):
+    return render(request, "clinic/Sales/monthly_sales.html")
 
 #_________________________________________LOGOUT_______________________________________________________
 # @login_required

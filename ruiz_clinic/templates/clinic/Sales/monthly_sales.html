@@ -1,0 +1,76 @@
+{% extends 'clinic/nav.html' %}
+{% load static %}
+{% block title %}Monthly Sales{% endblock %}
+
+{% block content %}
+<div class="sales-container">
+    <div class="header" style="position: relative; height: 125px; padding: 0 20px; background-color: #2db9fa; display: flex; align-items: center;">
+        <h3 style="color: #fff; font-size: 40px; font-family: 'Montserrat', sans-serif; font-weight: normal; margin: 0;">MONTHLY SALES</h3>
+        <div class="filter-section" style="position: absolute; bottom: 10px; right: 20px;">
+            <input type="month" id="monthly-picker" class="date-picker" style="padding: 5px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc;">
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <div class="left-column">
+            <div class="card">
+                <h4 class="section-header">Total Monthly Earnings</h4>
+                <p id="monthly-earnings">₱ 0</p>
+            </div>
+            <div class="card">
+                <h4 class="section-header">Total Products Sold</h4>
+                <p id="monthly-products-sold">0</p>
+            </div>
+        </div>
+
+        <div class="right-column">
+            <div class="card">
+                <h4 class="section-header">Patient Balance</h4>
+                <div id="patient-balance-list" class="patient-balance-container">
+                    <p>No patient balance.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="products-sold-section">
+        <div class="card">
+            <h4 class="section-header">Products Sold</h4>
+            <table class="products-table">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Brand</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody id="monthly-products-table-body"></tbody>
+            </table>
+            <p id="no-products-message" style="text-align: center; display: none;">No products sold this month.</p>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="{% static 'css/sales.css' %}">
+{% endblock %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const monthlyPicker = document.getElementById("monthly-picker");
+    
+        function fetchMonthlySales(month) {
+            fetch(`/api/sales/monthly/?month=${month}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("monthly-earnings").textContent = `₱ ${data.total_sales}`;
+                    document.getElementById("monthly-products-sold").textContent = data.products_sold_count;
+                })
+                .catch(error => console.error("Error fetching monthly sales:", error));
+        }
+    
+        monthlyPicker.addEventListener("change", () => {
+            fetchMonthlySales(monthlyPicker.value);
+        });
+    });
+    
+</script>

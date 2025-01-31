@@ -311,3 +311,29 @@
     color: #888;
     font-size: 14px;
 }
+
+.weekly_button, .monthly_button {
+    width: 100px;
+    padding: 5px;
+    background-color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.3s ease; 
+    font-weight: 500; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.weekly_button:hover {
+    background-color: #0288d1; /* Darker blue on hover */
+    color: #ffffff; /* Keep text white */
+    transform: translateY(-2px); /* Slight lift on hover */
+    box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
+}
+.monthly_button:hover {
+    background-color: #0288d1; /* Darker blue on hover */
+    color: #ffffff; /* Keep text white */
+    transform: translateY(-2px); /* Slight lift on hover */
+    box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
+}
+
