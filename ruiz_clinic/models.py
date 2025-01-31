@@ -85,7 +85,7 @@ class Payment(models.Model):
     payment_terms = models.CharField(max_length=20, choices=pay_terms_choices,default='Fully Paid')
     payment_duration = models.ForeignKey('Payment_Duration', on_delete=models.SET_NULL, null=True, blank=True,
             help_text="Applicable only if payment terms are 'Installment'.")
-
+    sales_recorded = models.BooleanField(default=False)
     def __str__(self):
         return f" {self.payment_payed}, {self.payment_to_be_payed}"
         
@@ -116,7 +116,18 @@ class Payment_Duration(models.Model):
     payment_duration_start = models.DateField(default=now,null=True,blank=True)
     payment_duration_end = models.DateField(null=True,blank=True)
 
+class Doctor(models.Model): 
+    doctor_id = models.AutoField(primary_key=True)
+    doctor_fname = models.CharField(max_length=50)
+    doctor_lname = models.CharField(max_length=50)
+    doctor_initial = models.CharField(max_length=1)
+    doctor_specialization = models.CharField(max_length=100)
+    doctor_contact = models.CharField(max_length=13)
+    doctor_address = models.CharField(max_length=400)
+    doctor_birthdate = models.DateField()
 
+    def __str__(self):
+        return f"{self.doctor_fname} {self.doctor_lname} ({self.doctor_specialization})"    
 class Patient(models.Model):
     patient_id = models.AutoField(primary_key=True)
     patient_fname = models.CharField(max_length=50)
@@ -130,7 +141,7 @@ class Patient(models.Model):
     patient_diag = models.TextField(null=True, blank=True)
     pur_id = models.ForeignKey(Purchased_Item, null=True, blank=True, on_delete=models.SET_NULL)
     payment_id = models.ForeignKey(Payment, null=True, blank=True, on_delete=models.SET_NULL)
-
+    doctor_id = models.ForeignKey(Doctor, null=True, blank=True, on_delete=models.SET_NULL)  
     def age(self):
         today = date.today()
         return today.year - self.patient_birthdate.year - ((today.month, today.day) < (self.patient_birthdate.month, self.patient_birthdate.day))

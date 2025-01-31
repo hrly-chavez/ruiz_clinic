@@ -155,6 +155,9 @@ def verify_otp(request):
 
     return render(request, 'clinic/Signup/verify_otp.html')
 
+
+
+
 #______________________________________LOGIN___________________________________________________________
 @csrf_exempt
 def login(request):
@@ -165,63 +168,48 @@ def login(request):
         try:
             user = Account.objects.get(account_username=username, account_password=password)
             
-            # Store user ID in session
+            # ✅ Store user ID in session
             request.session['user_id'] = user.account_id  # Store primary key
             request.session['username'] = user.account_username  # Store username (optional)
 
-            # Return success response
-            return JsonResponse({'success': True, 'message': 'Login successful!', 'redirect_url': '/dashboard/'})
+            messages.success(request, "Login successful!")
+            return redirect('dashboard')  # ✅ Now it will redirect properly
         except Account.DoesNotExist:
-            # Return error response
-            return JsonResponse({'success': False, 'message': 'Invalid username or password. Please try again.'})
-    
+            messages.error(request, 'Invalid username or password. Please try again.')
+
     return render(request, "clinic/Login/login.html")
-# def login(request):
-#     if request.method == 'POST':
-#         username = request.POST.get('username')
-#         password = request.POST.get('password')
-
-#         try:
-#             user = Account.objects.get(account_username=username, account_password=password)
-            
-#             # ✅ Store user ID in session
-#             request.session['user_id'] = user.account_id  # Store primary key
-#             request.session['username'] = user.account_username  # Store username (optional)
-
-#             messages.success(request, "Login successful!")
-#             return redirect('dashboard')  # ✅ Now it will redirect properly
-#         except Account.DoesNotExist:
-#             messages.error(request, 'Invalid username or password. Please try again.')
-
-#     return render(request, "clinic/Login/login.html")
 
 #_____________________________________DASHBOARD__________________________________________________________
 # @login_required
-# def dashboard(request):
-#     auto_cancel_appointments(request)
-#     # Get the selected date from the request or default to today
-#     selected_date_str = request.GET.get('selected_date')
+def dashboard(request):
+    auto_cancel_appointments(request)
+    # Get the selected date from the request or default to today
+    selected_date_str = request.GET.get('selected_date')
     
-#     if selected_date_str:
-#         try:
-#             # ✅ Correctly parse the date string
-#             selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
-#         except ValueError:
-#             selected_date = localdate()  # ✅ Ensure timezone-aware date
-#     else:
-#         selected_date = localdate()  # ✅ Ensure timezone-aware date
+    if selected_date_str:
+        try:
+            # ✅ Correctly parse the date string
+            selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            selected_date = datetime.now().date()  # ✅ Ensure timezone-aware date
+    else:
+        selected_date = datetime.now().date()  # ✅ Ensure timezone-aware date
 
-#     # Filter appointments for the selected date (adjust timezone if needed)
-#     appointments = Appointment.objects.filter(app_date=selected_date).order_by('app_time')
+    # Filter appointments for the selected date (adjust timezone if needed)
+    appointments = Appointment.objects.filter(app_date=selected_date).order_by('app_time')
 
-#     # Query for items with low stock
-#     low_stock_items = Item.objects.filter(item_quantity__lt=3)
+    # Query for items with low stock
+    low_stock_items = Item.objects.filter(item_quantity__lt=3)
 
-#     return render(request, 'clinic/Dashboard/dashboard.html', {
-#         'appointments': appointments,
-#         'selected_date': selected_date,  # Ensure it's timezone-aware
-#         'low_stock_items': low_stock_items,  # Pass low stock items
-#     })
+    # Query for follow-up patients
+    follow_up_patients = get_follow_up_patients()
+
+    return render(request, 'clinic/Dashboard/dashboard.html', {
+        'appointments': appointments,
+        'selected_date': selected_date,  # Ensure it's timezone-aware
+        'low_stock_items': low_stock_items,  # Pass low stock items
+        'follow_up_patients': follow_up_patients,  # Pass follow-up patients
+    })
 
 def get_follow_up_patients():
     """
@@ -268,39 +256,6 @@ def get_follow_up_patients():
     follow_up_patients.sort(key=lambda x: x["due_date"])
     
     return follow_up_patients
-
-
-def dashboard(request):
-    auto_cancel_appointments(request)
-    # Get the selected date from the request or default to today
-    selected_date_str = request.GET.get('selected_date')
-    
-    if selected_date_str:
-        try:
-            # ✅ Correctly parse the date string
-            selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
-        except ValueError:
-            selected_date = datetime.now().date()  # ✅ Ensure timezone-aware date
-    else:
-        selected_date = datetime.now().date()  # ✅ Ensure timezone-aware date
-
-    # Filter appointments for the selected date (adjust timezone if needed)
-    appointments = Appointment.objects.filter(app_date=selected_date).order_by('app_time')
-
-    # Query for items with low stock
-    low_stock_items = Item.objects.filter(item_quantity__lt=3)
-
-    # Query for follow-up patients
-    follow_up_patients = get_follow_up_patients()
-
-    return render(request, 'clinic/Dashboard/dashboard.html', {
-        'appointments': appointments,
-        'selected_date': selected_date,  # Ensure it's timezone-aware
-        'low_stock_items': low_stock_items,  # Pass low stock items
-        'follow_up_patients': follow_up_patients,  # Pass follow-up patients
-    })
-
-
 # @login_required
 @csrf_exempt
 def cancel_appointment(request):
@@ -825,7 +780,7 @@ def add_patient(request):
                 patient.patient_date_checked_up = now()
             patient.save()
 
-            messages.success(request, "Patient added successfully!")
+            #messages.success(request, "Patient added successfully!")
             return redirect('patient')
         else:
             messages.error(request, "There was an error adding the patient.")
@@ -1082,7 +1037,7 @@ def item_search(request):  #for select2
         Q(item_brand__icontains=query) |  # Search in the Item brand
         Q(item_model__icontains=query) |  # Search in the Item model
         Q(item_frame_type_id__item_frame_type_name__icontains=query),
-        item_quantity__gt=0    # Search in the Item Frame Type name
+        item_quantity__gt=0    
     )[:10]  # Limit the number of items returned
 
     results = [
@@ -1102,75 +1057,13 @@ def item_price(request):
     except Item.DoesNotExist:
         return JsonResponse({'error': 'Item not found'}, status=404)
 
-# def edit_purchased_item(request, purchase_id):
-#     # Fetch the purchased item
-#     purchased_item = get_object_or_404(Purchased_Item, pk=purchase_id)
-
-#     if request.method == 'POST':
-#         # Get the associated payment and validate it exists
-#         payment = purchased_item.payment_id
-#         if not payment:
-#             messages.error(request, "No payment record found for this purchase.")
-#             return redirect('edit_purchased_item', purchase_id=purchase_id)
-
-#         # Get form data
-#         item_id = request.POST.get('item_code')
-#         pur_stat = request.POST.get('pur_stat')
-#         new_payment = float(request.POST.get('current_payment', 0))  # New payment entered
-#         item_date_out = request.POST.get('item_date_out')
-
-#         # Validate the new payment does not exceed the remaining balance
-#         remaining_balance = payment.payment_to_be_payed or 0
-#         if new_payment > remaining_balance:
-#             messages.error(
-#                 request,
-#                 f"Cannot pay more than the remaining balance of ₱{remaining_balance}.",
-#             )
-#             return redirect('edit_purchased_item', purchase_id=purchase_id)
-
-#         # Update Purchased_Item fields
-#         if item_id:
-#             purchased_item.item_code = Item.objects.get(pk=item_id)
-#         purchased_item.pur_stat = pur_stat
-#         if item_date_out:
-#             purchased_item.item_date_out = item_date_out
-
-#         # Update payment fields
-#         payment.payment_payed += new_payment  # Increment total paid
-#         payment.payment_to_be_payed = max(remaining_balance - new_payment, 0)  # Update remaining balance
-#         payment.current_payment = new_payment  # Set current payment to the new value
-#         payment.current_payment_date = localtime(now()).date()  # Set the date to today
-#         payment.save()
-
-#         # Save Purchased_Item changes
-#         purchased_item.save()
-
-#         # Update the sales record for today
-#         today = localtime(now()).date()  # Ensure the correct date
-#         sales_entry, created = Sales.objects.get_or_create(sales_date=today)
-
-#         # Increment the sales total for today
-#         sales_entry.sales_total += new_payment
-#         sales_entry.save()
-
-#         # Redirect to the patient detail page
-#         messages.success(request, "Payment updated successfully.")
-#         return redirect('patient_detail', patient_id=purchased_item.patient_id.patient_id)
-
-#     # Fetch all items for the dropdown
-#     items = Item.objects.all()
-#     return render(request, 'clinic/Patient/edit_purchased_item.html', {
-#         'purchased_item': purchased_item,
-#         'items': items,
-#         'payment': purchased_item.payment_id,
-#     })
 
 def edit_purchased_item(request, purchase_id):
     # Fetch the purchased item
     purchased_item = get_object_or_404(Purchased_Item, pk=purchase_id)
 
     if request.method == 'POST':
-        # Get the associated payment and validate it exists
+        # Get the associated payment
         payment = purchased_item.payment_id
         if not payment:
             messages.error(request, "No payment record found for this purchase.")
@@ -1182,15 +1075,10 @@ def edit_purchased_item(request, purchase_id):
         new_payment = float(request.POST.get('current_payment', 0))  # New payment entered
         item_date_out = request.POST.get('item_date_out')
 
-        # Ensure payment_to_be_payed is not None
-        remaining_balance = payment.payment_to_be_payed or 0
-
         # Validate the new payment does not exceed the remaining balance
+        remaining_balance = payment.payment_to_be_payed or 0
         if new_payment > remaining_balance:
-            messages.error(
-                request,
-                f"Cannot pay more than the remaining balance of ₱{remaining_balance:.2f}.",
-            )
+            messages.error(request, f"Cannot pay more than the remaining balance of ₱{remaining_balance}.")
             return redirect('edit_purchased_item', purchase_id=purchase_id)
 
         # Update Purchased_Item fields
@@ -1200,26 +1088,30 @@ def edit_purchased_item(request, purchase_id):
         if item_date_out:
             purchased_item.item_date_out = item_date_out
 
-        # Update payment fields
-        payment.payment_payed += new_payment  # Increment total paid
-        payment.payment_to_be_payed = max(remaining_balance - new_payment, 0)  # Update remaining balance
-        payment.current_payment = new_payment  # Set current payment to the new value
-        payment.current_payment_date = localtime(now()).date()  # Set the date to today
+        # Get today's date
+        today = localtime(now()).date()
+
+        #  Update Payment record
+        payment.payment_payed += new_payment
+        payment.payment_to_be_payed = max(remaining_balance - new_payment, 0)
+        payment.current_payment = new_payment
+        payment.current_payment_date = today
+        payment.sales_recorded = False  #  Mark as "not yet added to sales"
         payment.save()
 
         # Save Purchased_Item changes
         purchased_item.save()
 
-        # Update the sales record for today
-        today = localtime(now()).date()  # Ensure the correct date
-        sales_entry, created = Sales.objects.get_or_create(sales_date=today)
-
-        # Increment the sales total for today
-        sales_entry.sales_total += new_payment
+        #  Only update today's sales with new payments
+        sales_entry, _ = Sales.objects.get_or_create(sales_date=today)
+        sales_entry.sales_total += new_payment  #  Only add new payment
         sales_entry.save()
 
-        # Redirect to the patient detail page
-        
+        #  Mark this payment as recorded in sales
+        payment.sales_recorded = True
+        payment.save()
+
+        #messages.success(request, "Payment updated successfully.")
         return redirect('patient_detail', patient_id=purchased_item.patient_id.patient_id)
 
     # Fetch all items for the dropdown
@@ -1230,7 +1122,7 @@ def edit_purchased_item(request, purchase_id):
         'payment': purchased_item.payment_id,
     })
 
-#     return redirect('patient_detail', patient_id=purchased_item.patient_id.patient_id)
+  
 
 def delete_purchased_item(request, pur_id):
     # Retrieve the purchased item by pur_id
@@ -1264,31 +1156,35 @@ def delete_purchased_item(request, pur_id):
 
 #_____________________________________SALES__________________________________________________________
 def get_sales_data(date=None):
-    """Fetches sales data for a given date, including all payments made."""
+    """Fetch sales data for a given date, ensuring past totals remain unchanged."""
     if not date:
         date = localtime(now()).date()
 
-    # Get or create the Sales record for the specified date
-    sales_entry, created = Sales.objects.get_or_create(sales_date=date)
+    #  Get the correct Sales entry
+    sales_entry, _ = Sales.objects.get_or_create(sales_date=date)
 
-    # Get all payments made on the given date
-    payments_today = Payment.objects.filter(current_payment_date=date)
+    #  Fetch only payments that haven't been recorded yet
+    new_payments = Payment.objects.filter(current_payment_date=date, sales_recorded=False)
 
-    # Sum of all payments made today (cumulative)
-    total_earnings = sum(payment.payment_payed for payment in payments_today)
+    #  Add only new payments to the sales total
+    total_earnings = sum(payment.current_payment for payment in new_payments)
 
-    # Get all purchased items for today
+    #  Prevent duplicate additions
+    sales_entry.sales_total += total_earnings
+    sales_entry.save()
+
+    #  Mark these payments as recorded
+    new_payments.update(sales_recorded=True)
+
+    #  Fetch purchased items for the selected date
     purchased_items_today = Purchased_Item.objects.filter(pur_date_purchased=date)
 
-    # Count of products sold today
+    # Count number of products sold today
     number_products_sold = purchased_items_today.count()
-
-    # Update the Sales entry
-    sales_entry.sales_total = total_earnings
     sales_entry.number_products_sold = number_products_sold
     sales_entry.save()
 
-    # Get the product details sold today
+    # Get product details sold today
     products_sold = [
         {
             "name": item.item_code.item_name,
@@ -1306,6 +1202,7 @@ def get_sales_data(date=None):
         "products_sold_count": sales_entry.number_products_sold,
         "products_sold": products_sold,
     }
+
 
 def sales_page(request):
     """Render the sales page with today's sales data"""
