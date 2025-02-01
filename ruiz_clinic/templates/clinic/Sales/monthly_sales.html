@@ -4,14 +4,17 @@
 
 {% block content %}
 <div class="sales-container">
-    <div class="header" style="position: relative; height: 125px; padding: 0 20px; background-color: #2db9fa; display: flex; align-items: center;">
-        <h3 style="color: #fff; font-size: 40px; font-family: 'Montserrat', sans-serif; font-weight: normal; margin: 0;">MONTHLY SALES</h3>
-        <div class="filter-section" style="position: absolute; bottom: 10px; right: 20px;">
-            <input type="month" id="monthly-picker" class="date-picker" style="padding: 5px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc;">
+    <!-- Header -->
+    <div class="header">
+        <h3>MONTHLY SALES</h3>
+        <div class="filter-section">
+            <input type="month" id="monthly-picker" class="date-picker">
         </div>
     </div>
 
+    <!-- Main Layout -->
     <div class="main-layout">
+        <!-- Left Column -->
         <div class="left-column">
             <div class="card">
                 <h4 class="section-header">Total Monthly Earnings</h4>
@@ -23,54 +26,122 @@
             </div>
         </div>
 
-        <div class="right-column">
-            <div class="card">
-                <h4 class="section-header">Patient Balance</h4>
-                <div id="patient-balance-list" class="patient-balance-container">
-                    <p>No patient balance.</p>
+        <!-- Right Column -->
+        <div class="card">
+            <h4 class="section-header">Patient Balance</h4>
+            <div class="patient-balance-container">
+                <table class="patient-balance-table">
+                    <thead>
+                        <tr>
+                            <th style="padding: 8px; text-align: center; width: 50%;">Name</th>
+                            <th style="padding: 8px; text-align: center; width: 25%;">Balance</th>
+                            <th style="padding: 8px; text-align: center; width: 25%;">Date End</th>
+                        </tr>
+                    </thead>
+                </table>
+                <div class="table-scroll">
+                    <table class="patient-balance-table">
+                        <tbody id="monthly-patient-balance-body">
+                            <!-- Dynamic content will be inserted here -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Products Sold Section -->
     <div class="products-sold-section">
         <div class="card">
             <h4 class="section-header">Products Sold</h4>
-            <table class="products-table">
-                <thead>
-                    <tr>
-                        <th>Category</th>
-                        <th>Brand</th>
-                        <th>Quantity</th>
-                        <th>Price</th>
-                    </tr>
-                </thead>
-                <tbody id="monthly-products-table-body"></tbody>
-            </table>
-            <p id="no-products-message" style="text-align: center; display: none;">No products sold this month.</p>
+            <div class="table-container">
+                <table class="monthly-products-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Brand</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monthly-products-table-body"></tbody>
+                </table>
+            </div>
+            <p id="monthly-no-products-message" style="text-align: center; display: none;">No products sold this month.</p>
         </div>
     </div>
+
 </div>
 
-<link rel="stylesheet" href="{% static 'css/sales.css' %}">
-{% endblock %}
+<!-- Styles -->
+<link rel="stylesheet" href="{% static 'css/monthly_sales.css' %}">
+
+<!-- JavaScript -->
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         const monthlyPicker = document.getElementById("monthly-picker");
-    
+
         function fetchMonthlySales(month) {
             fetch(`/api/sales/monthly/?month=${month}`)
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById("monthly-earnings").textContent = `₱ ${data.total_sales}`;
                     document.getElementById("monthly-products-sold").textContent = data.products_sold_count;
+
+                    // ✅ Update Patient Balance Table
+                    const tableBody = document.getElementById("monthly-patient-balance-body");
+                    tableBody.innerHTML = "";
+
+                    if (data.patient_balances.length === 0) {
+                        tableBody.innerHTML = `
+                            <tr>
+                                <td colspan="3" style="text-align: center; padding: 8px;">No patient balance.</td>
+                            </tr>
+                        `;
+                    } else {
+                        data.patient_balances.forEach(balance => {
+                            const row = document.createElement("tr");
+
+                            row.innerHTML = `
+                                <td style="padding: 8px; text-align: left; width: 50%;">${balance.patient_name}</td>
+                                <td style="padding: 8px; text-align: center; width: 25%;">₱ ${balance.previous_balance}</td>
+                                <td style="padding: 8px; text-align: center; width: 25%;">${balance.payment_duration_date}</td>
+                            `;
+
+                            tableBody.appendChild(row);
+                        });
+                    }
+
+                    // ✅ Update Products Sold Table
+                    const productsTableBody = document.getElementById("monthly-products-table-body");
+                    productsTableBody.innerHTML = "";
+                    if (data.products_sold.length > 0) {
+                        data.products_sold.forEach(product => {
+                            const row = `<tr>
+                                <td>${product.category}</td>
+                                <td>${product.brand}</td>
+                                <td>${product.quantity}</td>
+                                <td>₱ ${product.price}</td>
+                            </tr>`;
+                            productsTableBody.innerHTML += row;
+                        });
+                        document.getElementById("monthly-no-products-message").style.display = "none";
+                    } else {
+                        document.getElementById("monthly-no-products-message").style.display = "block";
+                    }
                 })
                 .catch(error => console.error("Error fetching monthly sales:", error));
         }
-    
+
         monthlyPicker.addEventListener("change", () => {
             fetchMonthlySales(monthlyPicker.value);
         });
+
+        let today = new Date();
+        let defaultMonth = today.toISOString().slice(0, 7);
+        monthlyPicker.value = defaultMonth;
+        fetchMonthlySales(defaultMonth);
     });
-    
 </script>
+
+{% endblock %}

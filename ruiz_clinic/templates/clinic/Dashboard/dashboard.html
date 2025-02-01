@@ -69,15 +69,16 @@
                             <img src="{% static 'istockphoto-1061001352-612x612.jpg' %}" alt="LIZALIE R. MAQUILAN O.D">
                         </div>
                         <div class="profile-details">
-                            <h3>LIZALIE R. MAQUILAN O.D</h3>
-                            <p>Optometrist</p>
-                            <p>Lapu-Lapu City, Cebu</p>
+                            <h3>{{ doctor.doctor_fname }} {{doctor.doctor_initial}}. {{ doctor.doctor_lname }} O.D.</h3>
+                            <p>{{ doctor.doctor_specialization }}</p>
+                            <p>{{ doctor.doctor_address }}</p>
                         </div>
                     </div>
                     <div class="additional-info">
-                        <p><strong>Date of Birth:</strong> November 8, 1973</p>
+                        <p><strong>Date of Birth:</strong> {{ doctor.doctor_birthdate }}</p>
                         <p><strong>Blood Type:</strong> A-</p>
                         <p><strong>Gender:</strong> Female</p>
+                        <p><strong>Contact:</strong>{{ doctor.doctor_contact }}</p>
                     </div>
                 </div>
 

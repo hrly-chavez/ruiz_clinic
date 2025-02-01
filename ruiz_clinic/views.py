@@ -22,6 +22,7 @@ import smtplib
 from email.mime.text import MIMEText
 from django.contrib.auth import logout
 from django.db.models import F
+from django.db.models import Sum, Count
 matplotlib.use('Agg')
 PH_TZ = timezone("Asia/Manila")
 
@@ -198,6 +199,8 @@ def dashboard(request):
     # Filter appointments for the selected date (adjust timezone if needed)
     appointments = Appointment.objects.filter(app_date=selected_date).order_by('app_time')
 
+    doctor = Doctor.objects.all().first()
+
     # Query for items with low stock
     low_stock_items = Item.objects.filter(item_quantity__lt=3)
 
@@ -205,6 +208,7 @@ def dashboard(request):
     follow_up_patients = get_follow_up_patients()
 
     return render(request, 'clinic/Dashboard/dashboard.html', {
+        'doctor': doctor,
         'appointments': appointments,
         'selected_date': selected_date,  # Ensure it's timezone-aware
         'low_stock_items': low_stock_items,  # Pass low stock items
@@ -1218,29 +1222,150 @@ def patient_balances_api(request):
     """
     Fetches patients who have a remaining balance and returns them in JSON format.
     """
-    # Fetch payments with a remaining balance greater than 0
     payments_with_balances = Payment.objects.filter(payment_to_be_payed__gt=0)
 
-    # Prepare the data to return
     balances = []
     for payment in payments_with_balances:
-        # Find the patient associated with this payment via Purchased_Item
         purchased_item = Purchased_Item.objects.filter(payment_id=payment).first()
         if purchased_item and purchased_item.patient_id:
             patient = purchased_item.patient_id
+            payment_duration_end = payment.payment_duration.payment_duration_end if payment.payment_duration else "N/A"
+
             balances.append({
                 "patient_name": f"{patient.patient_fname} {patient.patient_lname}",
-                "previous_balance": f"{payment.payment_to_be_payed:.2f}",  # Format balance as currency
+                "previous_balance": f"{payment.payment_to_be_payed:.2f}",
+                "payment_duration_date": payment_duration_end,
             })
 
-    # Return the data in JSON format
     return JsonResponse({"balances": balances})
+
 
 def weekly_sales(request):
     return render(request, "clinic/Sales/weekly_sales.html")
 
+def weekly_sales_api(request):
+    """
+    Fetches total earnings, number of products sold, and list of sold products for the selected week.
+    """
+    from django.utils.timezone import now
+
+    selected_date = request.GET.get("date")
+    if not selected_date:
+        return JsonResponse({"error": "Missing date parameter"}, status=400)
+
+    try:
+        selected_date = datetime.strptime(selected_date, "%Y-%m-%d").date()
+    except ValueError:
+        return JsonResponse({"error": "Invalid date format"}, status=400)
+
+    week_start = selected_date - timedelta(days=selected_date.weekday())  # Monday
+    week_end = week_start + timedelta(days=5)  # Saturday
+
+    # Get total earnings for the week
+    total_sales = Sales.objects.filter(sales_date__range=[week_start, week_end]).aggregate(total=Sum("sales_total"))["total"] or 0.0
+
+    # Get total number of products sold in the week
+    total_products_sold = Sales.objects.filter(sales_date__range=[week_start, week_end]).aggregate(total=Sum("number_products_sold"))["total"] or 0
+
+    # Get list of products sold
+    products_sold = Purchased_Item.objects.filter(pur_date_purchased__range=[week_start, week_end])\
+        .values("item_code__item_category_id__item_category_name", "item_code__item_brand")\
+        .annotate(quantity_sold=Count("item_code"), total_price=Sum("item_code__item_price"))
+
+    product_list = [
+        {
+            "category": item["item_code__item_category_id__item_category_name"],
+            "brand": item["item_code__item_brand"],
+            "quantity": item["quantity_sold"],
+            "price": f"{item['total_price']:.2f}"
+        }
+        for item in products_sold
+    ]
+
+    # Fetch patients with balances
+    balances = []
+    payments_with_balances = Payment.objects.filter(payment_to_be_payed__gt=0)
+    for payment in payments_with_balances:
+        purchased_item = Purchased_Item.objects.filter(payment_id=payment).first()
+        if purchased_item and purchased_item.patient_id:
+            patient = purchased_item.patient_id
+            payment_duration_end = payment.payment_duration.payment_duration_end if payment.payment_duration else "N/A"
+            balances.append({
+                "patient_name": f"{patient.patient_fname} {patient.patient_lname}",
+                "previous_balance": f"{payment.payment_to_be_payed:.2f}",
+                "payment_duration_date": payment_duration_end,
+            })
+
+    return JsonResponse({
+        "total_sales": f"{total_sales:.2f}",
+        "products_sold_count": total_products_sold,
+        "products_sold": product_list,
+        "patient_balances": balances  # ✅ Ensure this is returned properly
+    })
+
+
 def monthly_sales(request):
     return render(request, "clinic/Sales/monthly_sales.html")
+
+def monthly_sales_api(request):
+    """
+    Fetches total earnings, total products sold, and list of sold products for the selected month.
+    """
+    selected_month = request.GET.get("month")
+    if not selected_month:
+        return JsonResponse({"error": "Missing month parameter"}, status=400)
+
+    # Convert to Date Format (YYYY-MM)
+    try:
+        selected_date = datetime.strptime(selected_month, "%Y-%m")
+    except ValueError:
+        return JsonResponse({"error": "Invalid month format"}, status=400)
+
+    year = selected_date.year
+    month = selected_date.month
+
+    # Get total earnings for the month
+    total_sales = Sales.objects.filter(sales_date__year=year, sales_date__month=month).aggregate(total=Sum("sales_total"))["total"] or 0.0
+
+    # Get total number of products sold in the month
+    total_products_sold = Sales.objects.filter(sales_date__year=year, sales_date__month=month).aggregate(total=Sum("number_products_sold"))["total"] or 0
+
+    # Get list of products sold
+    products_sold = Purchased_Item.objects.filter(pur_date_purchased__year=year, pur_date_purchased__month=month) \
+        .values("item_code__item_category_id__item_category_name", "item_code__item_brand") \
+        .annotate(quantity_sold=Count("item_code"), total_price=Sum("item_code__item_price"))
+
+    product_list = [
+        {
+            "category": item["item_code__item_category_id__item_category_name"],
+            "brand": item["item_code__item_brand"],
+            "quantity": item["quantity_sold"],
+            "price": f"{item['total_price']:.2f}"
+        }
+        for item in products_sold
+    ]
+
+    # Fetch patients with balances
+    balances = []
+    payments_with_balances = Payment.objects.filter(payment_to_be_payed__gt=0)
+    for payment in payments_with_balances:
+        purchased_item = Purchased_Item.objects.filter(payment_id=payment).first()
+        if purchased_item and purchased_item.patient_id:
+            patient = purchased_item.patient_id
+            payment_duration_end = payment.payment_duration.payment_duration_end if payment.payment_duration else "N/A"
+
+            balances.append({
+                "patient_name": f"{patient.patient_fname} {patient.patient_lname}",
+                "previous_balance": f"{payment.payment_to_be_payed:.2f}",
+                "payment_duration_date": payment_duration_end,
+            })
+
+    return JsonResponse({
+        "total_sales": f"{total_sales:.2f}",
+        "products_sold_count": total_products_sold,
+        "products_sold": product_list,
+        "patient_balances": balances
+    })
 
 #_________________________________________LOGOUT_______________________________________________________
 # @login_required
