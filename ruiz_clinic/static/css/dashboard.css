@@ -52,6 +52,7 @@ html, body {
     gap: 20px;
     flex-wrap: wrap; /* Allow wrapping on smaller screens */
     flex-grow: 1; /* Fill available space */
+    min-height: 300px;
     height: auto;
 }
 
@@ -125,7 +126,7 @@ html, body {
     font-size: 18px;
     text-align: center;
     border-radius: 8px 8px 0 0;
-    background: linear-gradient(145deg, #29B6F6, #1a8ebc);
+    background: linear-gradient(135deg, #2db9fa, #1a8cd8);  
     color: white;
 }
 
@@ -243,11 +244,13 @@ html, body {
 .notice-widget {
     width: 300px;
     flex: 1; /* Ensure it distributes space equally */
-    background-color: #b5e5fc;
+    background-color: #ffffff;
     border-radius: 8px; /* Add rounded corners for consistency */
     overflow: hidden; /* Prevent unnecessary scrollbars */
     display: flex;
     flex-direction: column; /* Stack header and content vertically */
+    min-height: 300px; /* Minimum height for visual consistency */
+    max-height: 100%; /* Ensures it doesn't exceed the container's height */
 }
 
 /* Notice Widget Header */
@@ -274,7 +277,6 @@ html, body {
     flex-direction: column;
     gap: 10px; /* Add space between low-stock items */
     box-sizing: border-box;
-    max-height: 100%; /* Allow the container to take up full available height */
 }
 
 /* Individual Low Stock Widget */
@@ -304,7 +306,7 @@ html, body {
 
 /* Notice Widget Specific Scrollbar */
 .notice-widget .low-stock-container {
-    max-height: 350px; /* Adjust based on design */
+    height: auto; /* Adjust based on design */
     overflow-y: auto; /* Enable vertical scrolling */
     padding: 10px;
 }

@@ -15,38 +15,36 @@
 <button id="createAppointmentBtn" class="btn" 
     {% if is_past_date or is_sunday %}disabled{% endif %}>
     Create Appointment
-</button>
+</button><br>
 
 {% if messages %}
-    <div id="popupMessage" class="modal" style="display: block;">
-        <div class="modal-content">
-            <span class="close-btn" id="closePopupBtn">&times;</span>
-            {% for message in messages %}
-                <p class="popup-message {{ message.tags }}">{{ message }}</p>
-            {% endfor %}
-        </div>
+    <div id="toastContainer">
+        {% for message in messages %}
+            <div class="toast-message {{ message.tags }}">
+                <span class="toast-text">{{ message }}</span>
+                <span class="toast-close" onclick="this.parentElement.style.display='none';">&times;</span>
+            </div>
+        {% endfor %}
     </div>
-    <script>
-        // Hide the popup after 3 seconds (3000ms)
-        setTimeout(() => {
-            const popup = document.getElementById("popupMessage");
-            if (popup) {
-                popup.classList.add("fade-out");
-                setTimeout(() => {
-                    popup.style.display = "none";
-                }, 500); // Wait for the fade-out animation to complete
-            }
-        }, 3000);
-        
 
-        
+    <script>
+        // Auto-dismiss notifications after 3 seconds
+        setTimeout(() => {
+            document.querySelectorAll(".toast-message").forEach(toast => {
+                toast.classList.add("fade-out");
+                setTimeout(() => {
+                    toast.style.display = "none";
+                }, 500); // Wait for fade-out animation
+            });
+        }, 3000);
     </script>
 {% endif %}
 
 
 
+
 <!-- Appointments Table -->
-<div class="appointment-widget-container">
+
     {% if appointments %}
         <table class="appointments-table">
             <thead>
@@ -87,7 +85,7 @@
             <p>No appointments for this date.</p>
         </div>
     {% endif %}
-</div>
+
 
 <!-- Modal for Viewing Appointment Details -->
 <div id="viewAppointmentModal" class="modal" style="display: none;">
@@ -122,27 +120,33 @@
         <span class="close-btn" id="closeCreateEditModalBtn">&times;</span>
         <h2 id="modalTitle">Create/Update Appointment</h2>
 
-
-
         <form method="POST" id="appointmentForm" action="">
             {% csrf_token %}
-            {{ form.as_p }}
-        
-            <!-- Hidden input for the date -->
+            
+            <label for="id_app_fname">First Name</label>
+            <input type="text" id="id_app_fname" name="app_fname" required>
+
+            <label for="id_app_lname">Last Name</label>
+            <input type="text" id="id_app_lname" name="app_lname" required>
+
+            <label for="id_app_contact">Contact Number</label>
+            <input type="text" id="id_app_contact" name="app_contact" required>
+
+            <label for="id_app_time">Appointment Time</label>
+            <input type="time" id="id_app_time" name="app_time" required>
+
             <input type="hidden" id="id_app_date" name="app_date" value="{{ selected_date|date:'Y-m-d' }}">
-        
-            <!-- Hidden input to store the appointment ID (used for updates) -->
             <input type="hidden" id="appointment_id" name="appointment_id">
-        
-            <!-- Submit Button -->
-            <input type="submit" id="modalSubmitButton" value="Create">
-        
-            <!-- Cancel Button -->
-            <button type="button" id="cancelCreateEditModalButton" class="btn">Cancel</button>
+
+            <!-- Buttons -->
+            <div class="modal-actions">
+                <input type="submit" id="modalSubmitButton" value="Create">
+                <button type="button" id="cancelCreateEditModalButton">Cancel</button>
+            </div>
         </form>
-        
     </div>
 </div>
+
 
 <script>
     // Elements for Modals
@@ -255,7 +259,7 @@ viewButtons.forEach(button => {
                 body: JSON.stringify({ appointment_id: appointmentId })
             }).then(response => {
                 if (response.ok) {
-                    alert("Appointment canceled successfully.");
+                    alert("Appointment deleted successfully.");
                     location.reload();
                 } else {
                     response.json().then(data => alert(data.error || "Failed to cancel the appointment."));

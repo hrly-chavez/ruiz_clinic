@@ -1,29 +1,40 @@
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
 /* Body Background */
 body {
-    background-color: #87CEEB;
-    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #2db9fa, #1a8cd8); /* Light blue gradient */
+    font-family: 'Poppins', sans-serif;
     margin: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    transition: all 0.3s ease-in-out;
 }
 
 /* Login Container */
 .login-container {
     display: flex;
-    width: 70%;
+    width: 80%;
     max-width: 900px;
-    background: #fff;
-    border-radius: 8px;
+    background: #ffffff;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+/* Hover Effect on Login Container */
+.login-container:hover {
+    transform: scale(1.03);
+    box-shadow: 0px 15px 35px rgba(0, 0, 0, 0.3);
 }
 
 /* Left Image Section */
 .login-image {
     flex: 1;
-    background: #fff;
+    background: #ffffff;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -42,28 +53,36 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    text-align: center;
 }
 
 .login-form h1 {
     font-size: 2rem;
     margin-bottom: 20px;
     color: #333;
+    font-weight: bold;
 }
 
 /* Input Group */
 .input-group {
     display: flex;
     align-items: center;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 10px;
+    margin-bottom: 20px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    background: #f9f9f9;
+    transition: border 0.3s ease-in-out;
+}
+
+.input-group:focus-within {
+    border-color: #76C7F1;
 }
 
 .input-group label {
     margin-right: 10px;
     font-size: 1.2rem;
-    color: #555;
+    color: #666;
 }
 
 .input-group input {
@@ -71,19 +90,20 @@ body {
     flex: 1;
     outline: none;
     font-size: 1rem;
-    padding: 5px;
+    background: transparent;
 }
 
 /* Actions */
 .actions {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     text-align: right;
 }
 
 .actions a {
-    color: #007BFF;
+    color: #008CBA;
     text-decoration: none;
     font-size: 0.9rem;
+    font-weight: bold;
 }
 
 .actions a:hover {
@@ -92,19 +112,22 @@ body {
 
 /* Login Button */
 .btn-login {
-    background-color: #007BFF;
+    background: linear-gradient(135deg, #2db9fa, #1a8cd8);
     color: #fff;
     border: none;
-    border-radius: 5px;
-    padding: 10px 20px;
+    border-radius: 8px;
+    padding: 12px 20px;
     font-size: 1rem;
+    font-weight: bold;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
     width: 100%;
 }
 
 .btn-login:hover {
-    background-color: #0056b3;
+    background: linear-gradient(135deg, #2db9fa, #006fb9);
+    transform: scale(1.05);
 }
 
 /* Signup Link */
@@ -115,7 +138,7 @@ body {
 }
 
 .signup-link a {
-    color: #007BFF;
+    color: #008CBA;
     text-decoration: none;
     font-weight: bold;
 }
@@ -124,22 +147,10 @@ body {
     text-decoration: underline;
 }
 
-.messages {
-    list-style-type: none;
-    padding: 0;
-    margin: 10px 0;
-    color: red; /* Adjust the color based on your design */
-    font-size: 14px;
-}
-
-.message {
-    margin-bottom: 5px;
-}
-
 /* Show Password Checkbox */
 .show-password-container {
     display: flex;
-    align-items: center;
+    align-items: left;
     margin: 10px 0;
 }
 
@@ -152,4 +163,75 @@ body {
     font-size: 14px;
     color: #333;
     cursor: pointer;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .login-container {
+        flex-direction: column;
+        width: 90%;
+    }
+
+    .login-image {
+        display: none;
+    }
+
+    .login-form {
+        padding: 30px;
+    }
+}
+
+/* Popup Messages */
+.popup-container, 
+.popup-message {
+    position: fixed;
+    top: 10%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    width: 80%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+}
+
+.popup-message {
+    background: #4CAF50;
+    color: white;
+    padding: 15px 20px;
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+    opacity: 0;
+    animation: fadeIn 0.5s forwards, fadeOut 0.5s 2.5s forwards;
+    border-radius: 8px;
+}
+
+.popup-message.error {
+    background: #f44336;
+}
+
+.popup-message.success {
+    background: #4CAF50;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
 }

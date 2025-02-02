@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Ruiz Clinic{% endblock %}</title>
 
-    <!-- Your custom styles -->
+    <!-- Custom CSS -->
     <style>
         /* Basic Reset */
         * {
@@ -15,56 +15,69 @@
             box-sizing: border-box;
         }
 
-        /* Use a container class to scope custom styles */
-        .custom-layout {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f4f9;
-            display: flex;
-            height: 100vh;  /* Ensure the body fills the viewport height */
-            overflow: auto; 
+        html, body {
+            height: 100%;
+            overflow: hidden; /* Prevent body from scrolling, allow content to scroll */
         }
 
-        /* Navbar Styles */
+        /* Layout */
+        .custom-layout {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f9ff;
+            display: flex;
+            height: 100vh; /* Ensures it takes full screen height */
+            overflow: hidden; /* Prevents unwanted body scrolling */
+        }
+
+        /* Navbar (Fixed Position) */
         .custom-navbar {
-            width: 240px;
-            background: linear-gradient(145deg, #29B6F6, #1a8ebc);
+            width: 260px;
+            background: linear-gradient(135deg, #2db9fa, #1a8cd8);
+            backdrop-filter: blur(10px);
             height: 100vh;
             position: fixed;
             left: 0;
             top: 0;
             padding: 20px;
-            box-shadow: 3px 0 6px rgba(0, 0, 0, 0.2);
+            box-shadow: 3px 0 10px rgba(0, 0, 0, 0.1);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            z-index: 1;
+            z-index: 1000;
+            border-right: 2px solid rgba(255, 255, 255, 0.3);
+            gap: 10px;
         }
 
+        /* Navbar Links */
         .custom-navbar a {
             display: flex;
             align-items: center;
-            padding: 10px 15px;
+            padding: 12px 15px;
             margin: 10px 0;
             text-decoration: none;
             color: #ffffff;
             font-size: 18px;
+            font-weight: 500;
             border-radius: 8px;
             transition: all 0.3s ease-in-out;
+            position: relative;
         }
 
-        .custom-navbar a:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-            transform: translateX(10px);
-            box-shadow: 2px 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Active Link Styling */
+        /* Active Link */
         .custom-navbar a.active {
-            background-color: rgba(255, 255, 255, 0.4); /* Slightly darker hover effect for active */
-            transform: translateX(10px); /* Keep the hover effect on active link */
-            box-shadow: 2px 4px 6px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+            box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1);
         }
 
+        /* Hover Effects */
+        .custom-navbar a:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+            transform: scale(1.05);
+            box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Navbar Icons */
         .custom-navbar a img {
             width: 30px;
             height: 30px;
@@ -72,36 +85,128 @@
             transition: transform 0.3s;
         }
 
+        /* Hover Icon Effect */
         .custom-navbar a:hover img {
             transform: scale(1.2);
         }
 
-        /* Leave Link Special Styling */
+        /* Special Styling for Logout */
         .custom-navbar a.leave {
             margin-top: auto;
-            background: #1a8ebc;
-            color: #ffffff;
+            background: rgba(255, 87, 87, 0.7);
+            color: #fff;
+            font-weight: 600;
         }
 
         .custom-navbar a.leave:hover {
-            background: #ff6e6e;
-            transform: translateX(10px);
+            background: rgba(255, 50, 50, 0.9);
+            transform: scale(1.05);
         }
 
-        /* Content Section */
-        .custom-content {
-            margin-left: 260px; /* Space for the navbar */
-            padding: 20px;
-            width: calc(100% - 260px); /* Content width adjusts dynamically */
-            position: relative;
-            z-index: 0;
-            background-color: #f4f4f9;
-        }
+        /* Content Section (Scrollable) */
+    .custom-content {
+        margin-left: 280px; /* Adjust space for navbar */
+        padding: 30px;
+        width: calc(100% - 280px);
+        min-height: 100vh;
+        overflow-y: auto; /* Allows scrolling */
+        position: relative;
+        z-index: 0;
+        background-color: #f4f4f9;
+    }
 
-        .custom-content h1 {
-            font-size: 28px;
-            color: #333;
-        }
+    /* Ensure smooth scrolling */
+    .custom-content::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .custom-content::-webkit-scrollbar-thumb {
+        background-color: rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+    }
+
+    .custom-content::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    /* ✅ Fix Bootstrap Interference */
+    /* ✅ Fix Bootstrap Modal Interference */
+    /* ✅ Override Bootstrap modal interference */
+    .custom-modal {
+        display: none;
+        position: fixed;
+        z-index: 1050;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 350px;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+        text-align: center;
+    }
+    
+
+    /* ✅ Fix Bootstrap adding unwanted margins */
+    .custom-modal.show {
+        display: block;
+    }
+
+    /* ✅ Ensure the background dims properly */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5); /* Semi-transparent dark overlay */
+        z-index: 1049; /* Behind the modal */
+    }
+
+    /* ✅ Modal Heading */
+    .custom-modal h2 {
+        font-size: 20px;
+        color: #333;
+        margin-bottom: 15px;
+    }
+
+    /* ✅ Modal Buttons */
+    .custom-modal .modal-buttons {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 20px;
+    }
+
+    /* ✅ Button Styles */
+    .custom-modal button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.3s ease-in-out;
+    }
+
+    /* ✅ Button Hover Effects */
+    .custom-modal button:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+        transform: scale(1.08);
+        box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    /* ✅ Confirm Button */
+    .custom-modal button.confirm {
+        background: #ff4747;
+        color: white;
+    }
+
+    /* ✅ Cancel Button */
+    .custom-modal button.cancel {
+        background: #ddd;
+        color: #333;
+    }
 
     </style>
 
@@ -111,8 +216,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktnFAYkJomHV3e9FZjEjtC1I6pcYjTTDmvIAXbNJM" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-
-
 </head>
 <body>
 
@@ -120,7 +223,7 @@
         <!-- Navbar -->
         <div class="custom-navbar">
             <a href="{% url 'dashboard' %}" class="{% if request.path == '/' %}active{% elif request.path == '/dashboard/' %}active{% endif %}">
-                <img src="{% static 'dashboard-monitor (1).png' %}" alt="Dashboard Icon">
+                <img src="{% static 'dashboard-monitor.png' %}" alt="Dashboard Icon">
                 <span>Dashboard</span>
             </a>
             <a href="{% url 'appointment' %}" class="{% if request.path == '/appointment/' %}active{% endif %}">
@@ -139,7 +242,7 @@
                 <img src="{% static 'wallet.png' %}" alt="Sales Icon">
                 <span>Sales</span>
             </a>
-            <a href="{% url 'logout' %}" class="leave">
+            <a href="#" class="leave" onclick="showLogoutModal()">
                 <img src="{% static 'leave.png' %}" alt="Leave Icon">
                 <span>Logout</span>
             </a>            
@@ -151,21 +254,39 @@
             {% endblock %}
         </div>
     </div>
+
+    <!-- ✅ Background Overlay -->
+    <div class="modal-overlay" id="modalOverlay"></div>
+
+    <!-- ✅ Logout Modal -->
+    <div class="custom-modal" id="logoutModal">
+        <h2>Are you sure you want to log out?</h2>
+        <div class="modal-buttons">
+            <button class="confirm" onclick="logoutUser()">Yes, Logout</button>
+            <button class="cancel" onclick="closeLogoutModal()">Cancel</button>
+        </div>
+    </div>
+
+
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz4fnFO9gybB4p9t6C7b12hctZJ6fP8Zy5Y4BzYHkrGfjz6hbpFL2V1dbeV" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js" integrity="sha384-pzjw8f+ua7Kw1TIq0v8FqFjcJ6PfQe6mzmqzFvZ6uFLm2ICFhcQ8YjWl3Tswcbe4" crossorigin="anonymous"></script>
-    <script>
-        document.querySelector('.leave').addEventListener('click', function(event) {
-            event.preventDefault(); // Prevent default link behavior
-            let confirmLogout = confirm("Are you sure you want to log out?");
-            if (confirmLogout) {
-                window.location.href = "{% url 'logout' %}"; // Redirect to logout URL
-            }
-        });
 
-        if (window.history.replaceState) {
-            window.history.replaceState(null, null, window.location.href);
+    <script>
+        function showLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'block';
+            document.getElementById('modalOverlay').style.display = 'block'; // Show overlay
+        }
+    
+        function closeLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'none';
+            document.getElementById('modalOverlay').style.display = 'none'; // Hide overlay
+        }
+    
+        function logoutUser() {
+            window.location.href = "{% url 'logout' %}";
         }
     </script>
+    
     
 </body>
 </html>

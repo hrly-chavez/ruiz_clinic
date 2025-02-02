@@ -167,16 +167,19 @@ def login(request):
         password = request.POST.get('password')
 
         try:
-            user = Account.objects.get(account_username=username, account_password=password)
+            user = Account.objects.get(account_username=username, account_password=password)  # No hashing
             
-            # ✅ Store user ID in session
-            request.session['user_id'] = user.account_id  # Store primary key
-            request.session['username'] = user.account_username  # Store username (optional)
+            # Store user session
+            request.session['user_id'] = user.account_id  
+            request.session['username'] = user.account_username  
 
             messages.success(request, "Login successful!")
-            return redirect('dashboard')  # ✅ Now it will redirect properly
+
+            # Return JSON response
+            return JsonResponse({"success": True, "message": "Login successful!", "redirect_url": "/dashboard/"})
+
         except Account.DoesNotExist:
-            messages.error(request, 'Invalid username or password. Please try again.')
+            return JsonResponse({"success": False, "message": "Invalid username or password. Please try again."})
 
     return render(request, "clinic/Login/login.html")
 
@@ -1370,15 +1373,19 @@ def monthly_sales_api(request):
 #_________________________________________LOGOUT_______________________________________________________
 # @login_required
 def user_logout(request):
+    # ✅ Remove all previous messages to prevent "Login successful!" from persisting
+    storage = messages.get_messages(request)
+    storage.used = True  # Mark all messages as read/used to prevent showing again
+
     # ✅ Remove user session manually
     if 'user_id' in request.session:
-        del request.session['user_id']  # Remove user ID from session
+        del request.session['user_id']
     if 'username' in request.session:
-        del request.session['username']  # Remove username from session
+        del request.session['username']
     
     request.session.flush()  # Clear entire session
+
+    # ✅ Add new logout message only
     messages.success(request, "You have been logged out successfully.")
     
     return redirect('login')
-
-

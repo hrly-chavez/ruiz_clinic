@@ -1,28 +1,40 @@
-/* General styles */
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+/* Body Background */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #87CEEB;
+    background: linear-gradient(135deg, #2db9fa, #1a8cd8); /* Light blue and white gradient */
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    margin: 0;
+    transition: all 0.3s ease-in-out;
 }
 
 /* Reset Password Container */
 .reset-container {
-    background: #fff;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    width: 350px;
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
+    width: 400px;
     text-align: center;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+/* Hover Effect on Container */
+.reset-container:hover {
+    transform: scale(1.03);
+    box-shadow: 0px 15px 35px rgba(0, 0, 0, 0.3);
 }
 
 /* Heading */
 h1 {
-    font-size: 24px;
-    color: #333;
+    font-size: 2rem;
+    color: #004e98;
+    font-weight: bold;
     margin-bottom: 10px;
 }
 
@@ -48,59 +60,72 @@ h1 {
     font-size: 14px;
 }
 
-/* Input group */
+/* Input Group */
 .input-group {
-    position: relative;
-    margin-bottom: 15px;
     display: flex;
     align-items: center;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background: #f9f9f9;
-    padding: 10px;
+    margin-bottom: 20px;
+    border: 2px solid #c0d6ee;
+    border-radius: 8px;
+    padding: 12px;
+    background: #f9fff4;
+    transition: border 0.3s ease-in-out;
+}
+
+.input-group:focus-within {
+    border-color: #004e98;
 }
 
 .input-group label {
-    color: #666;
-    font-size: 16px;
     margin-right: 10px;
+    font-size: 1.2rem;
+    color: #666;
 }
 
-/* Password input field */
 .input-group input {
     border: none;
+    flex: 1;
     outline: none;
+    font-size: 1rem;
     background: transparent;
-    width: 100%;
-    font-size: 16px;
-    padding: 5px;
 }
 
-/* Toggle Password Button */
-.toggle-password {
-    background: none;
-    border: none;
+/* Show Password Checkbox */
+.show-password-container {
+    display: flex;
+    align-items: left;
+    margin-bottom: 15px;
+}
+
+.show-password-container input {
+    margin-right: 5px;
     cursor: pointer;
-    font-size: 16px;
-    color: #666;
-    margin-left: 10px;
+}
+
+.show-password-container label {
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
 }
 
 /* Reset Button */
 .btn-reset {
-    background: #007BFF;
-    color: white;
+    background: linear-gradient(to right, #004e98, #007bff);
+    color: #fff;
     border: none;
-    padding: 12px;
-    width: 100%;
-    border-radius: 5px;
-    font-size: 16px;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 1rem;
+    font-weight: bold;
     cursor: pointer;
-    transition: background 0.3s ease;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    width: 100%;
 }
 
 .btn-reset:hover {
-    background: #0056b3;
+    background: linear-gradient(to right, #007bff, #004e98);
+    transform: scale(1.05);
 }
 
 /* Error Message */
@@ -115,21 +140,4 @@ h1 {
     .reset-container {
         width: 90%;
     }
-}
-/* Show Password Checkbox */
-.show-password-container {
-    display: flex;
-    align-items: center;
-    margin: 10px 0;
-}
-
-.show-password-container input {
-    margin-right: 5px;
-    cursor: pointer;
-}
-
-.show-password-container label {
-    font-size: 14px;
-    color: #333;
-    cursor: pointer;
 }
