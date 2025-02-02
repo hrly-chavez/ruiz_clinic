@@ -20,11 +20,6 @@
     font-weight: normal;
 }
 
-/* Appointments Section */
-.appointment-widget-container {
-    margin-top: 20px;
-}
-
 .appointments-list {
     display: flex;
     flex-wrap: wrap;
@@ -88,6 +83,48 @@
     width: 50%;
 }
 
+/* Form Styling */
+.modal-content form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Input Fields */
+.modal-content input,
+.modal-content select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    transition: border 0.3s ease-in-out;
+}
+
+/* Input Hover/Focus */
+.modal-content input:focus,
+.modal-content select:focus {
+    border-color: #4186d4;
+    outline: none;
+}
+
+/* Buttons */
+.modal-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.btn {
+    padding: 10px 16px;
+    font-size: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    border: none;
+    font-weight: 500;
+}
+
 .close-btn {
     color: #aaa;
     font-size: 28px;
@@ -105,9 +142,14 @@
     cursor: pointer;
 }
 
+/* Modernized Table */
 .appointments-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    background: white;
 }
 
 .appointments-table th, .appointments-table td {
@@ -116,8 +158,60 @@
     text-align: left;
 }
 
+/* Table Header */
 .appointments-table th {
-    background-color: #f2f2f2;
+    background: linear-gradient(135deg, #2db9fa, #4186d4);
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 14px 16px;
+    text-align: center;
+}
+/* Table Body */
+.appointments-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #ddd;
+    transition: background 0.3s;
+    text-align: center;
+}
+
+/* Alternate Row Colors */
+.appointments-table tbody tr:nth-child(even) {
+    background: #f8fbff;
+}
+
+/* Hover Effect on Rows */
+.appointments-table tbody tr:hover {
+    background: #e8f4fd;
+    transition: 0.3s ease-in-out;
+}
+
+/* Table Borders & Rounded Corners */
+.appointments-table th:first-child {
+    border-top-left-radius: 10px;
+}
+
+.appointments-table th:last-child {
+    border-top-right-radius: 10px;
+}
+
+.appointments-table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 10px;
+}
+
+.appointments-table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 10px;
+}
+
+/* Actions Column */
+.appointments-table td .btn {
+    padding: 8px 14px;
+    font-size: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    border: none;
+    font-weight: 500;
 }
 
 .highlighted-date {
@@ -131,27 +225,48 @@
     background-color: #1565c0 !important; /* Darker blue on hover */
 }
 
-/* Style for the Create Appointment button */
+/* Modernized Create Appointment Button */
 #createAppointmentBtn {
-    background-color: #4186d4; /* Green background */
-    color: white; /* White text */
-    border: none;
-    padding: 10px 20px;
+    background: linear-gradient(135deg, #4a90e2, #2db9fa); /* Modern gradient */
+    color: white;
     font-size: 16px;
-    border-radius: 5px;
+    font-weight: 600;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px; /* Rounded corners */
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Soft shadow */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* Adds spacing between icon and text */
 }
 
-#createAppointmentBtn:disabled {
-    background-color: #dcdcdc; /* Gray background when disabled */
-    cursor: not-allowed;
-}
-
-/* Hover effect for Create Appointment button */
+/* Hover Effect */
 #createAppointmentBtn:hover {
-    background-color: rgba(81, 160, 250, 0.877); /* Darker green on hover */
+    background: linear-gradient(135deg, #2db9fa, #4186d4); /* Reverse gradient */
+    transform: scale(1.05); /* Slight pop-out effect */
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.25); /* Stronger shadow */
 }
+
+/* Disabled Button Styling */
+#createAppointmentBtn:disabled {
+    background: #dcdcdc;
+    color: #7f8c8d;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+/* Add Icon to Button */
+#createAppointmentBtn::before {
+    content: "\f067"; /* FontAwesome "+" icon */
+    font-family: "Font Awesome 5 Free"; /* Ensure FontAwesome is loaded */
+    font-weight: 900;
+    font-size: 18px;
+}
+
 
 /* Style for Action buttons */
 .edit {
@@ -191,6 +306,21 @@
 .delete:hover {
     background-color: #c0392b; /* Darker red on hover */
     transform: scale(1.05); /* Slightly enlarge the button */
+}
+
+/* Disabled Buttons */
+.btn-disabled {
+    background-color: #dcdcdc;
+    color: #7f8c8d;
+    cursor: not-allowed;
+}
+
+/* Responsive Design for Mobile */
+@media (max-width: 768px) {
+    .appointments-table {
+        display: block;
+        overflow-x: auto;
+    }
 }
 
 /* Disabled state for the Delete button */
@@ -246,6 +376,10 @@
     transition: background-color 0.3s ease;
 }
 
+.view:hover {
+    background-color: #2980b9;
+}
+
 #editAppointmentBtn {
     background-color: #4186d4; /* Green background */
     color: white; /* White text */
@@ -279,15 +413,16 @@
     transition: background-color 0.3s ease;
 }
 
+/* Create/Edit Button */
 #modalSubmitButton {
-    background-color: #4186d4; /* Green background */
-    color: white; /* White text */
-    border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+    background: linear-gradient(135deg, #4a90e2, #2db9fa);
+    color: white;
+    font-weight: bold;
+}
+
+#modalSubmitButton:hover {
+    background: linear-gradient(135deg, #2db9fa, #4186d4);
+    transform: scale(1.05);
 }
 
 #cancelCreateEditModalButton {
@@ -300,27 +435,65 @@
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
-/* Modal for popup message */
+#cancelCreateEditModalButton:hover {
+    background: #c0392b;
+    transform: scale(1.05);
+}
+
+/* Responsive Modal */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 80%;
+    }
+}
+/* Modernized Modal Styles */
 .modal {
-    display: none; /* Hidden by default */
+    display: none;
     position: fixed;
     z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto;
     background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px); /* Glassmorphism effect */
 }
 
+/* Modal Animation */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Modal Header */
+.modal h2 {
+    font-size: 22px;
+    color: #333;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+/* Modern Modal Container */
 .modal-content {
-    background-color: #fff;
-    margin: 15% auto;
-    padding: 20px;
-    border-radius: 10px;
-    width: 30%;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 30px;
+    width: 40%;
+    max-width: 500px;
     text-align: center;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-50px);
+    opacity: 0;
+    animation: slideIn 0.4s ease forwards;
 }
 
 .modal.fade-out {
@@ -337,13 +510,15 @@
     }
 }
 
-
+/* Close Button */
 .close-btn {
-    color: #aaa;
-    float: right;
+    position: absolute;
+    top: 15px;
+    right: 20px;
     font-size: 24px;
-    font-weight: bold;
     cursor: pointer;
+    color: #555;
+    transition: color 0.3s ease;
 }
 
 .close-btn:hover,
@@ -356,15 +531,92 @@
     font-size: 16px;
     color: #555;
 }
-.popup-message.success {
-    color: #28a745;
+
+
+/* Toast Container - Centered at the Top */
+#toastContainer {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1050;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 400px;
 }
-.popup-message.error {
-    color: #dc3545;
+
+/* Toast Message - General styles */
+.toast-message {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 350px;
+    padding: 12px 18px;
+    font-size: 15px;
+    font-weight: 500;
+    border-radius: 8px;
+    box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.2);
+    color: white;
+    background: #333;
+    opacity: 1;
+    animation: slideDown 0.4s ease-in-out;
+    transition: opacity 0.3s ease-in-out;
 }
-.popup-message.info {
-    color: #17a2b8;
+
+/* Different colors for message types */
+.toast-message.success {
+    background-color: #2ecc71; /* Green */
 }
-.popup-message.warning {
-    color: #ffc107;
+.toast-message.error {
+    background-color: #e74c3c; /* Red */
+}
+.toast-message.info {
+    background-color: #3498db; /* Blue */
+}
+.toast-message.warning {
+    background-color: #f39c12; /* Orange */
+}
+
+/* Toast Close Button */
+.toast-close {
+    font-size: 18px;
+    font-weight: bold;
+    margin-left: 15px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.toast-close:hover {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Slide Down Animation */
+@keyframes slideDown {
+    from {
+        transform: translateY(-40px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Fade Out Animation */
+.fade-out {
+    animation: fadeOut 0.5s forwards;
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+        display: none;
+    }
 }
