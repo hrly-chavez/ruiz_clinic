@@ -58,148 +58,71 @@
             </div>
         </div>
     </div>
-
-    <style>
-        .popup-container, 
-        .popup-message {
-            position: fixed;
-            top: 10%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1000;
-            width: 80%;
-            max-width: 600px;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-        }
-
-        .popup-message {
-            background: green;
-            color: white;
-            padding: 15px 20px;
-            margin: 0;
-            border-radius: 5px;
-            font-size: 16px;
-            opacity: 0;
-            animation: fadeIn 0.5s forwards, fadeOut 0.5s 2.5s forwards;
-        }
-
-        .popup-message.error {
-            background: red;
-        }
-
-        .popup-message.success {
-            background: green;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translate(-50%, -60%);
-            }
-            to {
-                opacity: 1;
-                transform: translate(-50%, -50%);
-            }
-        }
-
-        @keyframes fadeOut {
-            from {
-                opacity: 1;
-            }
-            to {
-                opacity: 0;
-            }
-        }
-
-
-
-    </style>
     
     <!-- Display popup messages dynamically -->
     <script>
-        document.querySelector('form').addEventListener('submit', function (event) {
-        event.preventDefault(); // Prevent form submission
-        const formData = new FormData(this);
-
-        fetch(this.action, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-            },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Show popup message
-                const popup = document.createElement('div');
-                popup.className = 'popup-message';
-                popup.textContent = data.message;
-                document.body.appendChild(popup);
-
-                // Redirect after 3 seconds
-                setTimeout(() => {
-                    window.location.href = data.redirect_url;
-                }, 3000);
-            } else {
-                // Show error message
-                const errorPopup = document.createElement('div');
-                errorPopup.className = 'popup-message error';
-                errorPopup.textContent = data.message;
-                document.body.appendChild(errorPopup);
-
-                // Remove popup after 3 seconds
-                setTimeout(() => {
-                    errorPopup.remove();
-                }, 3000);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    });
-
-    // CSS for popup messages
-    const style = document.createElement('style');
-    style.textContent = `
-        .popup-message {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: green;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
-            font-family: Arial, sans-serif;
-        }
-        .popup-message.error {
-            background: red;
-        }
-    `;
-    document.head.appendChild(style);
-
         function togglePasswordVisibility() {
             var passwordField = document.getElementById("password");
             var checkbox = document.getElementById("show-password");
-
+    
             if (checkbox.checked) {
                 passwordField.type = "text";
             } else {
                 passwordField.type = "password";
             }
         }
-
+    
         document.addEventListener("DOMContentLoaded", function () {
-        const messages = document.querySelectorAll(".popup-message");
-        if (messages) {
-            setTimeout(() => {
-                messages.forEach((message) => message.remove());
-            }, 3000); // 3000ms = 3 seconds
-        }
-    });
+            const messages = document.querySelectorAll(".popup-message");
+            if (messages) {
+                setTimeout(() => {
+                    messages.forEach((message) => message.remove());
+                }, 3000); // 3 seconds
+            }
+        });
+    
+        document.querySelector('form').addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent form submission
+    
+            const formData = new FormData(this);
+    
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success popup
+                    const popup = document.createElement('div');
+                    popup.className = 'popup-message success';
+                    popup.textContent = data.message;
+                    document.body.appendChild(popup);
+    
+                    // Redirect after 3 seconds
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url;
+                    }, 3000);
+                } else {
+                    // Show error popup
+                    const errorPopup = document.createElement('div');
+                    errorPopup.className = 'popup-message error';
+                    errorPopup.textContent = data.message;
+                    document.body.appendChild(errorPopup);
+    
+                    // Remove popup after 3 seconds
+                    setTimeout(() => {
+                        errorPopup.remove();
+                    }, 3000);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
     </script>
 </body>
 </html>

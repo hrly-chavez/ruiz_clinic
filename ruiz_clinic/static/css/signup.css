@@ -1,56 +1,75 @@
-/* General Styles */
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+/* Body Background */
 body {
-    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #2db9fa, #1a8cd8); /* Light blue and white gradient */
+    font-family: 'Poppins', sans-serif;
     margin: 0;
-    padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: #87CEEB;
+    transition: all 0.3s ease-in-out;
 }
 
 /* Container */
 .register-container {
     display: flex;
     width: 80%;
-    height: 70%;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
+    max-width: 900px;
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
     overflow: hidden;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    background: #ffffff;
+}
+
+/* Hover Effect */
+.register-container:hover {
+    transform: scale(1.03);
+    box-shadow: 0px 15px 35px rgba(0, 0, 0, 0.3);
 }
 
 /* Left Section */
 .register-left {
     flex: 1;
-    background-color: #fff;
-    padding: 50px 40px;
+    padding: 40px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: flex-start;
+    text-align: left;
 }
 
 .register-left h1 {
-    font-size: 2.5rem;
+    font-size: 2rem;
+    color: #004e98;
+    font-weight: bold;
     margin-bottom: 20px;
-    color: #333;
 }
 
+/* Input Group */
 .input-group {
     width: 100%;
     margin-bottom: 20px;
     display: flex;
     align-items: center;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 10px;
-    background: #f9f9f9;
+    border: 2px solid #c0d6ee;
+    border-radius: 8px;
+    padding: 12px;
+    background: #f9fff4;
+    transition: border 0.3s ease-in-out;
+}
+
+.input-group:focus-within {
+    border-color: #004e98;
 }
 
 .input-group label {
     margin-right: 10px;
-    color: #999;
+    font-size: 1.2rem;
+    color: #666;
 }
 
 .input-group input {
@@ -61,19 +80,42 @@ body {
     font-size: 1rem;
 }
 
-.btn-register {
-    background-color: #007bff;
-    color: #fff;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    font-size: 1rem;
+/* Show Password Checkbox */
+.show-password-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.show-password-container input {
+    margin-right: 5px;
     cursor: pointer;
-    transition: 0.3s;
+}
+
+.show-password-container label {
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+}
+
+/* Register Button */
+.btn-register {
+    background: linear-gradient(to right, #004e98, #007bff);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    width: 100%;
 }
 
 .btn-register:hover {
-    background-color: #0056b3;
+    background: linear-gradient(to right, #007bff, #004e98);
+    transform: scale(1.05);
 }
 
 /* Right Section */
@@ -91,32 +133,36 @@ body {
     object-fit: cover;
 }
 
+/* Messages */
 .messages {
     list-style-type: none;
     padding: 0;
     margin: 10px 0;
-    color: red; /* Adjust the color based on your design */
     font-size: 14px;
 }
 
 .message {
-    margin-bottom: 5px;
-}
-
-/* Show Password Checkbox */
-.show-password-container {
-    display: flex;
-    align-items: center;
-    margin: 10px 0;
-}
-
-.show-password-container input {
-    margin-right: 5px;
-    cursor: pointer;
-}
-
-.show-password-container label {
-    font-size: 14px;
+    background: #ffcc00;
+    padding: 10px;
+    border-radius: 5px;
     color: #333;
-    cursor: pointer;
+    font-size: 14px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .register-container {
+        flex-direction: column;
+        width: 90%;
+    }
+
+    .register-right {
+        display: none;
+    }
+
+    .register-left {
+        padding: 30px;
+        align-items: center;
+        text-align: center;
+    }
 }

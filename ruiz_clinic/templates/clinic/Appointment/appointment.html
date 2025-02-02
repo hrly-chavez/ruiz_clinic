@@ -5,25 +5,27 @@
 
 {% block content %}
 <!-- Main Page Header -->
-<div style="padding: 20px; background-color: #2db9fae8; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px; height: 90px; display: flex; align-items: center; margin: 0; justify-content: space-between;">
-    <h1 style="color: #fff; font-size: 40px;  font-family: 'Montserrat', sans-serif;; font-weight: normal;">Appointments</h1>
-    <!-- Search Bar -->
-    <div style="padding: 10px 20px; margin: 20px 0;">
-        <div style="display: flex; align-items: center; justify-content: flex-end;">
+<div style="padding: 20px; background: linear-gradient(135deg, #2db9fae8, #1a73e8); box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15); border-radius: 10px; height: 90px; display: flex; align-items: center; justify-content: space-between;">
+    <h1 style="color: #fff; font-size: 36px; font-family: 'Montserrat', sans-serif; font-weight: bold;">Appointments</h1>
+    <div style="padding: 10px 20px;">
+        <div style="display: flex; align-items: center;">
             <input
                 type="date"
                 id="searchDate"
                 placeholder="Select a date"
                 value="{{ request.GET.date|default:'' }}"
-                style="padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; margin-right: 10px; width: 250px;"
+                style="padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; margin-right: 10px; width: 250px; outline: none; transition: border 0.3s ease;"
+                onfocus="this.style.border='1px solid #1a73e8';"
+                onblur="this.style.border='1px solid #ccc';"
             />
             <button
                 id="searchButton"
-                style="padding: 10px 20px; background-color: #29B6F6; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;"
+                style="padding: 12px 24px; background-color: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; transition: all 0.3s ease;"
+                onmouseover="this.style.backgroundColor='#0f5dc4';"
+                onmouseout="this.style.backgroundColor='#1a73e8';"
             >
                 Search
             </button>
-           
         </div>
     </div>
 </div><br>
@@ -32,192 +34,213 @@
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
-<!-- Dynamic Month Header -->
-<div id="monthContainer" style="padding: 15px; background-color: #29B6F6; color: white; text-align: center; font-size: 24px; font-weight: bold; border-top-left-radius: 8px; border-top-right-radius: 8px; font-family: 'Istok Web', sans-serif;">
-    <span id="monthHeader">January 2025</span>
+<!-- Calendar Container -->
+<div id="calendar-container">
+    <div id="calendar"></div>
 </div>
-
-<!-- FullCalendar Container -->
-<div id="calendar" style="margin: 0 auto; width: 90%; background-color: #fff; padding: 10px; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);"></div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const calendarEl = document.getElementById('calendar');
-        const monthHeader = document.getElementById('monthHeader');
     
-        // Get the appointment dates passed from Django
-        const appointmentDates = {{ appointment_dates|safe }}; // Example format: ["2025-01-23", "2025-01-23", "2025-01-24", ...]
+        // Function to dynamically set calendar height
+        function updateCalendarHeight() {
+            const calendarContainer = document.getElementById('calendar-container');
+            if (calendarContainer) {
+                const availableHeight = window.innerHeight - calendarContainer.getBoundingClientRect().top - 20; // Adjusted for spacing
+                calendarContainer.style.height = availableHeight + 'px';
+            }
+        }
     
-        // Group appointments by date and count them
+        // Get the appointment dates from Django
+        const appointmentDates = {{ appointment_dates|safe }};
+    
+        // Group appointments by date
         const groupedAppointments = appointmentDates.reduce((acc, date) => {
             acc[date] = (acc[date] || 0) + 1;
             return acc;
         }, {});
     
-        // Prepare events for FullCalendar
+        // Convert to FullCalendar event format (Full Background Color)
         const events = Object.entries(groupedAppointments).map(([date, count]) => ({
-            title: count > 1 ? `View ${count} Appointments` : 'View Appointment',
+            title: count > 1 ? `${count} Appointments` : '1 Appointment',
             start: date,
-            textColor: '#1565c0', // Set text color to a matching blue
-            backgroundColor: 'transparent', // Remove background color
-            borderColor: 'transparent', // Remove border
+            backgroundColor: 'rgba(0, 122, 255, 0.8)',
+            textColor: 'white',
+            borderColor: '#0040a0',
+            display: 'block',
         }));
     
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
+            themeSystem: 'bootstrap',
             headerToolbar: {
                 left: 'prev,next today',
-                center: '',
-                right: ''
+                center: 'title',
+                right: '' // Removed extra buttons
             },
-            height: 'calc(100vh - 260px)', // Dynamically adjust height to fill viewport
-            datesSet: function (info) {
-                // Dynamically update the month header
-                const [month, year] = info.view.title.split(' ');
-                monthHeader.textContent = `${month} ${year}`;
-            },
-            events: events, // Pass the grouped events to the calendar
+            height: '100%', // Ensures it takes the entire container height
+            contentHeight: '100%', // Dynamically adjusts based on screen size
+            aspectRatio: 1.35, // Ensures a proper layout when resizing
+            events: events,
+            eventDisplay: 'block',
+            eventMaxStack: 2,
             dayCellDidMount: function (info) {
                 const date = new Date(info.date);
+                if (date.getDay() === 0) {
+                    info.el.style.backgroundColor = '#f8f9fa';
+                    info.el.style.color = '#d32f2f';
     
-                // Highlight Sundays
-                if (date.getDay() === 0) { // Sunday
-                    info.el.style.backgroundColor = 'lightgray'; // Background color for Sundays
-                    info.el.style.color = '#333'; // Text color
-                    info.el.style.position = 'relative';
-    
-                    // Add "Day Off" label
-                    const label = document.createElement('span');
-                    label.textContent = 'Day Off';
-                    label.style.position = 'absolute';
-                    label.style.bottom = '5px';
-                    label.style.left = '5px';
-                    label.style.fontSize = '12px';
-                    label.style.color = '#555';
-                    label.style.fontWeight = 'bold';
-                    info.el.appendChild(label);
+                    if (!info.el.querySelector('.day-off-label')) {
+                        const label = document.createElement('span');
+                        label.textContent = 'Day Off';
+                        label.style.textAlign = 'center';
+                        label.classList.add('day-off-label');
+                        label.style.display = 'block';
+                        label.style.fontSize = '12px';
+                        label.style.color = '#d32f2f';
+                        info.el.appendChild(label);
+                    }
                 }
+            },
+            
+            eventDidMount: function (info) {
+                info.el.style.borderRadius = '10px';
+                info.el.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)';
+                info.el.style.transition = 'transform 0.3s ease';
+                info.el.style.padding = '4px';
+                info.el.onmouseover = () => info.el.style.transform = 'scale(1.05)';
+                info.el.onmouseout = () => info.el.style.transform = 'scale(1)';
             },
             dateClick: function (info) {
                 const clickedDate = new Date(info.date);
-    
-                // Check if the clicked date is a Sunday
-                if (clickedDate.getDay() === 0) { // Sunday
-                    alert('Day Off! Appointments cannot be scheduled on Sundays.');
+                if (clickedDate.getDay() === 0) {
+                    alert('Day Off! No appointments on Sundays.');
                 } else {
-                    const selectedDate = info.dateStr;
-                    const viewAppointmentUrl = "{% url 'view_appointment' %}";
-                    window.location.href = `${viewAppointmentUrl}?date=${selectedDate}`;
+                    window.location.href = `{% url 'view_appointment' %}?date=${info.dateStr}`;
                 }
+            },
+            windowResize: function() {
+                calendar.updateSize();
+                updateCalendarHeight(); // Dynamically updates calendar height on resize
             },
         });
     
         calendar.render();
     
-        // Search Bar Logic
+        // Adjust calendar height on page load
+        updateCalendarHeight();
+    
+        // Update height when the window resizes
+        window.addEventListener('resize', updateCalendarHeight);
+    
         document.getElementById("searchButton").addEventListener("click", function () {
             const selectedDate = document.getElementById("searchDate").value;
             if (!selectedDate) {
                 alert("Please select a valid date.");
                 return;
             }
-    
             window.location.href = `/view_appointment/?date=${selectedDate}`;
         });
     });
-     
-</script>
-
+    
+    </script>
 <style>
-    /* Dynamic Month Header */
-    #monthContainer {
-        padding: 15px;
-        background-color: #29B6F6;
-        color: white; /* Keep the text white for better contrast */
-        text-align: center;
-        font-size: 24px;
-        font-weight: bold;
-        border-top-left-radius: 8px; /* Rounded top-left corner */
-        border-top-right-radius: 8px; /* Rounded top-right corner */
-        font-family: 'Istok Web', sans-serif;
-        width: 90%; /* Match width with calendar */
-        margin: 0 auto; /* Center align */
-        border: 2px solid black; /* Black border for header */
-        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
-    }
-
-    /* Calendar Styling */
-    #calendar {
-        width: 90%; /* Match width with #monthContainer */
-        margin: 0 auto; /* Center align */
-        border-bottom-left-radius: 8px; /* Rounded bottom-left corner */
-        border-bottom-right-radius: 8px; /* Rounded bottom-right corner */
-        padding: 10px;
-        background-color: #ffffff;
-        border: 2px solid black; /* Black border for calendar */
-        height: calc(100vh - 260px); /* Adjust height dynamically */
-        overflow: hidden; /* Prevent scrolling */
-        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Subtle shadow */
-    }
-
-    /* Current Day Styling */
-    .fc-day-today {
-        background-color: #90caf9 !important; /* Softer blue for today */
-        color: #0d47a1 !important; /* Deep blue for font color */
-        font-weight: bold !important;
-        border: 1px solid black !important; /* Black border for today */
-    }
-
-    /* Hover Effect for Days */
-    .fc-day:hover {
-        background-color: #e3f2fd !important; /* Light blue on hover */
-        color: #0d47a1 !important; /* Deep blue for hover text */
-        transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
-        border: 1px solid black; /* Black border on hover */
-    }
-
-    /* Event Styling */
-    .fc-event {
-        color: #0d47a1 !important; /* Deep blue font for events */
-        font-size: 14px !important;
-        font-weight: bold !important;
-        padding: 5px;
-        text-align: center;
-        background-color: #e3f2fd !important; /* Light blue background for events */
-        border: 1px solid black !important; /* Black border for events */
-        border-radius: 5px; /* Rounded corners for events */
-        box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for events */
-    }
-
-    /* Button Styling */
-    button {
-        padding: 10px 20px;
-        background-color: #29B6F6;
-        color: #ffffff;
-        border: 1px solid black; /* Black border for buttons */
-        border-radius: 5px;
-        font-size: 16px;
-        cursor: pointer;
-        transition: all 0.3s ease; /* Smooth transition for hover */
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-    }
-
-    button:hover {
-        background-color: #0288d1; /* Darker blue on hover */
-        color: #ffffff; /* Keep text white */
-        transform: translateY(-2px); /* Slight lift on hover */
-        box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
-    }
-
-/* FullCalendar Day Borders */
-.fc-daygrid-day {
-    border: 1px solid rgb(230, 230, 230) !important; /* Light gray border for each day cell */
+/* Remove any unwanted scrolling */
+html, body {
+    overflow: hidden !important; /* Prevents both horizontal and vertical scrollbars */
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
 }
 
-/* FullCalendar Event Border */
-.fc-daygrid-event {
-    border: 1px solid rgb(230, 230, 230) !important; /* Light gray border for each event */
+/* Calendar container fills the entire viewport dynamically */
+#calendar-container {
+    max-width: 100%;
+    margin: auto;
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ddd;
+    height: calc(100vh - 160px); /* Dynamically adjusts based on viewport */
+    display: flex;
+    flex-direction: column;
 }
+
+/* FullCalendar should expand fully */
+.fc {
+    flex-grow: 1; /* Allows calendar to grow inside its container */
+    width: 100% !important; /* Prevents horizontal scrolling */
+}
+
+/* Ensures FullCalendar dynamically resizes */
+.fc-view-container {
+    height: 100% !important;
+}
+
+/* Hide internal scrollbar inside FullCalendar */
+.fc-scroller {
+    overflow: hidden !important;
+}
+
+/* Modern FullCalendar Styling */
+.fc-day-today {
+    background: linear-gradient(135deg, #90caf9, #42a5f5) !important;
+    color: white !important;
+    font-weight: bold;
+}
+
+.fc-day:hover {
+    background-color: #f1f1f1 !important;
+    transition: background 0.3s ease;
+}
+
+.fc-event {
+    font-size: 14px !important;
+    font-weight: bold !important;
+    padding: 8px;
+    text-align: center;
+    background: linear-gradient(135deg, #1a73e8, #0f5dc4) !important;
+    border-radius: 10px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    border: none;
+}
+
+.fc-event:hover {
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
+}
+
+/* Button Styling */
+button {
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #1a73e8, #0f5dc4);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+button:hover {
+    background: linear-gradient(135deg, #0f5dc4, #0b4e9b);
+    transform: translateY(-2px);
+    box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Bigger and Bolder Calendar Title */
+.fc-toolbar-title {
+    font-size: 32px !important; /* Increases the font size */
+    font-weight: bold !important; /* Makes the text bold */
+    color: #1a73e8 !important; /* Uses a professional blue color */
+    text-transform: uppercase; /* Makes it look more prominent */
+    letter-spacing: 1px; /* Adds slight spacing for clarity */
+}
+
 </style>
 
 {% endblock %}
