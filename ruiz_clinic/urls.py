@@ -45,7 +45,10 @@ urlpatterns = [
     path("sales/", views.sales_page, name='sales_page'),
     path('api/sales/', views.sales_api, name='sales_api'),
     path("api/patient-balances/", views.patient_balances_api, name="patient_balances_api"),  # New API
-    
+    path("weekly_sales/", views.weekly_sales, name='weekly_sales'),
+    path("api/sales/weekly/", views.weekly_sales_api, name="weekly_sales_api"),
+    path("monthly_sales/", views.monthly_sales, name='monthly_sales'),
+    path("api/sales/monthly/", views.monthly_sales_api, name="monthly_sales_api"),
 #______________________________Inventory_______________________________
 
 

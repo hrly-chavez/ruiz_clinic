@@ -43,24 +43,33 @@ document.addEventListener("DOMContentLoaded", () => {
         fetch("/api/patient-balances/")
             .then(response => response.json())
             .then(data => {
-                patientBalanceList.innerHTML = ""; // Clear previous entries
+                const tableBody = document.getElementById("patient-balance-body");
+                tableBody.innerHTML = ""; // Clear previous entries
     
                 if (data.balances.length === 0) {
-                    patientBalanceList.innerHTML = `<p style="text-align: center;">No patient balance.</p>`;
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="3" style="text-align: center; padding: 8px;">No patient balance.</td>
+                        </tr>
+                    `;
                 } else {
                     data.balances.forEach(balance => {
-                        const item = document.createElement("div");
-                        item.classList.add("balance-item");
-                        item.innerHTML = `
-                            <div class="patient-name">${balance.patient_name}</div>
-                            <div class="balance-amount">₱ ${balance.previous_balance}</div>
+                        const row = document.createElement("tr");
+    
+                        row.innerHTML = `
+                            <td style="padding: 8px; text-align: left; width: 52%;">${balance.patient_name}</td>
+                            <td style="padding: 8px; text-align: center; width: 26%;">₱ ${balance.previous_balance}</td>
+                            <td style="padding: 8px; text-align: center; width: 25%;">${balance.payment_duration_date}</td>
                         `;
-                        patientBalanceList.appendChild(item);
+    
+                        tableBody.appendChild(row);
                     });
                 }
             })
             .catch(error => console.error("Error fetching patient balances:", error));
     }
+    
+    
 
     // Event listener for date filter
     filterDate.addEventListener("change", () => {

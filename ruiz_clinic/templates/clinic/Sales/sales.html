@@ -8,6 +8,12 @@
     <div class="header" style="position: relative; height: 125px; padding: 0 20px; background-color: #2db9fa; display: flex; align-items: center;">
         <h3 style="color: #fff; font-size: 40px; font-family: 'Montserrat', sans-serif; font-weight: normal; margin: 0;">SALES</h3>
         <div class="filter-section" style="position: absolute; bottom: 10px; right: 20px;">
+            <a href="{% url 'weekly_sales' %}">
+                <button class="weekly_button">Weekly</button>
+            </a>
+            <a href="{% url 'monthly_sales' %}">
+                <button class="monthly_button">Monthly</button>
+            </a>
             <input type="date" id="filter-date" class="date-picker" style="padding: 5px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc;">
         </div>
     </div>
@@ -27,21 +33,34 @@
         </div>
 
         <!-- Right Column -->
-        <div class="right-column">
-            <div class="card">
-                <h4 class="section-header">Patient Balance</h4>
-                <div id="patient-balance-list" class="patient-balance-container">
-                    <!-- Dynamic content will be loaded here -->
-                    <p>No patient balance.</p>
+        <div class="card">
+            <h4 class="section-header">Patient Balance</h4>
+            <div class="patient-balance-container">
+                <table class="patient-balance-table">
+                    <thead>
+                        <tr>
+                            <th style="padding: 8px; text-align: center ; width: 50%;">Name</th>
+                            <th style="padding: 8px; text-align: center; width: 25%;">Balance</th>
+                            <th style="padding: 8px; text-align: center; width: 25%;">Date End</th>
+                        </tr>
+                    </thead>
+                </table>
+                <div class="table-scroll">
+                    <table class="patient-balance-table">
+                        <tbody id="patient-balance-body">
+                            <!-- Dynamic content will be inserted here -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
+               
     </div>
 
     <div class="products-sold-section">
         <div class="card">
             <h4 class="section-header">Products Sold</h4>
-            <div class="product-list">
+            <div class="products-table-container"> <!-- Scrollable wrapper -->
                 <table class="products-table">
                     <thead>
                         <tr>
@@ -55,11 +74,10 @@
                         <!-- Dynamic content will be inserted here -->
                     </tbody>
                 </table>
-                <p id="no-products-message" style="text-align: center; display: none;">No products sold today.</p>
             </div>
+            <p id="no-products-message" style="text-align: center; display: none;">No products sold today.</p>
         </div>
     </div>
-    
     
 </div>
 

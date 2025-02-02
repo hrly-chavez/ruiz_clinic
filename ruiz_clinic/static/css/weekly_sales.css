@@ -13,7 +13,6 @@
     gap: 20px;
     padding: 20px;
     background-color: #f4f6f9;
-    height: 95vh; /* Full height */
 }
 
 /* Header */
@@ -34,23 +33,21 @@
     font-weight: 600;
 }
 
-/* Main Layout: Two Columns */
+/* Main Layout */
 .main-layout {
     display: grid;
-    grid-template-columns: 1fr 2fr; /* Left Column: 1fr, Right Column: 2fr */
+    grid-template-columns: 1fr 2fr;
     gap: 20px;
-    flex-grow: 1;
 }
 
 /* Left & Right Columns */
-.left-column,
-.right-column {
+.left-column, .right-column {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
-/* Ensure Each Card Resizes Properly */
+/* Card Styling */
 .card {
     background: white;
     padding: 20px;
@@ -58,11 +55,6 @@
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
     text-align: center;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    flex-grow: 1; /* Allows the card to stretch dynamically */
-    min-height: 150px; /* Ensures it doesn't collapse too much */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
 }
 
 .card:hover {
@@ -70,7 +62,6 @@
     box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* Adjust Header Inside the Card */
 .card h4.section-header {
     background: linear-gradient(135deg, #29B6F6, #1a8cd8);
     color: white;
@@ -81,26 +72,21 @@
     margin: -20px -20px 15px -20px;
 }
 
-/* Ensure Numbers Adjust */
+/* Numbers */
 .card p {
     font-size: 40px;
     font-weight: bold;
     color: #1a8cd8;
-    flex-grow: 1; /* Ensures text stays centered even when resized */
 }
 
-/* Patient Balance Section */
+/* Patient Balance Table */
 .patient-balance-container {
     border: 1px solid #ddd;
     border-radius: 12px;
     overflow: hidden;
     background: white;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
 }
 
-/* Patient Balance Table */
 .patient-balance-table {
     width: 100%;
     border-collapse: collapse;
@@ -126,7 +112,7 @@
 
 .patient-balance-table tbody {
     display: block;
-    max-height: 200px; /* Scrollable */
+    max-height: 225px;
     overflow-y: auto;
 }
 
@@ -145,75 +131,35 @@
 }
 
 /* Products Sold Table */
-.products-table {
+.weekly-products-table {
     width: 100%;
     border-collapse: collapse;
     border-radius: 12px;
     overflow: hidden;
 }
 
-/* Ensure the header has the gradient */
-.products-table thead {
-    background: linear-gradient(135deg, #2db9fa, #1a8cd8) !important;
+.weekly-products-table th, 
+.weekly-products-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: center;
+}
+
+.weekly-products-table th {
+    background: linear-gradient(135deg, #2db9fa, #1a8cd8);
     color: white;
     font-size: 16px;
     font-weight: bold;
 }
 
-.products-table thead tr {
-    background: linear-gradient(135deg, #2db9fa, #1a8cd8) !important;
-}
-
-/* Apply gradient to individual `<th>` elements */
-.products-table thead th {
-    background: linear-gradient(135deg, #2db9fa, #1a8cd8) !important;
-    color: white;
-    padding: 12px;
-    text-align: center;
-    font-weight: bold;
-}
-
-/* Fix for sticky headers */
-.products-table-container {
-    max-height: 200px;
-    overflow-y: auto;
-    display: block;
-}
-
-/* Ensure tbody takes full width */
-.products-table-container table {
-    width: 100%;
-}
-/* Styling for table rows */
-.products-table th,
-.products-table td {
-    border: 1px solid #ddd;
-    padding: 12px;
-    text-align: center;
-    word-wrap: break-word;
-}
-
-.products-table tbody tr:nth-child(odd) {
+.weekly-products-table tbody tr:nth-child(odd) {
     background-color: #f9f9f9;
 }
 
-.products-table tbody tr:hover {
+.weekly-products-table tbody tr:hover {
     background-color: #e3f2fd;
 }
 
-/* Scrollbar Styling */
-.products-table-container::-webkit-scrollbar {
-    width: 8px;
-}
-
-.products-table-container::-webkit-scrollbar-thumb {
-    background-color: #ccc;
-    border-radius: 4px;
-}
-
-.products-table-container::-webkit-scrollbar-thumb:hover {
-    background-color: #aaa;
-}
 
 /* Date Picker */
 .date-picker {
@@ -241,45 +187,17 @@
     box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
 }
 
-.weekly_button, .monthly_button {
-    width: 100px;
-    padding: 5px;
-    background-color: #ffffff;
-    border: none;
-    border-radius: 10px;
-    text-decoration: none;
-    transition: all 0.3s ease; 
-    font-weight: 500; 
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.weekly_button:hover {
-    background-color: #0288d1; /* Darker blue on hover */
-    color: #ffffff; /* Keep text white */
-    transform: translateY(-2px); /* Slight lift on hover */
-    box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
-}
-.monthly_button:hover {
-    background-color: #0288d1; /* Darker blue on hover */
-    color: #ffffff; /* Keep text white */
-    transform: translateY(-2px); /* Slight lift on hover */
-    box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
-}
-
 /* Scrollbar Customization */
-.patient-balance-table tbody::-webkit-scrollbar,
-.products-table tbody::-webkit-scrollbar {
+.patient-balance-table tbody::-webkit-scrollbar {
     width: 8px;
 }
 
-.patient-balance-table tbody::-webkit-scrollbar-thumb,
-.products-table tbody::-webkit-scrollbar-thumb {
+.patient-balance-table tbody::-webkit-scrollbar-thumb {
     background-color: #ccc;
     border-radius: 4px;
 }
 
-.patient-balance-table tbody::-webkit-scrollbar-thumb:hover,
-.products-table tbody::-webkit-scrollbar-thumb:hover {
+.patient-balance-table tbody::-webkit-scrollbar-thumb:hover {
     background-color: #aaa;
 }
 
@@ -302,24 +220,29 @@
     }
 }
 
-/* Responsive Height Adjustment */
-@media (max-width: 1024px) {
-    .main-layout {
-        grid-template-columns: 1fr; /* Stacks on smaller screens */
-    }
+/* Make the Products Sold table scrollable */
+.table-container {
+    max-height: 150px; /* Adjust height as needed */
+    overflow-y: auto;
 }
 
-/* Ensuring Widgets Adjust to Window Size */
-@media (max-height: 700px) {
-    .card {
-        min-height: 120px;
-    }
+.table-container::-webkit-scrollbar {
+    width: 8px;
+}
 
-    .patient-balance-container {
-        max-height: 175px;
-    }
+.table-container::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 4px;
+}
 
-    .products-table-container {
-        max-height: 175px;
-    }
+.table-container::-webkit-scrollbar-thumb:hover {
+    background-color: #aaa;
+}
+
+/* Ensure table headers remain visible while scrolling */
+.weekly-products-table thead {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa; /* Light background for better visibility */
+    z-index: 1;
 }

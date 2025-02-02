@@ -1,0 +1,167 @@
+{% extends 'clinic/nav.html' %}
+{% load static %}
+{% block title %}Weekly Sales{% endblock %}
+
+{% block content %}
+<div class="sales-container">
+    <!-- Header Section -->
+    <div class="header">
+        <h3>WEEKLY SALES</h3>
+        <div class="filter-section">
+            <input type="week" id="weekly-picker" class="date-picker">
+        </div>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Left Column -->
+        <div class="left-column">
+            <div class="card">
+                <h4 class="section-header">Total Weekly Earnings</h4>
+                <p id="weekly-earnings">₱ 0</p>
+            </div>
+            <div class="card">
+                <h4 class="section-header">Total Products Sold</h4>
+                <p id="weekly-products-sold">0</p>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="card">
+            <h4 class="section-header">Patient Balance</h4>
+            <div class="patient-balance-container">
+                <table class="patient-balance-table">
+                    <thead>
+                        <tr>
+                            <th style="padding: 8px; text-align: center; width: 50%;">Name</th>
+                            <th style="padding: 8px; text-align: center; width: 25%;">Balance</th>
+                            <th style="padding: 8px; text-align: center; width: 25%;">Date End</th>
+                        </tr>
+                    </thead>
+                </table>
+                <div class="table-scroll">
+                    <table class="patient-balance-table">
+                        <tbody id="weekly-patient-balance-body">
+                            <!-- Dynamic content will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Sold Section -->
+    <div class="products-sold-section">
+        <div class="card">
+            <h4 class="section-header">Products Sold</h4>
+            <div class="table-container"> <!-- ✅ Added Scrollable Container -->
+                <table class="weekly-products-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Brand</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody id="weekly-products-table-body"></tbody>
+                </table>
+            </div>
+            <p id="weekly-no-products-message" style="text-align: center; display: none;">No products sold this week.</p>
+        </div>
+    </div>
+
+</div>
+
+<!-- Styles -->
+<link rel="stylesheet" href="{% static 'css/weekly_sales.css' %}">
+
+<!-- JavaScript -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const weeklyPicker = document.getElementById("weekly-picker");
+
+        function getAdjustedWeekDates(weekValue) {
+            let [year, week] = weekValue.split("-W");
+            year = parseInt(year);
+            week = parseInt(week);
+
+            let firstDayOfYear = new Date(year, 0, 1);
+            let daysOffset = (8 - firstDayOfYear.getDay()) % 7;
+            let firstMonday = new Date(year, 0, 1 + daysOffset);
+
+            let weekStartDate = new Date(firstMonday);
+            weekStartDate.setDate(weekStartDate.getDate() + (week - 1) * 7);
+
+            let weekEndDate = new Date(weekStartDate);
+            weekEndDate.setDate(weekStartDate.getDate() + 5);
+
+            return { start: weekStartDate, end: weekEndDate };
+        }
+
+        function fetchWeeklySales(selectedWeek) {
+            let { start, end } = getAdjustedWeekDates(selectedWeek);
+
+            fetch(`/api/sales/weekly/?date=${start.toISOString().split("T")[0]}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("weekly-earnings").textContent = `₱ ${data.total_sales}`;
+                    document.getElementById("weekly-products-sold").textContent = data.products_sold_count;
+
+                    // ✅ Update Patient Balance Table
+                    const tableBody = document.getElementById("weekly-patient-balance-body");
+                    tableBody.innerHTML = "";
+
+                    if (data.patient_balances.length === 0) {
+                        tableBody.innerHTML = `
+                            <tr>
+                                <td colspan="3" style="text-align: center; padding: 8px;">No patient balance.</td>
+                            </tr>
+                        `;
+                    } else {
+                        data.patient_balances.forEach(balance => {
+                            const row = document.createElement("tr");
+
+                            row.innerHTML = `
+                                <td style="padding: 8px; text-align: left; width: 50%;">${balance.patient_name}</td>
+                                <td style="padding: 8px; text-align: center; width: 25%;">₱ ${balance.previous_balance}</td>
+                                <td style="padding: 8px; text-align: center; width: 25%;">${balance.payment_duration_date}</td>
+                            `;
+
+                            tableBody.appendChild(row);
+                        });
+                    }
+
+                    // ✅ Update Products Sold Table
+                    const productsTableBody = document.getElementById("weekly-products-table-body");
+                    productsTableBody.innerHTML = "";
+                    if (data.products_sold.length > 0) {
+                        data.products_sold.forEach(product => {
+                            const row = `<tr>
+                                <td>${product.category}</td>
+                                <td>${product.brand}</td>
+                                <td>${product.quantity}</td>
+                                <td>₱ ${product.price}</td>
+                            </tr>`;
+                            productsTableBody.innerHTML += row;
+                        });
+                        document.getElementById("weekly-no-products-message").style.display = "none";
+                    } else {
+                        document.getElementById("weekly-no-products-message").style.display = "block";
+                    }
+                })
+                .catch(error => console.error("Error fetching weekly sales:", error));
+        }
+
+        weeklyPicker.addEventListener("change", () => {
+            fetchWeeklySales(weeklyPicker.value);
+        });
+
+        let today = new Date();
+        let weekNumber = Math.ceil(((today - new Date(today.getFullYear(), 0, 1)) / (24 * 60 * 60 * 1000) + today.getDay() + 1) / 7);
+        weeklyPicker.value = `${today.getFullYear()}-W${String(weekNumber).padStart(2, "0")}`;
+        fetchWeeklySales(weeklyPicker.value);
+    });
+</script>
+
+{% endblock %}
