@@ -63,7 +63,7 @@
     <div class="products-sold-section">
         <div class="card">
             <h4 class="section-header">Products Sold</h4>
-            <div class="table-container"> <!-- ✅ Added Scrollable Container -->
+            <div class="table-container"> <!-- ✅ Scrollable Container -->
                 <table class="weekly-products-table">
                     <thead>
                         <tr>
@@ -71,6 +71,7 @@
                             <th>Brand</th>
                             <th>Quantity</th>
                             <th>Price</th>
+                            <th>Initial Payment</th> <!-- ✅ New Column -->
                         </tr>
                     </thead>
                     <tbody id="weekly-products-table-body"></tbody>
@@ -79,6 +80,7 @@
             <p id="weekly-no-products-message" style="text-align: center; display: none;">No products sold this week.</p>
         </div>
     </div>
+
 
 </div>
 
@@ -89,38 +91,38 @@
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         const weeklyPicker = document.getElementById("weekly-picker");
-
+    
         function getAdjustedWeekDates(weekValue) {
             let [year, week] = weekValue.split("-W");
             year = parseInt(year);
             week = parseInt(week);
-
+    
             let firstDayOfYear = new Date(year, 0, 1);
             let daysOffset = (8 - firstDayOfYear.getDay()) % 7;
             let firstMonday = new Date(year, 0, 1 + daysOffset);
-
+    
             let weekStartDate = new Date(firstMonday);
             weekStartDate.setDate(weekStartDate.getDate() + (week - 1) * 7);
-
+    
             let weekEndDate = new Date(weekStartDate);
             weekEndDate.setDate(weekStartDate.getDate() + 5);
-
+    
             return { start: weekStartDate, end: weekEndDate };
         }
-
+    
         function fetchWeeklySales(selectedWeek) {
             let { start, end } = getAdjustedWeekDates(selectedWeek);
-
+    
             fetch(`/api/sales/weekly/?date=${start.toISOString().split("T")[0]}`)
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById("weekly-earnings").textContent = `₱ ${data.total_sales}`;
                     document.getElementById("weekly-products-sold").textContent = data.products_sold_count;
-
+    
                     // ✅ Update Patient Balance Table
                     const tableBody = document.getElementById("weekly-patient-balance-body");
                     tableBody.innerHTML = "";
-
+    
                     if (data.patient_balances.length === 0) {
                         tableBody.innerHTML = `
                             <tr>
@@ -130,17 +132,17 @@
                     } else {
                         data.patient_balances.forEach(balance => {
                             const row = document.createElement("tr");
-
+    
                             row.innerHTML = `
                                 <td style="padding: 8px; text-align: left; width: 50%;">${balance.patient_name}</td>
                                 <td style="padding: 8px; text-align: center; width: 25%;">₱ ${balance.previous_balance}</td>
                                 <td style="padding: 8px; text-align: center; width: 25%;">${balance.payment_duration_date}</td>
                             `;
-
+    
                             tableBody.appendChild(row);
                         });
                     }
-
+    
                     // ✅ Update Products Sold Table
                     const productsTableBody = document.getElementById("weekly-products-table-body");
                     productsTableBody.innerHTML = "";
@@ -151,6 +153,7 @@
                                 <td>${product.brand}</td>
                                 <td>${product.quantity}</td>
                                 <td>₱ ${product.price}</td>
+                                <td>₱ ${product.initial_payment}</td> <!-- ✅ New Column -->
                             </tr>`;
                             productsTableBody.innerHTML += row;
                         });
@@ -161,16 +164,17 @@
                 })
                 .catch(error => console.error("Error fetching weekly sales:", error));
         }
-
+    
         weeklyPicker.addEventListener("change", () => {
             fetchWeeklySales(weeklyPicker.value);
         });
-
+    
         let today = new Date();
         let weekNumber = Math.ceil(((today - new Date(today.getFullYear(), 0, 1)) / (24 * 60 * 60 * 1000) + today.getDay() + 1) / 7);
         weeklyPicker.value = `${today.getFullYear()}-W${String(weekNumber).padStart(2, "0")}`;
         fetchWeeklySales(weeklyPicker.value);
     });
+    
 </script>
 
 {% endblock %}

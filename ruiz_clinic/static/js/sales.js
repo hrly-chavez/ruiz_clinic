@@ -31,6 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <td>${product.brand || "N/A"}</td>
                             <td>${product.qty || 0}</td>
                             <td>₱ ${product.price || 0}</td>
+                            <td>₱ ${product.initial_payment || 0}</td> <!-- Added Initial Payment column -->
                         `;
                         tableBody.appendChild(row);
                     });

@@ -163,6 +163,7 @@ class CheckUpHistory(models.Model):
         return f"Check-Up on {self.date_checked_up} for {self.patient.patient_fname} {self.patient.patient_lname}"
     class Meta:
         get_latest_by = 'date_checked_up'  # This ensures that 'latest()' knows which field to order by
+        
 class Appointment(models.Model):
     app_status_choices = [
         ('Ongoing', 'Ongoing'),

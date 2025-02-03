@@ -16,7 +16,7 @@
 }
 
 /* Header */
-/* .header {
+.header {
     height: 120px;
     padding: 0 20px;
     background: linear-gradient(135deg, #2db9fa, #1a8cd8);
@@ -31,7 +31,7 @@
 .header h3 {
     font-size: 36px;
     font-weight: 600;
-} */
+}
 
 /* Main Layout */
 .main-layout {
@@ -136,15 +136,20 @@
     border-collapse: collapse;
     border-radius: 12px;
     overflow: hidden;
+    table-layout: fixed; /* Ensures all columns take equal width */
 }
 
+/* Column Width for Table Headers and Data Cells */
 .weekly-products-table th, 
 .weekly-products-table td {
     border: 1px solid #ddd;
     padding: 12px;
     text-align: center;
+    width: 20%; /* Ensures equal width for all five columns */
+    word-wrap: break-word; /* Ensures content wraps properly */
 }
 
+/* Header Styling */
 .weekly-products-table th {
     background: linear-gradient(135deg, #2db9fa, #1a8cd8);
     color: white;
@@ -152,10 +157,12 @@
     font-weight: bold;
 }
 
+/* Alternate Row Background */
 .weekly-products-table tbody tr:nth-child(odd) {
     background-color: #f9f9f9;
 }
 
+/* Hover Effect */
 .weekly-products-table tbody tr:hover {
     background-color: #e3f2fd;
 }

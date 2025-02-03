@@ -16,7 +16,7 @@
 }
 
 /* Header */
-/* .header {
+.header {
     height: 125px;
     padding: 0 20px;
     background: linear-gradient(135deg, #2db9fa, #1a8cd8);
@@ -31,7 +31,7 @@
 .header h3 {
     font-size: 40px;
     font-weight: 600;
-} */
+}
 
 /* Main Layout */
 .main-layout {
@@ -143,11 +143,8 @@
 .monthly-products-table {
     width: 100%;
     border-collapse: collapse;
-    border-radius: 12px;
-    overflow: hidden;
 }
 
-/* Ensure the header has the gradient */
 .monthly-products-table thead {
     display: table;
     width: 100%;
@@ -178,7 +175,6 @@
 .monthly-products-table tbody {
     display: block;
     max-height: 150px;
-    overflow-y: auto;
     width: 100%;
 }
 
