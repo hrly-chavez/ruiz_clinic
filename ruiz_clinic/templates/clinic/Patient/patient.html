@@ -62,7 +62,13 @@
                     <td>{{ patient.patient_initial }}</td>
                     <td>{{ patient.patient_address }}</td>
                     <td>{{ patient.patient_occupation }}</td>
-                    <td>{{ patient.patient_date_checked_up|date:"Y-m-d" }}</td>
+                    <td>
+                        {% if patient.checkup_history.exists %}
+                            {{ patient.last_checkup_date }}
+                        {% else %}
+                            No Check-Up History
+                        {% endif %}
+                    </td>
                     <td>{{ patient.patient_contact }}</td>
                     <td>
                         <a href="{% url 'patient_detail' patient_id=patient.patient_id %}" class="btn btn-info btn-sm text-white" style="border-radius: 5px;">

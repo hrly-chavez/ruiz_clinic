@@ -18,7 +18,16 @@
             <!-- Patient Information -->
             <div class="row mb-4">
                 <div class="col-md-6">
-                    <p><strong style="font-size: 15px;">Date Checked Up:</strong> {{ patient.patient_date_checked_up}}</p>
+                    <p><strong style="font-size: 15px;">Date Checked Up:</strong> {{ latest_checkup.date_checked_up }}</p>
+                    <ul style="font-size: 14px;">
+                        {% if checkup_history %}
+                            {% for checkup in checkup_history %}
+                                <li>{{ checkup.date_checked_up|date:"M. d, Y" }}</li>
+                            {% endfor %}
+                        {% else %}
+                            <li>No check-up history available</li>
+                        {% endif %}
+                    </ul>
                     <p><strong style="font-size: 15px;">Birthdate:</strong> {{ patient.patient_birthdate }}</p>
                     <p><strong style="font-size: 15px;">Age:</strong> {{ patient.age }}</p>
                     <p><strong style="font-size: 15px;">Occupation:</strong> {{ patient.patient_occupation }}</p>
@@ -50,6 +59,7 @@
                             <th>Purchase Status</th>
                             <th>Paid</th>
                             <th>To Be Paid</th>
+                            <th>Date Purchased</th>
                             <th>Date Out</th>
                             <th>Action</th>
                         </tr>
@@ -63,6 +73,7 @@
                             <td>{{ purchase.pur_stat }}</td>
                             <td>₱{{ purchase.payment_id.payment_payed }}</td>
                             <td>₱{{ purchase.payment_id.payment_to_be_payed }}</td>
+                            <td>{{ purchase.pur_date_purchased|date:"M. d, Y" }}</td>
                             <td>{{ purchase.item_date_out|default:"None"|date:"M. d, Y" }}</td>
                             <td>
                                 <!-- Edit Button -->

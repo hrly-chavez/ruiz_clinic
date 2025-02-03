@@ -41,13 +41,12 @@ class ItemForm(forms.ModelForm):
 
 #_____________________________________PATIENT__________________________________________________
 class PatientForm(forms.ModelForm):
-
     class Meta:
         model = Patient
         fields = [
             'patient_fname', 'patient_lname', 'patient_initial', 
             'patient_address', 'patient_occupation', 
-            'patient_date_checked_up','patient_birthdate', 'patient_contact','doctor_id','patient_diag'
+            'patient_birthdate', 'patient_contact','doctor_id','patient_diag'
         ]
         widgets = {
             'patient_fname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter first name'}),
@@ -55,7 +54,7 @@ class PatientForm(forms.ModelForm):
             'patient_initial': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter initial'}),
             'patient_address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter address'}),
             'patient_occupation': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter occupation(Optional)'}),
-            'patient_date_checked_up': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            
             'patient_birthdate': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'patient_contact': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter contact number'}),
             'doctor_id': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Checked by'}),
@@ -68,7 +67,7 @@ class PatientForm(forms.ModelForm):
             'patient_initial': 'Initial',
             'patient_address': 'Address',
             'patient_occupation': 'Occupation',
-            'patient_date_checked_up': 'Date Checked Up',
+            
             'patient_birthdate': 'Birthdate',
             'patient_contact': 'Contact',
             'doctor_id': 'Doctor',
@@ -80,7 +79,20 @@ class PatientForm(forms.ModelForm):
         if date > now().date():
             raise ValidationError("Check-up date cannot be in the future")
         return date
-
+    
+class CheckUpHistoryForm(forms.ModelForm):
+    class Meta:
+        model = CheckUpHistory
+        fields = ['date_checked_up']
+        widgets = {
+            'date_checked_up': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            
+        }
+        labels = {
+            'date_checked_up': 'Date Checked Up',
+            
+        }
+        
 class PurchasedItemForm(forms.ModelForm):
     item_date_out = forms.DateField(
         required=False,  # Make the date optional

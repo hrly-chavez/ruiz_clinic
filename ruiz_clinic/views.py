@@ -732,6 +732,33 @@ def patient(request):
     })
 
 # @login_required
+# def patient_detail(request, patient_id):
+#     # Fetch the patient object with related purchased items and their associated details
+#     patient = get_object_or_404(
+#         Patient.objects.prefetch_related(
+#             Prefetch(
+#                 'purchased_item_set',  # Related name for Purchased_Item
+#                 queryset=Purchased_Item.objects.select_related(
+#                     'item_code',  # Fetch related Item for brand and model
+#                     'payment_id'  # Fetch related Payment for payment details
+#                 )
+#             )
+#         ),
+#         patient_id=patient_id
+#     )
+    
+#     # Create the form, passing the patient to pre-fill the patient_id field
+#     form = PurchasedItemForm(request.POST or None, patient=patient)
+
+#     if form.is_valid():
+#         form.save()
+#         # Redirect to a success page or handle the success case
+#         return redirect('success_url')  # Replace with actual success URL
+    
+#     return render(request, 'clinic/Patient/patient_detail.html', {
+#         'patient': patient,
+#         'form': form
+#     })
 def patient_detail(request, patient_id):
     # Fetch the patient object with related purchased items and their associated details
     patient = get_object_or_404(
@@ -742,11 +769,18 @@ def patient_detail(request, patient_id):
                     'item_code',  # Fetch related Item for brand and model
                     'payment_id'  # Fetch related Payment for payment details
                 )
-            )
+            ),
+            'checkup_history'  # Prefetch the related checkup history to avoid extra queries
         ),
         patient_id=patient_id
     )
     
+    # Fetch the latest check-up date
+    latest_checkup = patient.checkup_history.order_by('-date_checked_up').first()
+
+    # Get all check-up history (if needed)
+    checkup_history = patient.checkup_history.all().order_by('-date_checked_up')  # This will fetch all check-up entries
+
     # Create the form, passing the patient to pre-fill the patient_id field
     form = PurchasedItemForm(request.POST or None, patient=patient)
 
@@ -757,46 +791,71 @@ def patient_detail(request, patient_id):
     
     return render(request, 'clinic/Patient/patient_detail.html', {
         'patient': patient,
+        'latest_checkup': latest_checkup,
+        'checkup_history': checkup_history,  # Make sure this is being passed to the template
         'form': form
     })
 
+
 def edit_patient(request, patient_id):
-    # Fetch the patient object or return 404 if not found
     patient = get_object_or_404(Patient, pk=patient_id)
-    
+    form = PatientForm(request.POST or None, instance=patient)
+    checkup_form = CheckUpHistoryForm(request.POST or None)
+
     if request.method == 'POST':
-        # Bind data from the form to the patient instance
-        form = PatientForm(request.POST, instance=patient)
+        # Handle saving the patient form
         if form.is_valid():
             form.save()
-            return redirect('patient')  # Redirect to the patient list page
-    else:
-        # Prepopulate the form with the patient's current data
-        form = PatientForm(instance=patient)
 
-    return render(request, 'clinic/Patient/edit_patient.html', {'form': form})
+        # Handle saving the new check-up entry
+        if checkup_form.is_valid():
+            checkup_entry = checkup_form.save(commit=False)
+            checkup_entry.patient = patient  # Associate the new check-up with the patient
+            checkup_entry.save()
 
-# @login_required
+            # Update the patient's last check-up date after saving the check-up entry
+            patient.patient_date_checked_up = checkup_entry.date_checked_up
+            patient.save()
+
+        return redirect('patient')  # Redirect to patient list page after saving
+
+    # Get the latest check-up (most recent)
+    latest_checkup = patient.checkup_history.order_by('-date_checked_up').first()
+
+    # Get all the check-up history in reverse order (latest first)
+    checkup_history = patient.checkup_history.all().order_by('-date_checked_up')
+
+    return render(request, 'clinic/Patient/edit_patient.html', {
+        'form': form,
+        'checkup_form': checkup_form,
+        'checkup_history': checkup_history,
+        'latest_checkup': latest_checkup  # Pass the latest check-up
+    })
+
+
 def add_patient(request):
     if request.method == 'POST':
         patient_form = PatientForm(request.POST)
+        checkup_form = CheckUpHistoryForm(request.POST)
 
-        if patient_form.is_valid():
-            patient = patient_form.save(commit=False)
-            if not patient.patient_date_checked_up:
-                patient.patient_date_checked_up = now()
-            patient.save()
+        if patient_form.is_valid() and checkup_form.is_valid():
+            patient = patient_form.save()  # Save Patient first
+            
+            # Save Check-Up History
+            checkup = checkup_form.save(commit=False)
+            checkup.patient = patient
+            checkup.save()
 
-            #messages.success(request, "Patient added successfully!")
-            return redirect('patient')
+            return redirect('patient')  # Redirect to patient list
         else:
             messages.error(request, "There was an error adding the patient.")
-
     else:
-        patient_form = PatientForm(initial={'patient_date_checked_up': now()})
+        patient_form = PatientForm()
+        checkup_form = CheckUpHistoryForm(initial={'date_checked_up': now().date()})  # Default to today's date
 
     return render(request, 'clinic/Patient/add_patient.html', {
         'patient_form': patient_form,
+        'checkup_form': checkup_form,
     })
 
 # @login_required
@@ -826,105 +885,7 @@ def search_patients(request):
 # @login_required
 
 #Working correctly
-# def add_purchased_item(request, patient_id):
-#     patient = get_object_or_404(Patient, patient_id=patient_id)
-#     purchased_item_form = PurchasedItemForm(request.POST or None, patient=patient)
-#     payment_form = ItemPaymentForm(request.POST or None)
-#     payment_duration_form = PaymentDurationForm(request.POST or None)  # Add PaymentDurationForm
 
-#     if request.method == 'POST':
-#         if purchased_item_form.is_valid() and payment_form.is_valid():
-#             purchased_item = purchased_item_form.save(commit=False)
-#             payment = payment_form.save(commit=False)
-
-#             # Get the selected item
-#             item = purchased_item.item_code
-
-#             item_price = item.item_price
-
-#             # Ensure payment_to_be_payed is initialized
-#             if payment.payment_to_be_payed is None:
-#                 payment.payment_to_be_payed = item_price
-            
-#             # Set current payment
-#             payment.current_payment = payment_form.cleaned_data['current_payment']
-
-#             # Validate current payment
-#             if payment.current_payment > payment.payment_to_be_payed:
-#                 messages.error(request, "Current payment exceeds the remaining balance.")
-#                 return render(request, 'clinic/Patient/patient_bought.html', {
-#                     'purchased_item_form': purchased_item_form,
-#                     'payment_form': payment_form,
-#                     'payment_duration_form': payment_duration_form,
-#                     'patient': patient,
-#                 })
-
-#             # Error trapping for item quantity (only check after payment validation)
-#             if item.item_quantity <= 0:
-#                 messages.error(request, f"The item is out of stock.")
-#                 return render(request, 'clinic/Patient/patient_bought.html', {
-#                     'purchased_item_form': purchased_item_form,
-#                     'payment_form': payment_form,
-#                     'payment_duration_form': payment_duration_form,
-#                     'patient': patient,
-#                 })
-
-#             # Deduct item quantity and ensure no negative stock
-#             item.item_quantity -= 1
-#             if item.item_quantity < 0:
-#                 messages.error(request, f"Not enough stock for '{item.item_name}'.")
-#                 return render(request, 'clinic/Patient/patient_bought.html', {
-#                     'purchased_item_form': purchased_item_form,
-#                     'payment_form': payment_form,
-#                     'payment_duration_form': payment_duration_form,
-#                     'patient': patient,
-#                 })
-
-#             # Save the updated item quantity
-#             item.save()
-
-#             # Calculate payment details
-#             payment.payment_payed = payment.current_payment if not payment.pk else payment.payment_payed + payment.current_payment
-#             payment.payment_to_be_payed = item_price - payment.payment_payed
-
-#             # Handle payment duration for installment terms
-#             if payment.payment_terms == 'Installment':
-#                 if payment_duration_form.is_valid():
-#                     payment_duration = payment_duration_form.save()
-#                     payment.payment_duration = payment_duration
-#                     purchased_item.pur_stat = 'For follow up'
-#                 else:
-#                     messages.error(request, "Please fill out the payment duration details correctly.")
-#                     return render(request, 'clinic/Patient/patient_bought.html', {
-#                         'purchased_item_form': purchased_item_form,
-#                         'payment_form': payment_form,
-#                         'payment_duration_form': payment_duration_form,
-#                         'patient': patient,
-#                     })
-#             else:
-#                 purchased_item.pur_stat = 'For Release'
-
-#             # Save payment and associate it with the purchased item
-#             payment.save()
-#             purchased_item.payment_id = payment
-#             purchased_item.patient_id = patient
-
-#             # Explicitly set the purchase date for the purchased item
-#             purchased_item.pur_date_purchased = now().date()
-
-#             purchased_item.save()
-
-#             # messages.success(request, "Item and payment added successfully!")
-#             return redirect('patient_detail', patient_id=patient_id)
-#         else:
-#             messages.error(request, "There was an error adding the item or payment.")
-    
-#     return render(request, 'clinic/Patient/patient_bought.html', {
-#         'purchased_item_form': purchased_item_form,
-#         'payment_form': payment_form,
-#         'payment_duration_form': PaymentDurationForm(),  # Pass a new instance
-#         'patient': patient,
-#     })
 
 def add_purchased_item(request, patient_id):
     patient = get_object_or_404(Patient, patient_id=patient_id)

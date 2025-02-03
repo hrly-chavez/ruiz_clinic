@@ -16,13 +16,15 @@
      <!-- Item Selection -->
      <div class="form-inputs">
         <label for="item_code">Item:</label>
-        <select name="item_code" id="item_code" required>
-            {% for item in items %}
-                <option value="{{ item.item_code }}" {% if item.item_code == purchased_item.item_code.item_code %}selected{% endif %}>
-                    {{ item.item_brand }} | {{ item.item_model }}
-                </option>
-            {% endfor %}
-        </select>
+        <div class="input-container">
+            <p>
+                {% for item in items %}
+                    {% if item.item_code == purchased_item.item_code.item_code %}
+                        {{ item.item_brand }} | {{ item.item_model }}
+                    {% endif %}
+                {% endfor %}
+            </p>
+        </div>
     </div>
 
     <div class="form-inputs">
@@ -82,13 +84,13 @@
         <!-- Payment Paid -->
         <div class="form-inputs">
             <label for="payment_payed">Payment Paid:</label>
-            <input type="number" name="payment_payed" id="payment_payed" step="0.01" value="{{ payment.payment_payed }}">
+            <input type="number" name="payment_payed" id="payment_payed" step="0.01" value="{{ payment.payment_payed }}" readonly>
         </div>
 
         <!-- Total Payment -->
         <div class="form-inputs">
             <label for="payment_to_be_payed">Total Payment:</label>
-            <input type="number" name="payment_to_be_payed" id="payment_to_be_payed" step="0.01" value="{{ payment.payment_to_be_payed }}">
+            <input type="number" name="payment_to_be_payed" id="payment_to_be_payed" step="0.01" value="{{ payment.payment_to_be_payed }}" readonly>
         </div>
         <!-- Form Buttons -->
         <div class="form-buttons">

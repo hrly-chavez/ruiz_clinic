@@ -14,8 +14,9 @@
     <form method="post">
         {% csrf_token %}
         <div class="form-inputs">
-            <h3 style="font-family: 'Istok Web', sans-serif; font-size: 24px; color: #333; margin-bottom: 20px;">Patient Details</h3>
+            <h3>Patient Details</h3>
             {{ patient_form.as_p }}
+            {{ checkup_form.as_p }}
         </div>
         
         <div class="form-buttons">

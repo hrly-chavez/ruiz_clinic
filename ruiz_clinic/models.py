@@ -133,22 +133,36 @@ class Patient(models.Model):
     patient_fname = models.CharField(max_length=50)
     patient_lname = models.CharField(max_length=100)
     patient_initial = models.CharField(max_length=1, null=True, blank=True)
-    patient_date_checked_up = models.DateField(default=now)
     patient_address = models.CharField(max_length=400)
     patient_occupation = models.CharField(max_length=500, null=True, blank=True)
     patient_birthdate = models.DateField()
     patient_contact = models.CharField(max_length=13)
     patient_diag = models.TextField(null=True, blank=True)
-    pur_id = models.ForeignKey(Purchased_Item, null=True, blank=True, on_delete=models.SET_NULL)
-    payment_id = models.ForeignKey(Payment, null=True, blank=True, on_delete=models.SET_NULL)
-    doctor_id = models.ForeignKey(Doctor, null=True, blank=True, on_delete=models.SET_NULL)  
+    pur_id = models.ForeignKey('Purchased_Item', null=True, blank=True, on_delete=models.SET_NULL)
+    payment_id = models.ForeignKey('Payment', null=True, blank=True, on_delete=models.SET_NULL)
+    doctor_id = models.ForeignKey('Doctor', null=True, blank=True, on_delete=models.SET_NULL)
+    patient_date_checked_up = models.DateField(null=True, blank=True)  # This will store the latest check-up date
+
+    def last_checkup_date(self):
+        """Get the most recent check-up date."""
+        last_checkup = self.checkup_history.order_by('-date_checked_up').first()
+        return last_checkup.date_checked_up if last_checkup else "No check-up history"
     def age(self):
         today = date.today()
         return today.year - self.patient_birthdate.year - ((today.month, today.day) < (self.patient_birthdate.month, self.patient_birthdate.day))
 
     def __str__(self):
-        return f"{self.patient_fname}, {self.patient_fname}, - Diagnosed with {self.patient_diag[:30]} ,{self.pur_id}, {self.payment_id}"
+        return f"{self.patient_fname} {self.patient_lname} - Last Check-up: {self.last_checkup_date()}"
 
+
+class CheckUpHistory(models.Model):
+    patient = models.ForeignKey('Patient', on_delete=models.CASCADE, related_name='checkup_history')
+    date_checked_up = models.DateField(default=now)
+    
+    def __str__(self):
+        return f"Check-Up on {self.date_checked_up} for {self.patient.patient_fname} {self.patient.patient_lname}"
+    class Meta:
+        get_latest_by = 'date_checked_up'  # This ensures that 'latest()' knows which field to order by
 class Appointment(models.Model):
     app_status_choices = [
         ('Ongoing', 'Ongoing'),
