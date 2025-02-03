@@ -1,24 +1,74 @@
 /* appointment.css */
 
-/* Header Styles */
+/* Improved Appointment Header */
 .appointment-header {
-    padding: 20px;
-    background-color: #2db9fae8;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    height: 90px;
     display: flex;
     align-items: center;
-    margin: 0;
     justify-content: space-between;
+    padding: 20px 30px;
+    background: linear-gradient(135deg, #2db9fa, #4186d4); /* Gradient effect */
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15); /* Soft shadow */
+    border-radius: 10px;
+    height: 100px;
+    margin: 20px 0;
+    position: relative;
 }
 
+/* Title Styling */
 .appointment-header h1 {
     color: #fff;
-    font-size: 37px;
-    font-family: 'Istok Web', sans-serif;
-    font-weight: normal;
+    font-size: 40px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    margin: 0;
 }
+
+/* Animated Underline */
+.appointment-header h1::after {
+    content: "";
+    display: block;
+    width: 80px;
+    height: 4px;
+    background: #fff;
+    margin-top: 5px;
+    border-radius: 2px;
+    transition: width 0.3s ease-in-out;
+}
+
+.appointment-header:hover h1::after {
+    width: 850px; /* Expands underline on hover */
+}
+
+/* Floating Calendar Icon */
+.appointment-header::before {
+    content: "\f073"; /* FontAwesome Calendar Icon */
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    font-size: 60px;
+    color: rgba(255, 255, 255, 0.3);
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Responsive Header for Mobile */
+@media (max-width: 768px) {
+    .appointment-header {
+        flex-direction: column;
+        text-align: center;
+        height: auto;
+        padding: 20px;
+    }
+
+    .appointment-header::before {
+        font-size: 40px;
+        right: 10px;
+    }
+}
+
 
 .appointments-list {
     display: flex;
@@ -106,13 +156,6 @@
 .modal-content select:focus {
     border-color: #4186d4;
     outline: none;
-}
-
-/* Buttons */
-.modal-actions {
-    margin-top: 20px;
-    display: flex;
-    justify-content: space-between;
 }
 
 .btn {
@@ -380,37 +423,37 @@
     background-color: #2980b9;
 }
 
+/* Edit Button */
 #editAppointmentBtn {
-    background-color: #4186d4; /* Green background */
-    color: white; /* White text */
-    border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+    background: linear-gradient(135deg, #4a90e2, #2db9fa);
+    color: white;
+    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.2);
 }
 
+#editAppointmentBtn:hover {
+    transform: scale(1.05);
+}
+
+/* Delete Button */
 #cancelAppointmentBtn {
-    background-color: rgb(255, 63, 63); /* Green background */
-    color: white; /* White text */
-    border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.2);
 }
 
+#cancelAppointmentBtn:hover {
+    transform: scale(1.05);
+}
+
+/* Close Button */
 #closeModalButton {
-    background-color: grey; /* Green background */
-    color: white; /* White text */
-    border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+    background: #6c757d;
+    color: white;
+}
+
+#closeModalButton:hover {
+    background: #555;
+    transform: scale(1.05);
 }
 
 /* Create/Edit Button */
@@ -619,4 +662,51 @@
         opacity: 0;
         display: none;
     }
+}
+
+
+
+/* Enhance Text Formatting */
+#appointmentDetails p {
+    font-size: 16px;
+    margin: 12px 0;
+    padding: 8px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.1);
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Style for Strong Labels */
+#appointmentDetails p strong {
+    font-weight: 600;
+    color: #333;
+}
+
+/* Add Hover Effect for Each Detail Row */
+#appointmentDetails p:hover {
+    background: #eef6ff; /* Light blue hover */
+    border-color: #2db9fa;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Modal Buttons Section */
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+/* Button Enhancements */
+.modal-actions button {
+    flex: 1;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out, transform 0.2s;
 }
