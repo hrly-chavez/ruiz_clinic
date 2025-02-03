@@ -16,7 +16,7 @@
 }
 
 /* Header */
-.header {
+/* .header {
     height: 120px;
     padding: 0 20px;
     background: linear-gradient(135deg, #2db9fa, #1a8cd8);
@@ -31,7 +31,7 @@
 .header h3 {
     font-size: 36px;
     font-weight: 600;
-}
+} */
 
 /* Main Layout */
 .main-layout {
@@ -162,7 +162,7 @@
 
 
 /* Date Picker */
-.date-picker {
+/* .date-picker {
     padding: 10px 15px;
     font-size: 16px;
     border-radius: 8px;
@@ -185,7 +185,7 @@
     outline: none;
     border-color: #1a8cd8;
     box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
-}
+} */
 
 /* Scrollbar Customization */
 .patient-balance-table tbody::-webkit-scrollbar {
@@ -202,7 +202,7 @@
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+/* @media (max-width: 768px) {
     .main-layout {
         grid-template-columns: 1fr;
     }
@@ -218,7 +218,7 @@
         font-size: 28px;
         margin-bottom: 10px;
     }
-}
+} */
 
 /* Make the Products Sold table scrollable */
 .table-container {
@@ -245,4 +245,29 @@
     top: 0;
     background-color: #f8f9fa; /* Light background for better visibility */
     z-index: 1;
+}
+
+.weekly_button, .monthly_button {
+    width: 100px;
+    padding: 5px;
+    background-color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.3s ease; 
+    font-weight: 500; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.weekly_button:hover {
+    background-color: #0288d1; /* Darker blue on hover */
+    color: #ffffff; /* Keep text white */
+    transform: translateY(-2px); /* Slight lift on hover */
+    box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
+}
+.monthly_button:hover {
+    background-color: #0288d1; /* Darker blue on hover */
+    color: #ffffff; /* Keep text white */
+    transform: translateY(-2px); /* Slight lift on hover */
+    box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
 }

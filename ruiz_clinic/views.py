@@ -1262,7 +1262,7 @@ def weekly_sales_api(request):
         return JsonResponse({"error": "Invalid date format"}, status=400)
 
     week_start = selected_date - timedelta(days=selected_date.weekday())  # Monday
-    week_end = week_start + timedelta(days=5)  # Saturday
+    week_end = week_start + timedelta(days=6)  # Saturday
 
     # Get total earnings for the week
     total_sales = Sales.objects.filter(sales_date__range=[week_start, week_end]).aggregate(total=Sum("sales_total"))["total"] or 0.0
