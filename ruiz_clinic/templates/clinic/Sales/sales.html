@@ -6,8 +6,11 @@
 <div class="sales-container">
     <!-- Header -->
     <div class="header" style="position: relative; height: 125px; padding: 0 20px; background-color: #2db9fa; display: flex; align-items: center;">
-        <h3 style="color: #fff; font-size: 40px; font-family: 'Montserrat', sans-serif; font-weight: normal; margin: 0;">SALES</h3>
+        <h3 style="color: #fff; font-size: 40px; font-family: 'Montserrat', sans-serif; font-weight: normal; margin: 0;">SALES DAILY</h3>
         <div class="filter-section" style="position: absolute; bottom: 10px; right: 20px;">
+            <a href="{% url 'sales_page' %}">
+                <button class="weekly_button">Daily</button>
+            </a>
             <a href="{% url 'weekly_sales' %}">
                 <button class="weekly_button">Weekly</button>
             </a>
