@@ -4,8 +4,5 @@ from .models import *
 
 admin.site.register(Item_Category)
 admin.site.register(Item_Frame_Type)
-admin.site.register(Sales)
-admin.site.register(Payment_Duration)
-admin.site.register(Purchased_Item)
-admin.site.register(Patient)
 admin.site.register(Account)
+admin.site.register(Doctor)

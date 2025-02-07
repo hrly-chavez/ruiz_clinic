@@ -47,7 +47,7 @@ class PatientForm(forms.ModelForm):
         fields = [
             'patient_fname', 'patient_lname', 'patient_initial', 
             'patient_address', 'patient_occupation', 
-            'patient_date_checked_up','patient_birthdate', 'patient_contact','patient_diag'
+            'patient_date_checked_up','patient_birthdate', 'patient_contact','patient_diag','doctor_id'
         ]
         widgets = {
             'patient_fname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter first name'}),
@@ -59,6 +59,7 @@ class PatientForm(forms.ModelForm):
             'patient_birthdate': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'patient_contact': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter contact number'}),
             'patient_diag': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Diagnosed with..'}),
+            'doctor_id': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Checked by'}),
             
         }
         labels = {
@@ -71,6 +72,7 @@ class PatientForm(forms.ModelForm):
             'patient_birthdate': 'Birthdate',
             'patient_contact': 'Contact',
             'patient_diag': 'Diagnosed',  
+            'doctor_id': 'Doctor',
             
         }
 
